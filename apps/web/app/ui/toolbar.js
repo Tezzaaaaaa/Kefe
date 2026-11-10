@@ -501,7 +501,10 @@
       t.value = String(v); fire(t, 'input'); emit('text-size', v);
     }
   });
-  lyricPanel.append(h('div', 'kft-rule'), sectionLabel('Text'), field('Font family', fontMenu.trigger), field('Text case', caseMenu.trigger), field('Text size', sizeScrub.el));
+  const makeRule = () => h('div', 'kft-rule shad-separator shad-separator--horizontal', {
+    role: 'none', 'data-slot': 'separator', 'data-orientation': 'horizontal'
+  });
+  lyricPanel.append(makeRule(), sectionLabel('Text'), field('Font family', fontMenu.trigger), field('Text case', caseMenu.trigger), field('Text size', sizeScrub.el));
 
   /* Colour panel: presets + native picker + hex + outline/glow */
   const PRESETS = ['#ffffff', '#ef4444', '#22c55e', '#06b6d4', '#a855f7', '#f59e0b', '#ec4899', '#14b8a6', '#111113', '#8b8b9a'];
@@ -653,7 +656,7 @@
   lockPos.setAttribute('aria-pressed', 'false');
   const resetPos = chip('dock', 'Dock toolbar in preview bar', () => { closePanel(false); redock(); });
   const actionsPanel = makePanel(actionsBtn, 'Actions', 244);
-  actionsPanel.append(resetChip, lockChip, clearChip, h('div', 'kft-rule'), lockPos, resetPos, h('div', 'kft-rule'), checkRow('Compact density', compactToggle), hint);
+  actionsPanel.append(resetChip, lockChip, clearChip, makeRule(), lockPos, resetPos, makeRule(), checkRow('Compact density', compactToggle), hint);
 
   main.append(
     cluster('Layer', grip, moveBtn),
@@ -843,20 +846,24 @@
   }
   function applySnap(st) {
     hist.busy = true;
-    if (st.effect) gallery()?.querySelector('[data-effect="' + CSS.escape(st.effect) + '"]')?.click();
-    const sel = (el, v) => { if (el && v != null && el.value !== v) { el.value = v; fire(el, 'input', 'change'); } };
-    sel(fontSelect(), st.font); sel(caseSelect(), st.case); sel(aspectSelect(), st.aspect); sel(bgSelect(), st.bg); sel(bgDarkness(), st.dark);
-    const sc = styleScale(); if (sc && st.size != null) { sc.value = st.size; fire(sc, 'input'); }
-    const c = styleColor(); if (c && st.colour) { c.value = st.colour; fire(c, 'input', 'change'); }
-    if (st.mode) modeButtons().find(b => b.dataset.mode === st.mode)?.click();
-    const sw = lyricsSwitch(); if (sw && st.lyrics != null && (sw.getAttribute('aria-checked') !== 'false') !== st.lyrics) sw.click();
-    requestAnimationFrame(sync);
-    setTimeout(() => { hist.last = JSON.stringify(snap()); hist.busy = false; sync(); updateHistoryButtons(); }, 450);
+    try {
+      if (st.effect) gallery()?.querySelector('[data-effect="' + CSS.escape(st.effect) + '"]')?.click();
+      const sel = (el, v) => { if (el && v != null && el.value !== v) { el.value = v; fire(el, 'input', 'change'); } };
+      sel(fontSelect(), st.font); sel(caseSelect(), st.case); sel(aspectSelect(), st.aspect); sel(bgSelect(), st.bg); sel(bgDarkness(), st.dark);
+      const sc = styleScale(); if (sc && st.size != null) { sc.value = st.size; fire(sc, 'input'); }
+      const c = styleColor(); if (c && st.colour) { c.value = st.colour; fire(c, 'input', 'change'); }
+      if (st.mode) modeButtons().find(b => b.dataset.mode === st.mode)?.click();
+      const sw = lyricsSwitch(); if (sw && st.lyrics != null && (sw.getAttribute('aria-checked') !== 'false') !== st.lyrics) sw.click();
+      requestAnimationFrame(sync);
+    } finally {
+      setTimeout(() => { hist.last = JSON.stringify(snap()); hist.busy = false; sync(); updateHistoryButtons(); }, 450);
+    }
   }
   function stepHistory(from, to) {
     if (!from.length || hist.busy) return;
     to.push(hist.last); hist.last = from.pop();
-    updateHistoryButtons(); applySnap(JSON.parse(hist.last));
+    updateHistoryButtons();
+    try { applySnap(JSON.parse(hist.last)); } catch (_) { hist.busy = false; }
   }
   undoBtn.addEventListener('click', () => { stepHistory(hist.past, hist.future); emit('undo', true); });
   redoBtn.addEventListener('click', () => { stepHistory(hist.future, hist.past); emit('redo', true); });

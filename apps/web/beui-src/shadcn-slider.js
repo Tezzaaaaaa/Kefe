@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { Slider } from "../components/ui/slider.js";
 
-const MOUNT_ATTR = "data-beui-range-mounted";
+const MOUNT_ATTR = "data-shad-slider-mounted";
 
 export function createShadcnSlider(options = {}) {
   const el = document.createElement("div");
@@ -88,18 +88,18 @@ function mountSlider(input) {
   const originalTabindex = input.getAttribute("tabindex");
   const originalAriaHidden = input.getAttribute("aria-hidden");
   input.setAttribute(MOUNT_ATTR, "true");
-  input.classList.add("beui-native-range");
+  input.classList.add("shad-native-range");
   input.tabIndex = -1;
   input.setAttribute("aria-hidden", "true");
 
   const host = document.createElement("div");
-  host.className = "beui-range-host shad-slider-host";
+  host.className = "shad-slider-host";
   if (input.id === "kefeTime") host.classList.add("kefe-timebar-slider");
-  host.dataset.beuiRangeFor = input.id || input.getAttribute("aria-label") || "range";
+  host.dataset.shadSliderFor = input.id || input.getAttribute("aria-label") || "range";
   if (input.className) {
     input.className
       .split(/\s+/)
-      .filter((name) => name && name !== "beui-native-range" && name !== "kefe-slider" && name !== "beui-slider")
+      .filter((name) => name && name !== "shad-native-range" && name !== "kefe-slider" && name !== "kefe-slider-backing")
       .forEach((name) => host.classList.add(name));
   }
   input.insertAdjacentElement("afterend", host);
@@ -151,16 +151,16 @@ function mountSlider(input) {
 
   input.addEventListener("input", syncFromInput);
   input.addEventListener("change", syncFromInput);
-  input.addEventListener("beui-sync", syncFromInput);
+  input.addEventListener("shad-sync", syncFromInput);
 
   const attrObserver = new MutationObserver(syncFromInput);
   attrObserver.observe(input, { attributes: true, attributeFilter: ["min", "max", "step", "disabled", "value", "aria-label", "aria-valuetext"] });
   mountedInputs.set(input, { destroy() {
     attrObserver.disconnect();
-    for (const event of ["input", "change", "beui-sync"]) input.removeEventListener(event, syncFromInput);
+    for (const event of ["input", "change", "shad-sync"]) input.removeEventListener(event, syncFromInput);
     if (ownsValue) delete input.value;
     input.removeAttribute(MOUNT_ATTR);
-    input.classList.remove("beui-native-range");
+    input.classList.remove("shad-native-range");
     if (originalTabindex === null) input.removeAttribute("tabindex"); else input.setAttribute("tabindex", originalTabindex);
     if (originalAriaHidden === null) input.removeAttribute("aria-hidden"); else input.setAttribute("aria-hidden", originalAriaHidden);
     slider.destroy();
@@ -175,7 +175,7 @@ function syncMountedValues() {
       mountedInputs.delete(input);
       continue;
     }
-    input.dispatchEvent(new Event("beui-sync"));
+    input.dispatchEvent(new Event("shad-sync"));
   }
 }
 
@@ -210,7 +210,7 @@ if (typeof window !== "undefined") {
       observer.observe(document.body, { childList: true, subtree: true });
     }
     window.kefeSettings?.onChange?.(() => requestAnimationFrame(syncMountedValues));
-    window.addEventListener("kefe:beui-sync-ranges", syncMountedValues);
+    window.addEventListener("kefe:shad-sync-ranges", syncMountedValues);
   };
 
   if (document.readyState === "loading") {

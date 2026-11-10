@@ -5,8 +5,8 @@
    Visualiser layers are composited into video export. */
 (function(){
   'use strict';
-  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidUrl='',vidName='',small=null,smallKey='',avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
-  var syncBackgroundOptionsUI=null,syncBackgroundToggleUI=null;
+  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidUrl='',vidName='',small=null,smallKey='',taintedArt=false,avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
+  var syncBackgroundOptionsUI=null,syncBackgroundToggleUI=null,bgLoop=null;
   var work=document.createElement('canvas'),wctx=work.getContext('2d');
   var t0=performance.now();
 
@@ -14,10 +14,11 @@
   function prepareArt(img){
     var key=img?img.src:'';
     if(key===smallKey)return;
-    smallKey=key;small=null;
+    smallKey=key;small=null;taintedArt=false;
     if(!img)return;
     try{
       var c=document.createElement('canvas');c.width=c.height=64;var g=c.getContext('2d');
+      if(!g)return;
       g.drawImage(img,0,0,64,64);
       var d=g.getImageData(0,0,64,64).data,r=0,gg=0,b=0,n=0;
       for(var i=0;i<d.length;i+=4){r+=d[i];gg+=d[i+1];b+=d[i+2];n++;}
@@ -28,7 +29,7 @@
        ranked.forEach(function(v){if(picked.length>=5)return;var col=[v.r/v.n,v.g/v.n,v.b/v.n];if(picked.every(function(q){return Math.hypot(col[0]-q[0],col[1]-q[1],col[2]-q[2])>32;}))picked.push(col);});
        if(picked.length>=2)palette=picked.map(function(c){return 'rgb('+Math.round(c[0])+','+Math.round(c[1])+','+Math.round(c[2])+')';});
        small=c;
-    }catch(e){small=null;}
+    }catch(e){small=null;taintedArt=true;}
   }
 
   /* Cover-aware motion artwork: a softly defocused environment plane and a
@@ -99,6 +100,7 @@
 
   /* paint(ctx,w,h,t) – used by the preview loop and by video export */
   function paint(g,w,h,t){
+    if(!g||w<2||h<2)return;
     g.save();g.fillStyle='#000';g.fillRect(0,0,w,h);
     if(!enabled){g.restore();return;}
     if(mode==='gradient'){drawAlbumGradient(g,w,h,t);g.restore();return;}
@@ -109,25 +111,36 @@
     var lw=480,lh=Math.max(2,Math.round(480*h/w));
     if(h>w){lh=480;lw=Math.max(2,Math.round(480*w/h));}
     if(work.width!==lw||work.height!==lh){work.width=lw;work.height=lh;}
-    drawApple(wctx,lw,lh,t);
-    g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
-    g.drawImage(work,0,0,w,h);
+    if(wctx){
+      drawApple(wctx,lw,lh,t);
+      g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+      g.drawImage(work,0,0,w,h);
+    }
     g.restore();
   }
 
   /* ── preview ── */
   function size(){
-    if(!cv||!stage)return;
-    var cw=(cv.clientWidth>2?cv.clientWidth:stage.clientWidth)||640,ch=(cv.clientHeight>2?cv.clientHeight:stage.clientHeight)||360;
+    if(!cv||!stage)return false;
+    var rect=stage.getBoundingClientRect();
+    if(rect.width<2||rect.height<2)return false;
+    var cw=rect.width,ch=rect.height;
     var sc=mode==='gradient'?Math.min(3,3840/Math.max(cw,ch)):Math.min(1,960/Math.max(cw,ch)),w=Math.max(2,Math.round(cw*sc)),h=Math.max(2,Math.round(ch*sc));
     if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+    return true;
   }
   var last=0;
-  function loop(now){
-    requestAnimationFrame(loop);
-    if(document.hidden||now-last<33)return;last=now;
-    size();paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
+  function renderStep(now){
+    if(document.hidden||!enabled||mode==='off'){
+      if(cctx&&size())paint(cctx,cv.width,cv.height,0);
+      return false;
+    }
+    if(now-last<33)return true;
+    last=now;
+    if(!size()||!cctx)return true;
+    paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
     syncVideo(false);
+    return true;
   }
 
   /* ── video sync ── */
@@ -147,6 +160,8 @@
     syncVideo(true);
     if(syncBackgroundOptionsUI)syncBackgroundOptionsUI();
     if(syncBackgroundToggleUI)syncBackgroundToggleUI();
+    if(enabled&&mode!=='off'){bgLoop?bgLoop.start():requestAnimationFrame(renderStep);}
+    else{bgLoop?.stop();if(cctx&&size())paint(cctx,cv.width,cv.height,0);}
   }
   function buildSelect(){
     sel=document.getElementById('visualiserBackground');if(!sel)return;
@@ -195,7 +210,7 @@
     var transparency=document.getElementById('backgroundTransparency');
     var transparencyBlock=transparency&&transparency.closest('.kefe-background-effect-control');
     var upload=document.getElementById('kefeBgVideoZone');
-    var uploadWrap=upload&&upload.closest('.beui-upload-wrap');
+    var uploadWrap=upload&&upload.closest('.shad-upload-wrap');
 
     var choiceWrap=document.createElement('div');
     choiceWrap.id='kefeBackgroundEffectOptions';
@@ -251,15 +266,15 @@
   }
   function buildUpload(){
     var zone=document.getElementById('kefeUploadZone');if(!zone||document.getElementById('kefeBgVideoZone'))return;
-    var wrap=document.createElement('div');wrap.className='beui-upload-wrap';
-    wrap.innerHTML='<label class="kefe-upload-zone beui-upload-dropzone" id="kefeBgVideoZone" for="bgVideoInput">'+
+    var wrap=document.createElement('div');wrap.className='shad-upload-wrap';
+    wrap.innerHTML='<label class="kefe-upload-zone shad-dropzone" data-slot="dropzone" id="kefeBgVideoZone" for="bgVideoInput">'+
       '<div class="kefe-upload-card">'+
-      '<span class="beui-upload-symbol" aria-hidden="true"><span data-kefe-icon="file-audio" aria-hidden="true"></span></span>'+
+      '<span class="shad-upload-symbol" aria-hidden="true"><span data-kefe-icon="file-audio" aria-hidden="true"></span></span>'+
       '<span class="kefe-upload-title">Optional background video</span><span class="kefe-upload-help">Use separate footage behind your lyrics.</span>'+
       '<span class="kefe-upload-name" id="bgVideoName">Drop file here or browse</span>'+
-      '<span class="beui-upload-browse">Browse files</span>'+
+      '<span class="shad-upload-browse">Browse files</span>'+
       '<input class="kefe-file" id="bgVideoInput" type="file" accept=".mp4,.mov,.m4v,.webm,video/*"></div></label>'+
-      '<div class="beui-upload-file" id="bgVideoFileRow" hidden aria-live="polite"><span class="beui-upload-file-icon" aria-hidden="true"><span data-kefe-icon="folder" aria-hidden="true"></span></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name" id="bgVideoFileName"></span><span class="beui-upload-file-meta">Background video</span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span id="bgVideoFileStatus">Loading preview…</span></span><button class="kefe-btn" id="bgVideoRemove" type="button">Remove</button></div>';
+      '<div class="shad-upload-file" id="bgVideoFileRow" hidden aria-live="polite"><span class="shad-upload-file-icon" aria-hidden="true"><span data-kefe-icon="folder" aria-hidden="true"></span></span><span class="shad-upload-file-copy"><span class="shad-upload-file-name" id="bgVideoFileName"></span><span class="shad-upload-file-meta">Background video</span></span><span class="shad-upload-file-status"><span class="shad-upload-status-dot"></span><span id="bgVideoFileStatus">Loading preview…</span></span><button class="kefe-btn" id="bgVideoRemove" type="button">Remove</button></div>';
     zone.parentNode.insertBefore(wrap,zone.nextSibling);
     var input=wrap.querySelector('#bgVideoInput'),name=wrap.querySelector('#bgVideoName'),rm=wrap.querySelector('#bgVideoRemove'),z=wrap.querySelector('#kefeBgVideoZone'),row=wrap.querySelector('#bgVideoFileRow'),rowName=wrap.querySelector('#bgVideoFileName'),rowStatus=wrap.querySelector('#bgVideoFileStatus');
     function load(file){
@@ -289,13 +304,24 @@
     if(!stage)return;
     cv=document.createElement('canvas');cv.id='kefeBackgroundCanvas';cv.setAttribute('aria-hidden','true');
     stage.insertBefore(cv,stage.firstChild);cctx=cv.getContext('2d');
+    if(!cctx||!wctx){
+      window.kefeResilience?.panelError('background-effects',{id:'bg-canvas',title:'Background preview unavailable',message:'2D canvas rendering could not start in this browser.'});
+    }
+    bgLoop=window.kefeResilience?.createRenderLoop
+      ? window.kefeResilience.createRenderLoop(renderStep,{onError:function(err){
+          console.error('[KEFE Background]',err);
+          window.kefeResilience?.panelError('background-effects',{id:'bg-render',title:'Background effect paused',message:'A canvas error interrupted background playback.'});
+        }})
+      : null;
     var transparencyLayer=document.createElement('div');transparencyLayer.id='kefeBackgroundTransparencyLayer';transparencyLayer.setAttribute('aria-hidden','true');
     transparencyLayer.style.cssText='position:absolute;inset:0;z-index:3;pointer-events:none;background:#000;opacity:0;';
     stage.appendChild(transparencyLayer);
     var lyricCanvas=document.getElementById('kefeCanvas');
     if(lyricCanvas)lyricCanvas.style.zIndex='4';
-    if(window.ResizeObserver)new ResizeObserver(size).observe(stage);
-    window.addEventListener('kefe-stage-resize',size);
+    if(window.ResizeObserver)new ResizeObserver(function(){if(size()&&cctx&&enabled)paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);}).observe(stage);
+    window.addEventListener('kefe-stage-resize',function(){if(size()&&cctx&&enabled)paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);});
+    window.addEventListener('kefe-album-artwork-changed',function(){smallKey='';if(enabled&&mode!=='off')bgLoop?.start();});
+    window.kefeResilience?.rootScope?.add(clearVideo);
     buildSelect();buildUpload();buildEffectCategories();
     window.addEventListener('kefe-effect-change',function(event){if(event.detail&&event.detail.effect==='apple')setMode('gradient');});
     var transparency=document.getElementById('backgroundTransparency'),transparencyValue=document.getElementById('backgroundTransparencyValue');
@@ -304,10 +330,10 @@
       transparency.addEventListener('input',updateTransparency);updateTransparency();
     }
     if(audio)['play','pause','seeked','ended'].forEach(function(e){audio.addEventListener(e,function(){syncVideo(e==='seeked');});});
-    size();requestAnimationFrame(loop);
+    if(size()&&cctx)paint(cctx,cv.width,cv.height,0);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
   function paintTransparency(g,w,h){var amount=Math.max(0,Math.min(100,Number(document.getElementById('backgroundTransparency')?.value)||0))/100;if(amount>0){g.save();g.fillStyle='rgba(0,0,0,'+amount+')';g.fillRect(0,0,w,h);g.restore();}}
-  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;}};
+  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
 })();

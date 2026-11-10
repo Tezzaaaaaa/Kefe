@@ -169,7 +169,7 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
 
     placements.forEach(({ slot, panel }) => {
       panel.classList.add('kefe-settings-embedded-panel', 'active');
-      panel.classList.remove('beui-accordion-collapsed', 'kefe-pane-shown', 'beui-accordion-enter');
+      panel.classList.remove('kefe-pane-shown');
       panel.style.removeProperty('height');
       panel.style.removeProperty('overflow');
       const heading = panel.querySelector(':scope > .kefe-panel-head h2');
@@ -234,7 +234,14 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
   }
 
   function start() {
-    mount().catch(error => console.error('[KEFE settings panel adapter]', error));
+    mount().catch(error => {
+      console.error('[KEFE settings panel adapter]', error);
+      document.querySelectorAll('.kefe-tabs, .kefe-panels').forEach(element => {
+        element.hidden = false;
+        element.removeAttribute('aria-hidden');
+      });
+      window.kefeAlert?.('Editor workspace layout failed to upgrade; restored classic tabs.', { variant: 'warning', title: 'Workspace fallback' });
+    });
   }
 
   function startWhenReady() {

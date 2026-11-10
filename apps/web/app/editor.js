@@ -131,13 +131,17 @@
   const effectDefinitions=Array.isArray(window.KEFE_EFFECTS)?window.KEFE_EFFECTS.map(e=>[e.key,e.label]):[];
 
   let state={effect:'apple',fontOverride:'',lines:[],appleLines:[],time:0};
-  const canvas=document.getElementById('kefeCanvas'),ctx=canvas.getContext('2d');
+  const canvas=document.getElementById('kefeCanvas'),ctx=canvas?.getContext?.('2d')||null;
+  if(!canvas||!ctx){
+    window.kefeResilience?.panelError('effects',{id:'kefe-main-canvas',title:'Preview canvas unavailable',message:'2D canvas rendering could not start in this browser.'});
+    window.kefeAlert?.('The main preview canvas could not start in this browser.',{variant:'destructive',title:'Canvas unavailable'});
+  }
   const lyricsInput=document.getElementById('lyricsInput');
   const audio=document.getElementById('kefeAudio'),range=document.getElementById('kefeTime');
   const video=document.createElement('video');
   video.preload='metadata'; video.muted=true; video.playsInline=true; video.style.display='none'; document.body.appendChild(video);
   window.kefeGetProjectVideo=()=>video;
-  let mediaObjectUrl=''; let embeddedArtworkObjectUrl='';
+  let mediaObjectUrl=''; let embeddedArtworkObjectUrl=''; let activeUploadToken=0;
   let previewAspectRatio='16:9';
   let titleArtImage=null,titleCardShownFor='';
   let titleArtworkRequest=0,titleArtworkTimer=null;
@@ -297,19 +301,20 @@
   function updateTitleCard(){
     updateMediaTrack();
     const cover=songAlbum.dataset.artUrl||'';
+    const requestCover=cover;
     titleArtImage=null;
     if(cover){
       const image=new Image();
       image.crossOrigin='anonymous';
       image.onload=()=>{
-        if(songAlbum.dataset.artUrl!==cover)return;
+        if(songAlbum.dataset.artUrl!==requestCover||!image.naturalWidth)return;
         titleArtImage=image;
-        publishMotionArtwork(image,cover);
+        publishMotionArtwork(image,requestCover);
         draw();
       };
       image.onerror=()=>{
-        if(songAlbum.dataset.artUrl===cover){
-          failedTitleArtworkUrls.add(normalizeArtworkUrl(cover));
+        if(songAlbum.dataset.artUrl===requestCover){
+          failedTitleArtworkUrls.add(normalizeArtworkUrl(requestCover));
           delete songAlbum.dataset.artUrl;
           titleArtImage=null;
           publishMotionArtwork(null,'');
@@ -318,7 +323,6 @@
         draw();
       };
       image.src=normalizeArtworkUrl(cover);
-      titleArtImage=image;
     }else{
       publishMotionArtwork(null,'');
     }
@@ -573,7 +577,9 @@
   let lyricsEnabled=true;
   let lyricLayer=null;
   function draw(){
+    if(!canvas||!ctx)return;
     const W=canvas.width,H=canvas.height;
+    if(W<2||H<2)return;
     ctx.clearRect(0,0,W,H);
     // Keep all rendered lyrics and title-card text inside an invisible 5% safe margin,
     // matching the inset content area used by standard document/presentation layouts.
@@ -599,19 +605,39 @@
           // Apple lyrics scroll beneath the pinned title-card header; other effects use the full canvas.
           if(!lyricLayer)lyricLayer=document.createElement('canvas');
           if(lyricLayer.width!==W||lyricLayer.height!==H){lyricLayer.width=W;lyricLayer.height=H;}
-          const lc=lyricLayer.getContext('2d');lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
-          if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
-          if(state.effect==='apple'){
-            const u=Math.min(W,H),landscapeLyrics=W/Math.max(1,H)>=1.25,edge=landscapeLyrics?Math.max(32,H*.13):Math.max(32,H*.07)+u*.173,fade=u*.12;
-            lc.save();lc.globalCompositeOperation='destination-in';
-            const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
-            lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
+          const lc=lyricLayer.getContext('2d');
+          if(lc){
+            lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
+            if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
+            if(state.effect==='apple'){
+              const u=Math.min(W,H),landscapeLyrics=W/Math.max(1,H)>=1.25,edge=landscapeLyrics?Math.max(32,H*.13):Math.max(32,H*.07)+u*.173,fade=u*.12;
+              lc.save();lc.globalCompositeOperation='destination-in';
+              const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
+              lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
+            }
+            ctx.drawImage(lyricLayer,0,0);
           }
-          ctx.drawImage(lyricLayer,0,0);
-        }catch(err){console.error('[KEFE effect]',state.effect,err);}
+          window.kefeResilience?.clearPanelError('effects','effect-render-err');
+        }catch(err){
+          console.error('[KEFE effect]',state.effect,err);
+          window.kefeResilience?.panelError('effects',{
+            id:'effect-render-err',
+            title:'Lyric effect encountered a rendering error',
+            message:'The "'+(state.effect||'selected')+'" effect could not paint this frame cleanly.',
+            retryLabel:'Redraw',
+            onRetry:()=>{window.kefeResilience?.clearPanelError('effects','effect-render-err');draw();}
+          });
+        }
       }else{
         console.error('[KEFE effect] No renderer registered for selected effect:',state.effect);
+        window.kefeResilience?.panelError('effects',{
+          id:'effect-render-err',
+          title:'Effect unavailable',
+          message:'No renderer is registered for "'+(state.effect||'selected')+'". Select another effect.'
+        });
       }
+    }else{
+      window.kefeResilience?.clearPanelError('effects','effect-render-err');
     }
     drawTitleCardCanvas(ctx,W,H,state.time);
     drawTitleCardTimer(ctx,W,H,state.time);
@@ -781,7 +807,16 @@
     }catch(error){
       sample.dataset.previewError='true';
       console.warn('[KEFE effect preview]',id,error);
-      return false;
+      try{
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.clearRect(0,0,W,H);
+        ctx.fillStyle='#ffffff';
+        ctx.font='700 '+Math.round(Math.min(W,H)*0.18)+'px system-ui,sans-serif';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(EFFECT_PREVIEW_PHRASE,W/2,H/2);
+        return true;
+      }catch(_){return false;}
     }
   }
   let activeEffectPreview=null;
@@ -1144,7 +1179,9 @@
             if(audioContext.state!=='running')throw new Error('Audio output is still suspended');
           }catch(error){
             console.warn('[KEFE audio context]',error);
-            setLyricsStatus('Audio context could not resume: '+(error?.message||'unknown audio output error'));
+            const msg='Audio context could not resume: '+(error?.message||'unknown audio output error');
+            setLyricsStatus(msg);
+            window.kefeAlert?.(msg,{variant:'warning',title:'Audio output suspended'});
           }
         }
         try{
@@ -1152,7 +1189,9 @@
           if(audio.paused)throw new Error('The media did not start playing');
         }catch(error){
           console.warn('[KEFE audio playback]',error);
-          setLyricsStatus('Could not play this media file: '+(error?.message||'unknown playback error'));
+          const msg='Could not play this media file: '+(error?.message||'unknown playback error');
+          setLyricsStatus(msg);
+          window.kefeAlert?.(msg,{variant:'destructive',title:'Playback failed'});
         }
       }else audio.pause();
     }else{state.time=state.time>=30?0:state.time+.05;updateTime();draw();}
@@ -1522,11 +1561,22 @@
     if(!n){
       n=document.createElement('div');
       n.id='kefeManualNotice';n.setAttribute('role','status');
-      n.className='kefe-notice';
+      n.className='kefe-notice shad-alert';
+      n.dataset.slot='alert';
+      const icon=document.createElement('span');
+      icon.className='shad-manual-notice-icon';
+      icon.setAttribute('aria-hidden','true');
+      icon.innerHTML=window.kefeIcon?window.kefeIcon('info'):'<span data-kefe-icon="info" aria-hidden="true"></span>';
+      const desc=document.createElement('div');
+      desc.className='shad-alert-description';
+      desc.dataset.slot='alert-description';
+      n.append(icon,desc);
       const anchor=songTitle.closest('label,.kefe-field,.kefe-row,div')||songTitle;
       anchor.parentNode.insertBefore(n,anchor);
     }
-    n.textContent=text;n.hidden=false;
+    const desc=n.querySelector('[data-slot="alert-description"]');
+    if(desc)desc.textContent=text; else n.textContent=text;
+    n.hidden=false;
   }
   function clearManualNotice(){const n=document.getElementById('kefeManualNotice');if(n)n.hidden=true;}
   function setLyricsStatus(text){const el=document.getElementById('kefeLyricsStatus');if(el)el.textContent=text;}
@@ -1739,18 +1789,19 @@
   const mediaInput=document.getElementById('mediaInput');
   let mediaUploadRow=null;
   if(uploadZone&&mediaInput){
-    uploadZone.classList.add('beui-upload-dropzone');
-    if(!uploadZone.querySelector('.beui-upload-symbol')){
-      uploadZone.insertAdjacentHTML('afterbegin','<span class="beui-upload-symbol" aria-hidden="true"><span data-kefe-icon="upload" aria-hidden="true"></span></span>');
-      uploadZone.insertAdjacentHTML('beforeend','<span class="beui-upload-browse">Browse files</span>');
+    uploadZone.classList.add('shad-dropzone');
+    uploadZone.dataset.slot='dropzone';
+    if(!uploadZone.querySelector('.shad-upload-symbol')){
+      uploadZone.insertAdjacentHTML('afterbegin','<span class="shad-upload-symbol" aria-hidden="true"><span data-kefe-icon="upload" aria-hidden="true"></span></span>');
+      uploadZone.insertAdjacentHTML('beforeend','<span class="shad-upload-browse">Browse files</span>');
     }
-    mediaUploadRow=uploadZone.parentElement.querySelector('.beui-upload-file');
+    mediaUploadRow=uploadZone.parentElement.querySelector('.shad-upload-file');
     if(!mediaUploadRow){
       mediaUploadRow=document.createElement('div');
-      mediaUploadRow.className='beui-upload-file';
+      mediaUploadRow.className='shad-upload-file';
       mediaUploadRow.hidden=true;
       mediaUploadRow.setAttribute('aria-live','polite');
-      mediaUploadRow.innerHTML='<span class="beui-upload-file-icon" aria-hidden="true"><span data-kefe-icon="file-text" aria-hidden="true"></span></span><span class="beui-upload-file-copy"><span class="beui-upload-file-name"></span><span class="beui-upload-file-meta"></span></span><span class="beui-upload-file-status"><span class="beui-upload-status-dot"></span><span>Ready to use</span></span>';
+      mediaUploadRow.innerHTML='<span class="shad-upload-file-icon" aria-hidden="true"><span data-kefe-icon="file-text" aria-hidden="true"></span></span><span class="shad-upload-file-copy"><span class="shad-upload-file-name"></span><span class="shad-upload-file-meta"></span></span><span class="shad-upload-file-status"><span class="shad-upload-status-dot"></span><span>Ready to use</span></span>';
       uploadZone.insertAdjacentElement('afterend',mediaUploadRow);
     }
     uploadZone.addEventListener('dragover',event=>{event.preventDefault();uploadZone.classList.add('is-dragging')});
@@ -1771,8 +1822,11 @@
     clearTitleArtwork();
     delete songAlbum.dataset.platformId;delete songAlbum.dataset.trackDuration;
     /* Invalidate pending work from the previous upload immediately. */
+    const uploadToken=++activeUploadToken;
     lyricsRequest++;
     if(activeLyricsController){activeLyricsController.abort();activeLyricsController=null;}
+    if(titleArtworkTimer){clearTimeout(titleArtworkTimer);titleArtworkTimer=null;}
+    titleArtworkRequest++;
     manuallyEditedTrackFields.clear();
     previewStage.classList.remove('is-empty');
     songTitle.value=file.name.replace(/\.[^.]+$/,'').replace(/[._]+/g,' ').trim();
@@ -1783,9 +1837,9 @@
     const status=document.getElementById('kefeLyricsStatus');if(status)status.textContent='Audio selected — loading track information…';
     const uploadName=uploadZone?.querySelector('.kefe-upload-name');if(uploadName)uploadName.textContent=file.name;
     if(mediaUploadRow){
-      mediaUploadRow.querySelector('.beui-upload-file-name').textContent=file.name;
+      mediaUploadRow.querySelector('.shad-upload-file-name').textContent=file.name;
       const size=file.size<1024*1024?(file.size/1024).toFixed(0)+' KB':(file.size/(1024*1024)).toFixed(1)+' MB';
-      mediaUploadRow.querySelector('.beui-upload-file-meta').textContent=(file.type.startsWith('video/')?'Video':'Audio')+' · '+size;
+      mediaUploadRow.querySelector('.shad-upload-file-meta').textContent=(file.type.startsWith('video/')?'Video':'Audio')+' · '+size;
       mediaUploadRow.hidden=false;
       uploadZone.classList.add('has-selected-file');
     }
@@ -1811,9 +1865,11 @@
     audio.src=mediaObjectUrl;audio.load();
     if(file.type.startsWith('video/')){video.src=mediaObjectUrl;video.load();}else{video.removeAttribute('src');video.load();}
     const onDecodeError=()=>{
-      if(mediaObjectUrl!==loadUrl)return;
+      if(mediaObjectUrl!==loadUrl||activeUploadToken!==uploadToken)return;
       uploadZone?.classList.remove('kefe-confirmed-container');
-      setLyricsStatus('This browser cannot play that file. Try MP3, M4A, WAV or MP4.');
+      const msg='This browser cannot play that file. Try MP3, M4A, WAV or MP4.';
+      setLyricsStatus(msg);
+      window.kefeAlert?.(msg,{variant:'destructive',title:'Media could not be decoded'});
       if(uploadName)uploadName.textContent='Could not read '+file.name;
       if(mediaTrack){
         mediaTrack.hidden=false;
@@ -1825,7 +1881,7 @@
     audio.addEventListener('error',onDecodeError,{once:true});
     audio.addEventListener('loadedmetadata',async function identifyOnce(){
       audio.removeEventListener('loadedmetadata',identifyOnce);
-      if(mediaObjectUrl!==loadUrl)return;
+      if(mediaObjectUrl!==loadUrl||activeUploadToken!==uploadToken)return;
       uploadZone?.classList.add('kefe-confirmed-container');
       if(mediaTrack){
         mediaTrack.hidden=false;
@@ -1844,9 +1900,13 @@
           audio.currentTime=1e101;
         });
         audio.currentTime=0;
-        if(mediaObjectUrl!==loadUrl)return;
+        if(mediaObjectUrl!==loadUrl||activeUploadToken!==uploadToken)return;
       }
-      range.max=String(Number.isFinite(audio.duration)&&audio.duration>0?audio.duration:30);timeEnd.textContent=fmt(Number(range.max));updateTime();
+      if(!Number.isFinite(audio.duration)||audio.duration<=0){
+        onDecodeError();
+        return;
+      }
+      range.max=String(audio.duration);timeEnd.textContent=fmt(Number(range.max));updateTime();
       identifyAndLoadTrack(file);
     });
     updateTitleCard();
@@ -1923,16 +1983,20 @@
     clk.last=now;
     return clk.est;
   }
+  let syncPreviewRaf=0;
   function syncPreview(){
-    if(audio.src&&!audio.paused){
-      state.time=smoothTime();
-      range.value=state.time;
-      updateTime();
-      publishKefeLockScreen('update');
-      draw();
-      requestAnimationFrame(syncPreview);
-    }
+    syncPreviewRaf=0;
+    if(document.hidden||!audio.src||audio.paused)return;
+    state.time=smoothTime();
+    range.value=state.time;
+    updateTime();
+    publishKefeLockScreen('update');
+    draw();
+    syncPreviewRaf=requestAnimationFrame(syncPreview);
   }
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&audio.src&&!audio.paused&&!syncPreviewRaf)syncPreviewRaf=requestAnimationFrame(syncPreview);
+  });
   audio.addEventListener('play',()=>{
     clk.est=-1;updatePlayButton();
     if(video.src){
@@ -1941,7 +2005,7 @@
     }
     if(audio.currentTime<=0.08&&titleCardShownFor!==mediaObjectUrl)showTitleCard();
     publishKefeLockScreen('start');
-    requestAnimationFrame(syncPreview);
+    if(!syncPreviewRaf)syncPreviewRaf=requestAnimationFrame(syncPreview);
   });
   audio.addEventListener('pause',()=>{
     updatePlayButton();
@@ -1965,7 +2029,7 @@
     updateTime();draw();
   });
   let exportTap=null,exporting=false;
-  let exportProgressModal=null,exportProgressFill=null,exportProgressValue=null,exportProgressStage=null,exportProgressUsesShadcn=false;
+  let exportProgressModal=null,exportProgressFill=null,exportProgressValue=null,exportProgressStage=null,exportProgressCancel=null,exportProgressCancelHandler=null,exportProgressUsesShadcn=false;
   function ensureExportProgressModal(){
     if(exportProgressModal)return;
     exportProgressModal=document.createElement('section');
@@ -1975,11 +2039,19 @@
     exportProgressModal.setAttribute('role','dialog');
     exportProgressModal.setAttribute('aria-modal','true');
     exportProgressModal.setAttribute('aria-labelledby','kefeExportTitle');
-    exportProgressModal.innerHTML='<div class="kefe-export-card"><div class="kefe-export-eyebrow">KEFE · EXPORT</div><h2 id="kefeExportTitle">Rendering your video</h2><p class="kefe-export-intro">Keep this tab open while KEFE renders and packages your video.</p><div class="kefe-export-summary"><div class="kefe-export-summary-head"><span>EXPORT SUMMARY</span><span id="kefeExportState">Preparing</span></div><div class="kefe-export-track"><span id="kefeExportTrackTitle"></span><span id="kefeExportTrackArtist"></span></div><div class="kefe-export-details"><div><span>FORMAT</span><strong id="kefeExportFormat">—</strong></div><div><span>RESOLUTION</span><strong id="kefeExportResolution">—</strong></div><div><span>ASPECT RATIO</span><strong id="kefeExportAspect">—</strong></div><div><span>DURATION</span><strong id="kefeExportDuration">—</strong></div><div><span>FRAME RATE</span><strong>60 FPS</strong></div><div><span>AUDIO</span><strong id="kefeExportAudio">Included when supported</strong></div></div></div><div class="kefe-export-progress-label"><span id="kefeExportStage">Preparing render</span><strong id="kefeExportPercent">1%</strong></div><div class="kefe-export-progress" role="progressbar" aria-label="Video export progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="1"><span id="kefeExportFill"></span></div><p class="kefe-export-footnote" id="kefeExportFootnote">Progress follows the track render; final packaging may take a moment.</p><button type="button" class="kefe-export-close" id="kefeExportClose" hidden>Close</button></div>';
+    exportProgressModal.innerHTML='<div class="kefe-export-card"><div class="kefe-export-eyebrow">KEFE · EXPORT</div><h2 id="kefeExportTitle">Rendering your video</h2><p class="kefe-export-intro">Keep this tab open while KEFE renders and packages your video.</p><div class="kefe-export-summary"><div class="kefe-export-summary-head"><span>EXPORT SUMMARY</span><span id="kefeExportState">Preparing</span></div><div class="kefe-export-track"><span id="kefeExportTrackTitle"></span><span id="kefeExportTrackArtist"></span></div><div class="kefe-export-details"><div><span>FORMAT</span><strong id="kefeExportFormat">—</strong></div><div><span>RESOLUTION</span><strong id="kefeExportResolution">—</strong></div><div><span>ASPECT RATIO</span><strong id="kefeExportAspect">—</strong></div><div><span>DURATION</span><strong id="kefeExportDuration">—</strong></div><div><span>FRAME RATE</span><strong id="kefeExportFps">60 FPS</strong></div><div><span>AUDIO</span><strong id="kefeExportAudio">Included when supported</strong></div></div></div><div class="kefe-export-progress-label"><span id="kefeExportStage">Preparing render</span><strong id="kefeExportPercent">1%</strong></div><div class="kefe-export-progress" role="progressbar" aria-label="Video export progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="1"><span id="kefeExportFill"></span></div><p class="kefe-export-footnote" id="kefeExportFootnote">Progress follows the track render; final packaging may take a moment.</p><div class="kefe-export-actions"><button type="button" class="kefe-btn" id="kefeExportCancel" hidden>Cancel export</button><button type="button" class="kefe-export-close" id="kefeExportClose" hidden>Close</button></div></div>';
     document.body.appendChild(exportProgressModal);
     exportProgressFill=exportProgressModal.querySelector('#kefeExportFill');
     exportProgressValue=exportProgressModal.querySelector('#kefeExportPercent');
     exportProgressStage=exportProgressModal.querySelector('#kefeExportStage');
+    exportProgressCancel=exportProgressModal.querySelector('#kefeExportCancel');
+    exportProgressCancel.addEventListener('click',()=>{
+      if(typeof exportProgressCancelHandler==='function'){
+        exportProgressCancel.disabled=true;
+        exportProgressCancel.textContent='Cancelling…';
+        exportProgressCancelHandler();
+      }
+    });
     exportProgressModal.querySelector('#kefeExportClose').addEventListener('click',()=>{exportProgressModal.hidden=true;});
   }
   function setExportProgress(value,stage){
@@ -1992,9 +2064,9 @@
     const bar=exportProgressModal.querySelector('[role="progressbar"]');
     bar.setAttribute('aria-valuenow',String(percent));
   }
-  function openExportProgress({title,artist,format,resolution,aspect,duration,fps}){
+  function openExportProgress({title,artist,format,resolution,aspect,duration,fps,onCancel,note}){
     exportProgressUsesShadcn=!!window.kefeExportDialog;
-    if(exportProgressUsesShadcn){window.kefeExportDialog.open({title,artist,format,resolution,aspect,duration,fps});return;}
+    if(exportProgressUsesShadcn){window.kefeExportDialog.open({title,artist,format,resolution,aspect,duration,fps,onCancel,note});return;}
     ensureExportProgressModal();
     exportProgressModal.hidden=false;
     exportProgressModal.querySelector('#kefeExportTitle').textContent='Rendering your video';
@@ -2005,14 +2077,21 @@
     exportProgressModal.querySelector('#kefeExportResolution').textContent=resolution;
     exportProgressModal.querySelector('#kefeExportAspect').textContent=aspect;
     exportProgressModal.querySelector('#kefeExportDuration').textContent=duration;
+    const fpsEl=exportProgressModal.querySelector('#kefeExportFps');if(fpsEl)fpsEl.textContent=(fps||60)+' FPS';
     exportProgressModal.querySelector('#kefeExportAudio').textContent='Audio track included';
-    exportProgressModal.querySelector('#kefeExportFootnote').textContent='Keep this tab open. The download will start automatically when rendering finishes.';
+    exportProgressModal.querySelector('#kefeExportFootnote').textContent=note||'Keep this tab open. The download will start automatically when rendering finishes.';
+    exportProgressCancelHandler=typeof onCancel==='function'?onCancel:null;
+    exportProgressCancel.hidden=!exportProgressCancelHandler;
+    exportProgressCancel.disabled=false;
+    exportProgressCancel.textContent='Cancel export';
     const close=exportProgressModal.querySelector('#kefeExportClose');close.hidden=true;
     setExportProgress(1,'Preparing export');
   }
   function finishExportProgress(success,message){
     if(exportProgressUsesShadcn){window.kefeExportDialog.finish(success,message);return;}
     if(!exportProgressModal)return;
+    exportProgressCancelHandler=null;
+    if(exportProgressCancel)exportProgressCancel.hidden=true;
     exportProgressModal.querySelector('#kefeExportTitle').textContent=success?'Export complete':'Export failed';
     exportProgressModal.querySelector('#kefeExportState').textContent=success?'Ready to download':'Needs attention';
     exportProgressModal.querySelector('#kefeExportFootnote').textContent=message;
@@ -2125,22 +2204,26 @@
      visualiser layer is live. Returns the engine's own canvas plus how it must be composited. */
   function activeVisualiserLayer(){
     const shader=window.kefeShaderVis?.current?.();
-    if(shader)return {canvas:shader,blend:'source-over'};
-    if(window.kefeSlowLight?.getState?.().enabled)return {canvas:document.getElementById('kefeSlowLightCanvas'),blend:'source-over'};
-    if(window.kefeFlutedGlassActive&&window.kefeFlutedGlassEnabled!==false)return {canvas:document.getElementById('kefeFlutedGlassCanvas'),blend:'source-over'};
-    if(window.kefeLiquidGlassActive&&window.kefeLiquidGlassEnabled!==false)return {canvas:document.getElementById('kefeLiquidGlassCanvas'),blend:'source-over'};
-    if(window.kefeGradientLayer?.state?.().on)return {canvas:document.getElementById('kefeFluidInkCanvas'),blend:window.kefeBackground?window.kefeBackground.blend():'source-over'};
+    if(shader)return {canvas:shader,blend:'source-over',isReady:()=>true};
+    if(window.kefeSlowLight?.getState?.().enabled)return {canvas:document.getElementById('kefeSlowLightCanvas'),blend:'source-over',isReady:()=>window.kefeSlowLight?.isReady?.()!==false};
+    if(window.kefeFlutedGlassActive&&window.kefeFlutedGlassEnabled!==false)return {canvas:document.getElementById('kefeFlutedGlassCanvas'),blend:'source-over',isReady:()=>window.kefeFlutedGlassExport?.isReady?.()!==false};
+    if(window.kefeLiquidGlassActive&&window.kefeLiquidGlassEnabled!==false)return {canvas:document.getElementById('kefeLiquidGlassCanvas'),blend:'source-over',isReady:()=>window.kefeLiquidGlassExport?.isReady?.()!==false};
+    if(window.kefeGradientLayer?.state?.().on)return {canvas:document.getElementById('kefeFluidInkCanvas'),blend:window.kefeBackground?window.kefeBackground.blend():'source-over',isReady:()=>true};
     return null;
   }
   document.getElementById('exportButton').addEventListener('click',async()=>{
-    const activeLayer=activeVisualiserLayer(),status=document.getElementById('exportStatus'),button=document.getElementById('exportButton'),visualiserCanvas=activeLayer?activeLayer.canvas:null,visualiserBlend=activeLayer?activeLayer.blend:'source-over';
+    const status=document.getElementById('exportStatus'),button=document.getElementById('exportButton');
     if(exporting)return;
+    const activeLayer=activeVisualiserLayer(),visualiserCanvas=activeLayer?activeLayer.canvas:null,visualiserBlend=activeLayer?activeLayer.blend:'source-over';
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){status.textContent='Video export is not supported by this browser.';return;}
-    if(!visualiserCanvas){status.textContent='Choose a visualiser before exporting.';return;}
-    if(!audio.src||!Number.isFinite(audio.duration)){status.textContent='Upload a track first.';return;}
-    if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
-    if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
-    if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
+    if(!visualiserCanvas){status.textContent='Choose and enable a visualiser before exporting.';return;}
+    if(activeLayer?.isReady&&!activeLayer.isReady()){status.textContent='The selected visualiser could not start graphics. Retry or switch visualisers before exporting.';return;}
+    if(!audio.src||!Number.isFinite(audio.duration)||audio.duration<=0){status.textContent='Upload a playable audio track first.';return;}
+    if(window.kefeResilience&&titleArtImage&&!window.kefeResilience.isImageCorsSafe(titleArtImage)){
+      status.textContent='Remote album artwork blocks video capture. Upload a local cover image or switch cover artwork before exporting.';
+      window.kefeAlert?.(status.textContent,{variant:'warning',title:'Artwork blocks video export'});
+      return;
+    }
     const webmTypes=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
     const mp4Types=['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=h264,aac','video/mp4'];
     const wantMp4=(document.getElementById('exportFormat')?.value||'webm')==='mp4';
@@ -2148,78 +2231,160 @@
     if(!mime){status.textContent='No supported video format in this browser.';return;}
     const ext=mime.startsWith('video/mp4')?'mp4':'webm';
     const formatNote=wantMp4&&ext!=='mp4'?' MP4 is not supported by this browser, so this is WebM.':'';
-    const res=Number(document.getElementById('exportResolution').value)||720;
+    const requestedRes=Number(document.getElementById('exportResolution').value)||720;
     const aspect=previewAspectRatio||'16:9';
     const exportFps=Math.max(24,Math.min(60,Math.round(Number(window.kefeSettings?.get('fpsTarget')))||60));
     const even=n=>Math.round(n/2)*2;
-    const long=even(res*16/9);
-    const dims=aspect==='9:16'?[res,long]:aspect==='1:1'?[res,res]:[long,res];
+    const dimsForRes=r=>{const long=even(r*16/9);return aspect==='9:16'?[r,long]:aspect==='1:1'?[r,r]:[long,r];};
     const prev={w:canvas.width,h:canvas.height,time:state.time};
     const compositeCanvas=document.createElement('canvas');
-    compositeCanvas.width=dims[0];compositeCanvas.height=dims[1];
     const compositeCtx=compositeCanvas.getContext('2d');
-    const compositeFrame=()=>{
-      compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
-      if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
-      if(visualiserCanvas&&visualiserCanvas.width&&visualiserCanvas.height){const vw=visualiserCanvas.width,vh=visualiserCanvas.height;const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;compositeCtx.save();compositeCtx.globalCompositeOperation=visualiserBlend;compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();}
-      /* Fluid Ink is already composited from its own canvas above; repainting it here would double it up. */
-      const fluidInkComposited=!!(visualiserCanvas&&visualiserCanvas.id==='kefeFluidInkCanvas');
-      if(window.kefeGradientLayer&&!fluidInkComposited)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
-      if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
-      if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
-      compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
-    };
+    if(!compositeCtx){status.textContent='Could not initialise the export canvas.';return;}
+    const exportAbort=new AbortController();
     exporting=true;window.kefeAppleCanvasExport=true;button.disabled=true;
+    const initialDims=dimsForRes(requestedRes);
     const projectTitle=songTitle.value.trim()||'Untitled project',projectArtist=songArtist.value.trim()||'Unknown artist';
-    openExportProgress({title:projectTitle,artist:projectArtist,format:ext,resolution:dims[0]+' × '+dims[1]+' px',aspect,duration:fmt(audio.duration),fps:exportFps});
-    let recorder=null,ticker=null,frameTicker=null;
+    const lyricsNote=!state.lines.length?'No timed lyrics loaded — exporting visualiser and title card. Keep this tab open until complete.':'Keep this tab open. The download will start automatically when rendering finishes.';
+    openExportProgress({title:projectTitle,artist:projectArtist,format:ext,resolution:initialDims[0]+' × '+initialDims[1]+' px',aspect,duration:fmt(audio.duration),fps:exportFps,onCancel:()=>exportAbort.abort(),note:lyricsNote});
+
+    async function runEncode(res,signal){
+      const dims=dimsForRes(res);
+      compositeCanvas.width=dims[0];compositeCanvas.height=dims[1];
+      const compositeFrame=()=>{
+        compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
+        if(window.kefeBackground)window.kefeBackground.paint(compositeCtx,dims[0],dims[1],state.time);
+        if(visualiserCanvas&&visualiserCanvas.width>1&&visualiserCanvas.height>1){
+          const vw=visualiserCanvas.width,vh=visualiserCanvas.height;
+          const k=Math.max(dims[0]/vw,dims[1]/vh),dw=vw*k,dh=vh*k,stageRect=previewStage?.getBoundingClientRect(),sx=stageRect?.width?dims[0]/stageRect.width:1,sy=stageRect?.height?dims[1]/stageRect.height:1;
+          compositeCtx.save();compositeCtx.globalCompositeOperation=visualiserBlend;compositeCtx.translate(dims[0]/2+visualiserPanX*sx,dims[1]/2+visualiserPanY*sy);compositeCtx.scale(visualiserZoom,visualiserZoom);compositeCtx.drawImage(visualiserCanvas,-dw/2,-dh/2,dw,dh);compositeCtx.restore();
+        }
+        /* Fluid Ink is already composited from its own canvas above; repainting it here would double it up. */
+        const fluidInkComposited=!!(visualiserCanvas&&visualiserCanvas.id==='kefeFluidInkCanvas');
+        if(window.kefeGradientLayer&&!fluidInkComposited)window.kefeGradientLayer.paint(compositeCtx,dims[0],dims[1],state.time);
+        if(window.kefeAudioOverlay)window.kefeAudioOverlay.paint(compositeCtx,dims[0],dims[1]);
+        if(window.kefeBackground)window.kefeBackground.paintTransparency(compositeCtx,dims[0],dims[1]);
+        compositeCtx.drawImage(canvas,0,0,dims[0],dims[1]);
+      };
+      let recorder=null,ticker=null,frameTicker=null,stream=null;
+      const ownedTracks=[];
+      try{
+        if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
+        audio.pause();
+        canvas.width=dims[0];canvas.height=dims[1];
+        await new Promise(resolve=>{
+          if(audio.currentTime===0){resolve();return;}
+          let done=false;
+          const finish=()=>{if(done)return;done=true;clearTimeout(t);audio.removeEventListener('seeked',finish);resolve();};
+          const t=setTimeout(finish,1500);
+          audio.addEventListener('seeked',finish,{once:true});
+          audio.currentTime=0;
+        });
+        if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
+        state.time=0;range.value=0;updateTime();draw();
+        if(visualiserCanvas.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
+        const audioStream=getExportAudioStream();
+        const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
+        if(tapCtx&&tapCtx.state==='suspended')await tapCtx.resume();
+        compositeFrame();
+        stream=compositeCanvas.captureStream(exportFps);
+        stream.getTracks().forEach(t=>ownedTracks.push(t));
+        frameTicker=setInterval(()=>{if(!signal.aborted)compositeFrame();},1000/exportFps);
+        const audioTracks=audioStream?.getAudioTracks()||[];
+        if(audioTracks.length){
+          audioTracks.forEach(t=>{
+            const track=typeof t.clone==='function'?t.clone():t;
+            if(track!==t)ownedTracks.push(track);
+            stream.addTrack(track);
+          });
+        }else{
+          status.textContent='Audio capture unavailable here; exporting video only…';
+        }
+        if(exportProgressUsesShadcn)window.kefeExportDialog.audio(audioTracks.length>0);
+        else if(exportProgressModal)exportProgressModal.querySelector('#kefeExportAudio').textContent=audioTracks.length?'Audio track included':'Video only';
+        const chunks=[];
+        recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=2160?45000000:res>=1440?28000000:res>=1080?16000000:8000000});
+        recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+        const stopped=new Promise((resolve,reject)=>{
+          recorder.onstop=resolve;
+          recorder.onerror=e=>reject(e?.error||new Error('MediaRecorder failed while encoding video'));
+        });
+        const playbackDone=new Promise((resolve,reject)=>{
+          let settled=false;
+          let lastTime=audio.currentTime,lastAdvance=performance.now();
+          const cleanup=()=>{
+            audio.removeEventListener('ended',onEnded);
+            audio.removeEventListener('error',onAudioError);
+            signal.removeEventListener('abort',onAbort);
+            if(ticker){clearInterval(ticker);ticker=null;}
+          };
+          const onEnded=()=>{if(settled)return;settled=true;cleanup();resolve();};
+          const onAudioError=()=>{if(settled)return;settled=true;cleanup();reject(new Error('Audio playback failed during export.'));};
+          const onAbort=()=>{if(settled)return;settled=true;cleanup();reject(new DOMException('Export cancelled','AbortError'));};
+          audio.addEventListener('ended',onEnded,{once:true});
+          audio.addEventListener('error',onAudioError,{once:true});
+          signal.addEventListener('abort',onAbort,{once:true});
+          ticker=setInterval(()=>{
+            if(settled)return;
+            const now=performance.now();
+            if(Math.abs(audio.currentTime-lastTime)>0.001){lastTime=audio.currentTime;lastAdvance=now;}
+            else if(now-lastAdvance>15000){settled=true;cleanup();reject(new Error('Playback stalled during export.'));return;}
+            const p=Math.max(1,Math.min(99,Math.round(audio.currentTime/Math.max(0.01,audio.duration)*100)));
+            status.textContent='Exporting '+p+'% — keep this tab open…';
+            setExportProgress(p,'Rendering video · '+fmt(audio.currentTime)+' of '+fmt(audio.duration));
+          },250);
+        });
+        recorder.start(1000);
+        await audio.play();
+        await playbackDone;
+        if(frameTicker){clearInterval(frameTicker);frameTicker=null;}
+        compositeFrame();
+        await new Promise(r=>setTimeout(r,300));
+        if(recorder.state==='recording')recorder.stop();
+        await stopped;
+        if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
+        if(!chunks.length)throw new Error('The video encoder produced an empty file.');
+        return {blob:new Blob(chunks,{type:mime}),dims};
+      }finally{
+        if(ticker){clearInterval(ticker);ticker=null;}
+        if(frameTicker){clearInterval(frameTicker);frameTicker=null;}
+        try{if(recorder&&recorder.state==='recording')recorder.stop();}catch(_){}
+        ownedTracks.forEach(t=>{try{t.stop();}catch(_){}});
+      }
+    }
+
     try{
-      audio.pause();
-      canvas.width=dims[0];canvas.height=dims[1];
-      await new Promise(resolve=>{
-        if(audio.currentTime===0){resolve();return;}
-        audio.addEventListener('seeked',resolve,{once:true});audio.currentTime=0;
-      });
-      state.time=0;range.value=0;updateTime();draw();
-      const audioStream=getExportAudioStream();
-      const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
-      if(tapCtx&&tapCtx.state==='suspended')await tapCtx.resume();
-      compositeFrame();
-      const stream=compositeCanvas.captureStream(exportFps);
-      frameTicker=setInterval(compositeFrame,1000/exportFps);
-      const audioTracks=audioStream?.getAudioTracks()||[];
-      if(audioTracks.length)audioTracks.forEach(t=>stream.addTrack(t));
-      else status.textContent='Audio capture unavailable here; exporting video only…';
-      if(exportProgressUsesShadcn)window.kefeExportDialog.audio(audioTracks.length>0);
-      else if(exportProgressModal)exportProgressModal.querySelector('#kefeExportAudio').textContent=audioTracks.length?'Audio track included':'Video only';
-      const chunks=[];
-      recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:res>=2160?45000000:res>=1440?28000000:res>=1080?16000000:8000000});
-      recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-      const stopped=new Promise(resolve=>{recorder.onstop=resolve});
-      recorder.start(1000);
-      const ended=new Promise(resolve=>audio.addEventListener('ended',resolve,{once:true}));
-      await audio.play();
-      ticker=setInterval(()=>{const p=Math.max(1,Math.min(99,Math.round(audio.currentTime/audio.duration*100)));status.textContent='Exporting '+p+'% — keep this tab open…';setExportProgress(p,'Rendering video · '+fmt(audio.currentTime)+' of '+fmt(audio.duration));},250);
-      await ended;
-      clearInterval(ticker);ticker=null;
-      clearInterval(frameTicker);frameTicker=null;
-      compositeFrame();
-      await new Promise(r=>setTimeout(r,300));
-      recorder.stop();await stopped;
-      const blob=new Blob(chunks,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');
+      if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
+      if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
+      if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
+      let result=null,fallbackUsed=false;
+      try{
+        result=await runEncode(requestedRes,exportAbort.signal);
+      }catch(primaryErr){
+        if(primaryErr?.name==='AbortError'||requestedRes<=720)throw primaryErr;
+        console.warn('[KEFE export retrying at 720p]',primaryErr);
+        status.textContent='High-resolution export failed; retrying at 720p…';
+        setExportProgress(1,'Retrying at 720p…');
+        result=await runEncode(720,exportAbort.signal);
+        fallbackUsed=true;
+      }
+      const {blob,dims}=result;
+      const url=URL.createObjectURL(blob),a=document.createElement('a');
       const name=[songArtist.value,songTitle.value].map(v=>v.trim()).filter(Boolean).join(' - ').replace(/[\\/:*?"<>|]+/g,'')||'kefe-visualiser';
       a.href=url;a.download=name+'.'+ext;document.body.appendChild(a);a.click();a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),10000);
-      status.textContent='Export complete ('+dims[0]+'×'+dims[1]+' '+ext.toUpperCase()+').'+formatNote;
-      finishExportProgress(true,'Your video has been rendered and the download has started.'+formatNote);
+      const fallbackNote=fallbackUsed?' Exported at 720p after a higher-resolution encoder failure.':'';
+      status.textContent='Export complete ('+dims[0]+'×'+dims[1]+' '+ext.toUpperCase()+').'+formatNote+fallbackNote;
+      finishExportProgress(true,'Your video has been rendered and the download has started.'+formatNote+fallbackNote);
     }catch(error){
-      console.warn('[KEFE export]',error);
-      status.textContent='Export failed: '+(error?.message||'unknown error');
-      finishExportProgress(false,'Export failed: '+(error?.message||'unknown error')+'. Close this panel and try again.');
-      try{if(recorder&&recorder.state!=='inactive')recorder.stop();}catch(_){}
+      if(error?.name==='AbortError'){
+        status.textContent='Export cancelled.';
+        finishExportProgress(false,'Export cancelled.');
+      }else{
+        console.warn('[KEFE export]',error);
+        status.textContent='Export failed: '+(error?.message||'unknown error');
+        finishExportProgress(false,'Export failed: '+(error?.message||'unknown error')+'. Close this panel and try again.');
+      }
     }finally{
-      if(ticker)clearInterval(ticker);
-      if(frameTicker)clearInterval(frameTicker);
       canvas.width=prev.w;canvas.height=prev.h;
       exporting=false;window.kefeAppleCanvasExport=false;button.disabled=false;
       audio.pause();state.time=prev.time;range.value=prev.time;audio.currentTime=prev.time;updateTime();draw();

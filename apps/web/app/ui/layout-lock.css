@@ -1,17 +1,19 @@
 /* KEFE — layout lock.
 
-   The single, final authority for the editor's frame: gutters, vertical gaps, block edges and
-   control sizes. It loads after every other stylesheet and uses !important on the structural
-   properties on purpose, so no earlier override layer can nudge a block, add a stray margin
-   or change a gap. Change a token here and the whole editor moves together; never patch a
-   one-off margin elsewhere.
+   The single, final authority for the editor's frame: locked viewport, universal
+   box-sizing, gutters, vertical gaps, block edges, grid/flex containment and
+   uniform control sizes. It loads after every other stylesheet and uses !important
+   on structural properties so no earlier layer can nudge a block, wrap a bar or
+   unlock document scrolling.
 
    Rules the editor follows (verified by scripts/verify-layout-lock.cjs on every build):
-     1. Every top-level block (preview, toolbar strip, timeline, tab bar, workspace) has the
-        same left and right edge: the content frame.
-     2. Every gap between stacked blocks is --lk-gap, on every screen.
-     3. Nothing overlaps: the toolbar strip owns a reserved row above the timeline.
-     4. A control of one kind has one size on every screen. */
+     1. The editor root (html/body/.kefe-editor) is locked to the viewport (100dvh);
+        only the active settings workspace (.kefe-settings-mount) scrolls internally.
+     2. Every top-level block (preview, toolbar strip, timeline, tab bar, workspace)
+        shares the exact left and right edge of the content frame.
+     3. Every vertical gap between stacked blocks is --lk-gap, on every screen.
+     4. Toolbars and workspace/subtab strips stay single-row; controls of the same
+        kind keep identical heights across every screen. */
 
 :root {
   --lk-gap: 12px;          /* between stacked blocks and between sibling cards */
@@ -22,76 +24,131 @@
   --lk-tab-h: 40px;        /* workspace tabs */
   --lk-subtab-h: 36px;     /* section sub-tabs */
   --lk-ctl: 36px;          /* transport, volume and toolbar launcher buttons */
+  --lk-ctl-s: 34px;        /* header navigation and action buttons */
   --lk-timeline-h: 64px;
   --lk-strip-h: 36px;      /* the open toolbar strip */
-  --lk-preview-h: clamp(200px, 32dvh, 440px); /* desktop preview box; fixed so changing aspect never moves anything */
+  --lk-preview-h: clamp(180px, 32dvh, 440px); /* locked preview box; fixed across aspect ratios */
   --lk-radius: 12px;
 }
 
-/* ── Shell: header / work (preview + timeline) / settings ───────────────────────── */
+/* ── Global box-sizing & editor viewport lock ──────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html:has(.kefe-editor),
+body:has(.kefe-editor) {
+  width: 100%;
+  max-width: 100%;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ── Shell: locked 100dvh grid on every viewport; settings pane scrolls inside ─── */
 html:root .kefe-editor {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) !important;
   grid-template-rows: var(--lk-header-h) auto minmax(0, 1fr) !important;
-  margin-block: 0 !important;
-  margin-inline: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
   padding: 0 !important;
   gap: 0 !important;
+  overflow: hidden !important;
 }
-html:root .kefe-editor > .kefe-sidebar { grid-column: 1 !important; grid-row: 1 !important; }
-html:root .kefe-editor > .kefe-work { grid-column: 1 !important; grid-row: 2 !important; }
-html:root .kefe-editor > .kefe-editing { grid-column: 1 !important; grid-row: 3 !important; }
-
-/* Desktop: the preview and timeline stay put; only the settings pane scrolls. */
-@media (min-width: 901px) {
-  html:root .kefe-editor { height: 100dvh !important; min-height: 0 !important; overflow: hidden !important; }
-  html:root .kefe-editor .kefe-preview { height: var(--lk-preview-h) !important; display: grid !important; place-items: center !important; overflow: hidden !important; }
-  html:root .kefe-editor .kefe-editing { display: flex !important; flex-direction: column !important; min-height: 0 !important; overflow: hidden !important; }
-  html:root .kefe-editor .kefe-settings-mount { flex: 1 1 auto !important; min-height: 0 !important; overflow-x: hidden !important; overflow-y: auto !important; }
-  html:root .kefe-editor #kefe-settings-panel > .kefe-workspace-tabs { top: 0 !important; }
+html:root .kefe-editor > .kefe-sidebar {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
 }
-/* Tablet and phone: the page scrolls; the preview hugs its stage. */
-@media (max-width: 900px) {
-  html:root .kefe-editor { height: auto !important; min-height: 100dvh !important; overflow: visible !important; }
-  html:root .kefe-editor .kefe-preview { height: auto !important; min-height: 180px !important; display: grid !important; place-items: center !important; overflow: visible !important; }
-  html:root .kefe-editor .kefe-preview > .kefe-stage { height: auto !important; }
-  html:root .kefe-editor .kefe-editing { display: block !important; overflow: visible !important; }
-  html:root .kefe-editor .kefe-settings-mount { overflow: visible !important; }
-  html:root .kefe-editor #kefe-settings-panel > .kefe-workspace-tabs { top: var(--lk-header-h) !important; }
+html:root .kefe-editor > .kefe-work {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
 }
+html:root .kefe-editor > .kefe-editing {
+  grid-column: 1 !important;
+  grid-row: 3 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+html:root .kefe-editor .kefe-preview {
+  height: var(--lk-preview-h) !important;
+  min-height: var(--lk-preview-h) !important;
+  max-height: var(--lk-preview-h) !important;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+html:root .kefe-editor:has(.kefe-stage.kefe-pseudo-fullscreen, .kefe-stage:fullscreen) .kefe-preview {
+  overflow: visible !important;
+}
+html:root .kefe-editor .kefe-settings-mount {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: none !important;
+}
+html:root .kefe-editor .kefe-settings-mount::-webkit-scrollbar { display: none; }
 
 /* ── Header ─────────────────────────────────────────────────────────────────────── */
 html:root .kefe-editor .kefe-sidebar {
-  box-sizing: border-box !important;
   height: var(--lk-header-h) !important;
   min-height: var(--lk-header-h) !important;
   max-height: var(--lk-header-h) !important;
   padding-block: 0 !important;
   padding-inline: var(--lk-gutter) !important;
   gap: var(--lk-gap-s) !important;
+  flex-wrap: nowrap !important;
 }
 html:root .kefe-editor .kefe-sidebar-group,
-html:root .kefe-editor .kefe-sidebar-bottom { gap: 6px !important; }
+html:root .kefe-editor .kefe-sidebar-bottom {
+  gap: 6px !important;
+  flex-wrap: nowrap !important;
+  min-width: 0 !important;
+}
 html:root .kefe-editor .kefe-sidebar-brand-row { padding-inline: 0 !important; }
+html:root .kefe-editor .kefe-sidebar-link {
+  height: var(--lk-ctl-s) !important;
+  min-height: var(--lk-ctl-s) !important;
+  max-height: var(--lk-ctl-s) !important;
+  white-space: nowrap !important;
+}
 
 /* ── Frame: preview → toolbar strip → timeline → tabs → workspace ───────────────── */
 html:root .kefe-editor .kefe-work {
-  box-sizing: border-box !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) !important;
   grid-template-rows: auto auto !important;
   row-gap: var(--lk-gap) !important;
+  column-gap: 0 !important;
   height: auto !important;
   min-height: 0 !important;
   overflow: visible !important;
-  column-gap: 0 !important;
   margin: 0 !important;
   padding: var(--lk-gap) var(--lk-gutter) 0 !important;
   width: 100% !important;
   max-width: none !important;
 }
 html:root .kefe-editor .kefe-preview {
-  box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
@@ -99,9 +156,8 @@ html:root .kefe-editor .kefe-preview {
 }
 
 /* Timeline: one height, one grid, never wider than the frame. */
-html:root .kefe-editor .kefe-timeline {
-  box-sizing: border-box !important;
-  position: relative !important;
+html:root .kefe-editor .kefe-work > .kefe-timeline,
+html:root .kefe-editor .kefe-stage > .kefe-timeline {
   display: grid !important;
   grid-template-columns: auto minmax(0, 1fr) var(--lk-ctl) var(--lk-ctl) !important;
   grid-template-rows: minmax(0, 1fr) !important;
@@ -119,13 +175,20 @@ html:root .kefe-editor .kefe-timeline {
   padding: 0 var(--lk-pad) !important;
   border-radius: var(--lk-radius) !important;
 }
+html:root .kefe-editor .kefe-work > .kefe-timeline {
+  position: relative !important;
+  width: 100% !important;
+}
+html:root .kefe-editor .kefe-stage:fullscreen > .kefe-timeline,
+html:root .kefe-editor .kefe-stage.kefe-pseudo-fullscreen > .kefe-timeline {
+  position: absolute !important;
+}
 html:root .kefe-editor .kefe-timeline > .kefe-transport {
   grid-column: 1 !important; grid-row: 1 !important;
   display: flex !important; align-items: center !important; gap: var(--lk-gap-s) !important;
   margin: 0 !important; padding: 0 !important;
 }
 html:root .kefe-editor .kefe-timeline > .kefe-transport > button {
-  box-sizing: border-box !important;
   width: var(--lk-ctl) !important; min-width: var(--lk-ctl) !important;
   height: var(--lk-ctl) !important; min-height: var(--lk-ctl) !important; max-height: var(--lk-ctl) !important;
   margin: 0 !important;
@@ -143,7 +206,7 @@ html:root .kefe-editor .kefe-timeline > .kefe-volume-control > button {
   width: var(--lk-ctl) !important; height: var(--lk-ctl) !important; min-height: var(--lk-ctl) !important; margin: 0 !important;
 }
 
-/* Toolbar: the launcher is a timeline cell; the open strip owns its own row above the timeline. */
+/* Toolbar: the launcher is a timeline cell; the open strip stays single-row on its reserved row. */
 html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) {
   grid-column: 4 !important; grid-row: 1 !important;
   position: static !important;
@@ -160,7 +223,6 @@ html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .
   position: absolute !important;
   top: auto !important; left: auto !important; right: 0 !important;
   bottom: calc(100% + var(--lk-gap)) !important;
-  box-sizing: border-box !important;
   width: max-content !important; max-width: 100% !important;
   height: var(--lk-strip-h) !important; min-height: var(--lk-strip-h) !important; max-height: var(--lk-strip-h) !important;
   margin: 0 !important;
@@ -168,8 +230,12 @@ html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .
   scrollbar-width: none !important;
 }
 html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-bar::-webkit-scrollbar { display: none; }
-html:root .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-main {
-  flex-wrap: nowrap !important; width: max-content !important; max-width: none !important; height: 100% !important;
+html:root .kefe-editor #kefeFloatingToolbar .kft-main {
+  flex-wrap: nowrap !important;
+  width: max-content !important;
+  max-width: none !important;
+  height: 100% !important;
+  white-space: nowrap !important;
 }
 /* Reserve the strip's row so it can never sit on the preview or the timeline. */
 html:root .kefe-editor .kefe-work > .kefe-timeline:has(> #kefeFloatingToolbar.is-open:not(.is-floating)) {
@@ -178,7 +244,6 @@ html:root .kefe-editor .kefe-work > .kefe-timeline:has(> #kefeFloatingToolbar.is
 
 /* ── Settings shell ─────────────────────────────────────────────────────────────── */
 html:root .kefe-editor .kefe-editing {
-  box-sizing: border-box !important;
   margin: 0 !important;
   padding: var(--lk-gap) var(--lk-gutter) var(--lk-gutter) !important;
   width: 100% !important;
@@ -189,100 +254,149 @@ html:root .kefe-editor .kefe-editing {
 html:root .kefe-editor .kefe-editing > .kefe-panels { display: none !important; }
 html:root .kefe-editor .kefe-settings-mount,
 html:root .kefe-editor #kefe-settings-panel {
-  box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 !important;
   width: 100% !important;
   max-width: none !important;
+  min-width: 0 !important;
 }
 html:root .kefe-editor #kefe-settings-panel {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--lk-gap) !important;
+  min-height: 0 !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs-mount,
+html:root .kefe-editor #kefe-settings-panel .kefe-subtabs-mount {
+  display: contents !important;
 }
 
-/* Workspace tabs: three equal cells, one height, never clipped, never under the header. */
-html:root .kefe-editor #kefe-settings-panel > .kefe-workspace-tabs {
-  box-sizing: border-box !important;
+/* Workspace tabs: four equal single-line cells, sticky at top of the scrolling workspace. */
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
   position: sticky !important;
+  top: 0 !important;
+  z-index: 30 !important;
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: var(--lk-gap-s) !important;
   margin: 0 !important;
   padding: var(--lk-gap-s) !important;
   width: 100% !important;
+  min-width: 0 !important;
   height: auto !important;
   border-radius: var(--lk-radius) !important;
 }
 html:root .kefe-editor .kefe-workspace-tabs > .kefe-workspace-tab {
-  box-sizing: border-box !important;
   display: flex !important; align-items: center !important; justify-content: center !important;
   height: var(--lk-tab-h) !important; min-height: var(--lk-tab-h) !important; max-height: var(--lk-tab-h) !important;
   margin: 0 !important;
   padding: 0 var(--lk-gap-s) !important;
+  min-width: 0 !important;
   line-height: 1.15 !important;
   text-align: center !important;
-  white-space: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  border-radius: 8px !important;
   transform: none !important;
 }
 
 html:root .kefe-editor #kefe-settings-panel > .kefe-settings-columns {
   display: block !important;
-  margin: 0 !important; padding: 0 !important; width: 100% !important; gap: 0 !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important; min-height: 0 !important; gap: 0 !important;
 }
-html:root .kefe-editor .kefe-settings-columns > .kefe-workspace {
-  box-sizing: border-box !important;
+html:root .kefe-editor .kefe-settings-columns > .kefe-workspace:not([hidden]) {
   display: flex !important;
   flex-direction: column !important;
   gap: var(--lk-gap) !important;
-  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important; min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  animation: none !important;
 }
 html:root .kefe-editor .kefe-workspace > .kefe-workspace-title {
-  box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 0 var(--lk-gap-s) !important;
   width: 100% !important;
+  min-width: 0 !important;
 }
 html:root .kefe-editor .kefe-workspace > .kefe-workspace-stack {
-  box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--lk-gap) !important;
-  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important; min-height: 0 !important;
 }
-html:root .kefe-editor .kefe-workspace-stack > * { margin: 0 !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
+html:root .kefe-editor .kefe-workspace-stack > *,
+html:root .kefe-editor .kefe-workspace-stack > .kefe-subtabs-mount > * {
+  margin: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+}
 
-/* Sub-tabs: full width, two equal cells, no negative margins or transforms. */
-html:root .kefe-editor .kefe-workspace-stack > .kefe-subtabs {
+/* Sub-tabs: full width, dynamic equal cells matching tab count, no negative margins. */
+html:root .kefe-editor #kefe-settings-panel .kefe-subtabs {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(var(--kefe-subtab-count, 2), minmax(0, 1fr)) !important;
   gap: var(--lk-gap-s) !important;
+  margin: 0 !important;
   padding: var(--lk-gap-s) !important;
   width: 100% !important;
+  min-width: 0 !important;
+  border-radius: var(--lk-radius) !important;
   transform: none !important;
   left: auto !important; right: auto !important;
 }
 html:root .kefe-editor .kefe-subtabs > .kefe-subtab {
-  box-sizing: border-box !important;
   display: flex !important; align-items: center !important; justify-content: center !important;
   height: var(--lk-subtab-h) !important; min-height: var(--lk-subtab-h) !important; max-height: var(--lk-subtab-h) !important;
-  margin: 0 !important; padding: 0 var(--lk-gap-s) !important; width: auto !important;
+  margin: 0 !important; padding: 0 var(--lk-gap-s) !important; min-width: 0 !important; width: auto !important;
+  border-radius: 7px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Structural flex/grid containment down to embedded panels. */
+html:root .kefe-editor #kefe-settings-panel :is(.section, .section-content, .content-inner, .kefe-slot, .kefe-panel) {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
 }
 
 /* Footer (GitHub + reset) sits on the same frame and gap. */
 html:root .kefe-editor #kefe-settings-panel > .kefe-reset-footer {
-  box-sizing: border-box !important;
-  margin: 0 !important; padding: 0 !important; width: 100% !important;
+  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important;
   gap: var(--lk-gap) !important;
 }
 
 /* Card grids: equal inner space left and right, with or without a scrollbar. */
-html:root .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions.kefe-lyric-effect-grid { padding: 4px !important; gap: var(--lk-gap-s) !important; scrollbar-gutter: stable both-edges !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions.kefe-lyric-effect-grid {
+  padding: 4px !important;
+  gap: var(--lk-gap-s) !important;
+  scrollbar-gutter: stable both-edges !important;
+}
 
-/* ── Narrow screens: keep every token, only shrink what must ────────────────────── */
-@media (max-width: 360px) {
-  html:root .kefe-editor .kefe-sidebar-link { padding-inline: 8px !important; }
+/* ── Narrow screens: fit cleanly on single rows without changing heights ───────── */
+@media (max-width: 420px) {
+  html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
+    gap: 4px !important;
+    padding: 6px !important;
+  }
+  html:root .kefe-editor .kefe-workspace-tabs > .kefe-workspace-tab {
+    padding: 0 4px !important;
+    font-size: 11.5px !important;
+  }
+}
+@media (max-width: 380px) {
+  html:root .kefe-editor .kefe-sidebar { gap: 4px !important; }
   html:root .kefe-editor .kefe-sidebar-group,
   html:root .kefe-editor .kefe-sidebar-bottom { gap: 4px !important; }
-  html:root .kefe-editor .kefe-sidebar { gap: 4px !important; }
+  html:root .kefe-editor .kefe-sidebar-group > :is(.kefe-sidebar-link, .shad-btn-host > .kefe-sidebar-link) { padding-inline: 8px !important; }
+  html:root .kefe-editor .kefe-sidebar-bottom > .kefe-sidebar-link {
+    width: 30px !important;
+    min-width: 30px !important;
+    padding-inline: 0 !important;
+  }
 }

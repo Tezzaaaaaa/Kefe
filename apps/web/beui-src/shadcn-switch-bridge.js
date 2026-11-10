@@ -12,7 +12,7 @@ const selector = 'button.kefe-switch[role="switch"], button.kv-power-switch[role
 
 function shouldMount(button) {
   return button instanceof HTMLButtonElement && button.isConnected && button.matches(selector) &&
-    !button.classList.contains("kefe-vis-option-power") && !button.closest(".beui-vis-backing-controls") &&
+    !button.classList.contains("kefe-vis-option-power") && !button.closest(".shad-vis-backing-controls") &&
     button.getAttribute("aria-hidden") !== "true" && !mounted.has(button);
 }
 function mount(button) {
@@ -70,7 +70,7 @@ function start() {
     }
     queueMicrotask(() => {
       for (const [button, control] of mounted) {
-        if (!button.isConnected || !button.matches(selector) || button.closest(".beui-vis-backing-controls")) {
+        if (!button.isConnected || !button.matches(selector) || button.closest(".shad-vis-backing-controls")) {
           control.destroy(); mounted.delete(button);
         } else if (button.nextElementSibling !== control.host) button.insertAdjacentElement("afterend", control.host);
       }

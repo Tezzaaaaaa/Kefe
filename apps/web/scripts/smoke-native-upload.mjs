@@ -8,7 +8,7 @@ const structure = readFileSync(resolve(root, "app/ui/structure.js"), "utf8");
 const editorRuntime = readFileSync(resolve(root, "app/editor.js"), "utf8");
 const editorStyles = readFileSync(resolve(root, "app/ui/styles.css"), "utf8");
 const compactStyles = readFileSync(resolve(root, "app/ui/panels-compact.css"), "utf8");
-const bridgeStyles = readFileSync(resolve(root, "beui-src/legacy-bridge.css"), "utf8");
+const shadStyles = readFileSync(resolve(root, "beui-src/shadcn-kefe.css"), "utf8");
 const backgroundRuntime = readFileSync(resolve(root, "app/visualiser/background.js"), "utf8");
 const mediaRuntime = readFileSync(resolve(root, "app/media-carousel.js"), "utf8");
 const failures = [];
@@ -21,13 +21,14 @@ if (!structure.includes("kefeUploadZone") || !structure.includes("mediaInput") |
 for (const event of ["dragover", "dragleave", "drop"]) {
   if (!editorRuntime.includes(`addEventListener('${event}'`)) failures.push(`Native upload ${event} handler is missing`);
 }
-if (!editorStyles.includes("#kefeUploadZone.beui-upload-dropzone") ||
-    !editorStyles.includes("#kefeUploadZone.beui-upload-dropzone:focus-within") ||
-    !editorStyles.includes("#kefeUploadZone.beui-upload-dropzone.is-dragging .kefe-upload-card")) {
-  failures.push("Native upload Card surface, focus, or drag-over styling is missing");
+if (!editorStyles.includes("#kefeUploadZone.shad-dropzone") ||
+    !editorStyles.includes("#kefeUploadZone.shad-dropzone:focus-within") ||
+    !editorStyles.includes("#kefeUploadZone.shad-dropzone.is-dragging .kefe-upload-card") ||
+    !shadStyles.includes(".shad-dropzone[data-slot=\"dropzone\"]")) {
+  failures.push("Upload Dropzone surface, focus, or drag-over styling is missing");
 }
 for (const retiredClass of ["beui-upload-card-hosted", "beui-upload-card-root", "beui-upload-card"]) {
-  if (editorStyles.includes(retiredClass) || compactStyles.includes(retiredClass) || bridgeStyles.includes(retiredClass)) {
+  if (editorStyles.includes(retiredClass) || compactStyles.includes(retiredClass) || shadStyles.includes(retiredClass)) {
     failures.push(`Styles still depend on retired upload Card wrapper class ${retiredClass}`);
   }
 }
@@ -48,4 +49,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: native upload label/file input and KEFE picker/drop handlers own the upload surface; the former upload Card wrapper source/styles are retired.");
+console.log("PASS: primary and background-video upload Dropzones keep native inputs, drag/drop handlers, and paired layout.");

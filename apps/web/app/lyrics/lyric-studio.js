@@ -436,9 +436,25 @@
       if (!(e.detail && e.detail.source === 'text')) history = [];
       scheduleRender();
     });
-    var a = audio();
-    if (a) ['timeupdate', 'seeked', 'play', 'pause'].forEach(function (ev) { a.addEventListener(ev, function () { markActive(false); }); });
-    (function tick() { if (a && !a.paused) markActive(false); requestAnimationFrame(tick); })();
+    var a = audio(), rafId = 0;
+    function tick() {
+      rafId = 0;
+      if (!a || a.paused || document.hidden) return;
+      markActive(false);
+      rafId = requestAnimationFrame(tick);
+    }
+    function syncLoop() {
+      if (a && !a.paused && !document.hidden) {
+        if (!rafId) rafId = requestAnimationFrame(tick);
+      } else if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    }
+    if (a) ['timeupdate', 'seeked', 'play', 'pause', 'ended'].forEach(function (ev) {
+      a.addEventListener(ev, function () { markActive(false); syncLoop(); });
+    });
+    document.addEventListener('visibilitychange', syncLoop);
     redraw();
   }
 

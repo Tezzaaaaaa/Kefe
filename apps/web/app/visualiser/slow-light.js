@@ -30,8 +30,9 @@
   let cfg = {...defaults};
   try { const saved=JSON.parse(localStorage.getItem('kefe.slowLight.v1')||'null'); if(saved)cfg={...cfg,...saved}; } catch (_) {}
   const reducedMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  let stage,canvas,gl,program,locations={},enabled=false,active=false,raf=0,last=0,t=0,colourTime=0,hold=0,index=0,from=SCENES[0],to=SCENES[0],morph=1,morphDuration=12,current;
-  let width=2,height=2,dpr=1,tick=0,audioBins=null,smoothed={bass:.4,low:.4,mid:.4,high:.3,cent:.5},peak={bass:.1,low:.1,mid:.1,high:.1};
+  let stage,canvas,gl,program,vertexBuffer=null,locations={},enabled=false,active=false,last=0,t=0,colourTime=0,hold=0,index=0,from=SCENES[0],to=SCENES[0],morph=1,morphDuration=12,current;
+  let width=2,height=2,dpr=1,tick=0,audioBins=null,smoothed={bass:0,low:0,mid:0,high:0,cent:.5},peak={bass:.1,low:.1,mid:.1,high:.1},rendererError=null,loop=null;
+  const scope=window.kefeResilience?.createScope?.();
   const pBuffer=new Float32Array(18),cBuffer=new Float32Array(18);
   const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
   const ease=x=>{x=clamp(x);return x*x*x*(x*(x*6-15)+10)};
@@ -53,46 +54,93 @@
   const hue2=(p,q,x)=>{if(x<0)x+=1;if(x>1)x-=1;if(x<1/6)return p+(q-p)*6*x;if(x<.5)return q;if(x<2/3)return p+(q-p)*(2/3-x)*6;return p;};
   const hsl2rgb=(h,s,l)=>{if(s<1e-6)return [l,l,l];const q=l<.5?l*(1+s):l+s-l*s,p=2*l-q;return [hue2(p,q,h+1/3),hue2(p,q,h),hue2(p,q,h-1/3)];};
   function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){console.error('[KEFE Slow Light shader]',gl.getShaderInfoLog(shader));gl.deleteShader(shader);return null;}return shader;}
+  function destroyGL(){
+    if(gl&&!gl.isContextLost()){
+      try{if(vertexBuffer)gl.deleteBuffer(vertexBuffer);}catch(_){}
+      try{if(program)gl.deleteProgram(program);}catch(_){}
+    }
+    vertexBuffer=null;program=null;
+  }
   function build(){
+    destroyGL();
     const vs=compile(gl.VERTEX_SHADER,VS),fs=compile(gl.FRAGMENT_SHADER,FS);if(!vs||!fs)return false;
     const next=gl.createProgram();gl.attachShader(next,vs);gl.attachShader(next,fs);gl.linkProgram(next);
     gl.deleteShader(vs);gl.deleteShader(fs);
     if(!gl.getProgramParameter(next,gl.LINK_STATUS)){console.error('[KEFE Slow Light program]',gl.getProgramInfoLog(next));gl.deleteProgram(next);return false;}
-    if(program)gl.deleteProgram(program);program=next;gl.useProgram(program);
-    const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
-    const attr=gl.getAttribLocation(program,'a');gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
+    program=next;gl.useProgram(program);
+    vertexBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+    const attr=gl.getAttribLocation(program,'a');
+    if(attr<0){destroyGL();return false;}
+    gl.enableVertexAttribArray(attr);gl.vertexAttribPointer(attr,2,gl.FLOAT,false,0,0);
     ['uRes','uUnit','uDpr','uT','uExp','uSwirl','uWarp','uScale','uSharp','uGlow','uGrain','uP','uCol','uOrb','uOrbCol'].forEach(k=>locations[k]=gl.getUniformLocation(program,k));
     return true;
   }
+  function reportError(err,title,message){
+    rendererError=err||new Error('WebGL unavailable');
+    enabled=false;
+    loop?.stop();
+    syncUI();
+    window.kefeResilience?.panelError('visualiser',{
+      id:'slow-light-gl',
+      title:title||'Slow Light preview could not initialise',
+      message:message||'WebGL graphics acceleration is unavailable or blocked in this browser.',
+      retryLabel:'Retry',
+      onRetry(){rendererError=null;if(ensureGL()){enabled=true;sync();}},
+      continueLabel:'Continue with Fluid Ink (2D)',
+      onContinue(){document.querySelector('[data-visualiser="gradient"]')?.click();}
+    });
+  }
+  function ensureGL(){
+    if(gl&&!gl.isContextLost()&&program)return true;
+    if(rendererError)return false;
+    try{
+      gl=canvas.getContext('webgl',{antialias:false,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+      if(!gl||gl.isContextLost()||!build())throw new Error('WebGL initialization failed');
+      rendererError=null;
+      window.kefeResilience?.clearPanelError('visualiser','slow-light-gl');
+      return true;
+    }catch(e){
+      console.error('[KEFE Slow Light]',e);
+      reportError(e);
+      return false;
+    }
+  }
   function resize(){
-    if(!canvas||!stage)return;
-    const r=stage.getBoundingClientRect();dpr=Math.min(window.devicePixelRatio||1,2);
-    width=Math.max(2,Math.round((r.width||2)*dpr));height=Math.max(2,Math.round((r.height||2)*dpr));
+    if(!canvas||!stage)return false;
+    const r=stage.getBoundingClientRect();
+    if(r.width<2||r.height<2)return false;
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    width=Math.max(2,Math.round(r.width*dpr));height=Math.max(2,Math.round(r.height*dpr));
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
-    gl?.viewport(0,0,width,height);
+    if(gl&&!gl.isContextLost())gl.viewport(0,0,width,height);
+    return true;
   }
   function audio(dt){
-    const analyser=window.kefeAudioGraph?.analyser?.();let target;
+    const g=window.kefeAudioGraph;
+    const analyser=g?.analyser?.();
+    let target={bass:0,low:0,mid:0,high:0,cent:.5};
     if(analyser){
       if(!audioBins||audioBins.length!==analyser.frequencyBinCount)audioBins=new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(audioBins);
-      const hz=(analyser.context?.sampleRate||48000)/(analyser.fftSize||2048);
-      const band=(lo,hi)=>{const a=Math.max(1,Math.floor(lo/hz)),b=Math.min(audioBins.length-1,Math.ceil(hi/hz));let sum=0;for(let i=a;i<=b;i++)sum+=audioBins[i];return sum/(Math.max(1,b-a+1)*255);};
-      const raw={bass:band(30,140),low:band(140,500),mid:band(500,2200),high:band(2200,9000)};
-      const centroidBins=Math.min(audioBins.length,Math.floor(8000/hz));let num=0,den=0;
-      for(let i=2;i<centroidBins;i++){num+=i*hz*audioBins[i];den+=audioBins[i];}
-      target={cent:clamp(Math.log(Math.max(den?num/den:400,1)/200)/Math.log(2)/4)};
-      Object.keys(raw).forEach(k=>{peak[k]=Math.max(raw[k],peak[k]*Math.exp(-dt/30),.06);target[k]=Math.pow(clamp(raw[k]/peak[k]),1.3);});
-    }else{
-      target={bass:.48+.28*Math.sin(tick*.48),low:.45+.25*Math.sin(tick*.37+1.3),mid:.42+.2*Math.sin(tick*.31+2.1),high:.34+.15*Math.sin(tick*.53+.4),cent:.5+.2*Math.sin(tick*.11)};
+      const res=g?.readFrequencyData ? g.readFrequencyData(audioBins) : (analyser.getByteFrequencyData(audioBins),{ok:true});
+      if(res.ok){
+        const hz=(analyser.context?.sampleRate||48000)/(analyser.fftSize||2048);
+        const band=(lo,hi)=>{const a=Math.max(1,Math.floor(lo/hz)),b=Math.min(audioBins.length-1,Math.ceil(hi/hz));let sum=0;for(let i=a;i<=b;i++)sum+=audioBins[i];return sum/(Math.max(1,b-a+1)*255);};
+        const raw={bass:band(30,140),low:band(140,500),mid:band(500,2200),high:band(2200,9000)};
+        const centroidBins=Math.min(audioBins.length,Math.floor(8000/hz));let num=0,den=0;
+        for(let i=2;i<centroidBins;i++){num+=i*hz*audioBins[i];den+=audioBins[i];}
+        target={cent:clamp(Math.log(Math.max(den?num/den:400,1)/200)/Math.log(2)/4)};
+        Object.keys(raw).forEach(k=>{peak[k]=Math.max(raw[k],peak[k]*Math.exp(-dt/30),.06);target[k]=Math.pow(clamp(raw[k]/peak[k]),1.3);});
+      }
     }
     Object.keys(smoothed).forEach(k=>{const tc=target[k] > smoothed[k] ? 0.9 : 2.4;smoothed[k]+= (target[k]-smoothed[k])*(1-Math.exp(-dt/tc));});
   }
   function goTo(next,duration=6){if(next===index&&morph>=1)return;from=current;to=SCENES[next];index=next;morph=0;hold=0;morphDuration=reducedMotion?duration*1.6:duration;syncScene();}
   function syncScene(){if(!ui)return;ui.sceneName.textContent=SCENES[index].name;ui.sceneButtons.forEach((b,i)=>{b.classList.toggle('primary',i===index);b.setAttribute('aria-pressed',String(i===index));});}
-  function frame(now){
-    raf=0;if(!shown()||!gl||!program||document.hidden)return;
-    if(window.kefeFrameGate&&!window.kefeFrameGate(now)){raf=requestAnimationFrame(frame);return;}
+  function step(now){
+    if(!shown()||document.hidden)return false;
+    if(!gl||gl.isContextLost()||!program)return false;
+    if(window.kefeFrameGate&&!window.kefeFrameGate(now))return true;
+    if(!resize())return true;
     const dt=Math.min(.1,Math.max(0,(now-(last||now))/1000));last=now;tick+=dt;audio(dt);
     if(morph<1){morph=Math.min(1,morph+dt/morphDuration);current=blend(from,to,morph);}
     else if(cfg.auto){hold+=dt;if(hold>=cfg.len)goTo((index+1)%SCENES.length,Math.min(16,Math.max(8,cfg.len*.5)));}
@@ -114,7 +162,8 @@
     gl.uniform3f(locations.uOrbCol,...c.orbCol.map(v=>clamp(v)));gl.uniform1f(locations.uGlow,c.glow*.75*(.8+re*.5*level));
     gl.uniform1f(locations.uSwirl,c.swirl*(1+re*.6*(b.low-.3)));gl.uniform1f(locations.uWarp,Math.max(0,c.warp*(1+re*.6*(b.bass-.35))));
     gl.uniform1f(locations.uScale,c.scale);gl.uniform1f(locations.uSharp,c.sharp);gl.uniform1f(locations.uExp,1+re*.06*(level-.4));gl.uniform1f(locations.uGrain,c.grain*cfg.grain);
-    gl.drawArrays(gl.TRIANGLES,0,3);raf=requestAnimationFrame(frame);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+    return true;
   }
   let ui=null;
   function persist(){try{localStorage.setItem('kefe.slowLight.v1',JSON.stringify(cfg));}catch(_){}}
@@ -132,14 +181,16 @@
     canvas=document.createElement('canvas');canvas.id='kefeSlowLightCanvas';canvas.setAttribute('aria-label','Slow Light visualiser output');
     Object.assign(canvas.style,{position:'absolute',inset:'0',width:'100%',height:'100%',display:'none',opacity:'0.56',zIndex:'2',pointerEvents:'none',borderRadius:'0'});
     const lyric=document.getElementById('kefeCanvas');stage.insertBefore(canvas,lyric||null);
-    gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});
-    if(!gl||!build()){canvas.remove();console.error('[KEFE Slow Light] WebGL initialization failed.');return;}
-    canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();if(raf)cancelAnimationFrame(raf);raf=0;gl=null;});
-    canvas.addEventListener('webglcontextrestored',()=>{gl=canvas.getContext('webgl',{antialias:false,alpha:false,powerPreference:'high-performance'});if(gl&&build()){resize();if(shown())start();}});
+    loop=window.kefeResilience?.createRenderLoop
+      ? window.kefeResilience.createRenderLoop(step,{onError:err=>reportError(err,'Slow Light stopped rendering','A graphics error interrupted Slow Light.')})
+      : {start(){},stop(){},dispose(){}};
+    canvas.addEventListener('webglcontextlost',e=>{
+      e.preventDefault();loop?.stop();gl=null;
+      if(shown())reportError(new Error('WebGL context lost'),'Slow Light paused','The browser paused 3D graphics. Tap Retry or switch to Fluid Ink.');
+    });
+    canvas.addEventListener('webglcontextrestored',()=>{rendererError=null;if(shown()&&ensureGL()){resize();syncUI();start();}});
     const view=document.createElement('section');view.className='kefe-vis-view kefe-slow-light-view';view.id='kefeVisSlowLightView';view.hidden=true;
     const intro=document.createElement('div');intro.className='kefe-visualiser-intro';intro.hidden=true;
-    /* The power switch lives in the panel header (same pattern as Fluted Glass) so the header
-       switch always controls the visualiser that is actually selected. */
     const power=document.createElement('button');power.type='button';power.className='kefe-btn kefe-switch kefe-vis-option-power kefe-slow-light-power';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Slow Light Visualiser');
     const powerState=document.createElement('span');powerState.className='kefe-switch-state';powerState.textContent='Off';
     const powerTrack=document.createElement('span');powerTrack.className='kefe-switch-track';powerTrack.setAttribute('aria-hidden','true');
@@ -149,7 +200,7 @@
     const presetRow=document.querySelector('.kefe-visualiser-preset-row');
     const sceneSet=document.createElement('div');sceneSet.className='kefe-visualiser-preset-set';sceneSet.id='kefeSlowLightPresetSet';sceneSet.hidden=true;
     const sceneRow=document.createElement('div');sceneRow.className='kefe-slow-light-scenes';
-    SCENES.forEach((scene,i)=>{const b=document.createElement('button');b.type='button';b.className='kefe-btn';b.dataset.scene=scene.name.toLowerCase().replace(/\\s+/g,'-');b.textContent=scene.name;b.addEventListener('click',()=>goTo(i,6));sceneRow.appendChild(b);ui.sceneButtons.push(b);});
+    SCENES.forEach((scene,i)=>{const b=document.createElement('button');b.type='button';b.className='kefe-btn';b.dataset.scene=scene.name.toLowerCase().replace(/\s+/g,'-');b.textContent=scene.name;b.addEventListener('click',()=>goTo(i,6));sceneRow.appendChild(b);ui.sceneButtons.push(b);});
     sceneSet.appendChild(sceneRow);if(presetRow)presetRow.appendChild(sceneSet);
     const motion=document.createElement('div');motion.className='kefe-visualiser-control-group';const motionHead=document.createElement('div');motionHead.className='kefe-label';motionHead.textContent='Motion and texture';motion.appendChild(motionHead);
     motion.append(field('Audio reactivity','react',0,2,.05,v=>v.toFixed(2)+'×'));
@@ -166,31 +217,50 @@
     tab.addEventListener('click',()=>{
       form.querySelectorAll('.kefe-vis-view').forEach(v=>v.hidden=v!==view);
       tabs.querySelectorAll('.kefe-vis-option [role="tab"]').forEach(b=>{const selected=b===tab;b.classList.toggle('primary',selected);b.setAttribute('aria-selected',String(selected));});
-      const presetRow=document.querySelector('.kefe-visualiser-preset-row');if(presetRow)presetRow.hidden=false;
-      presetRow?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
+      const pr=document.querySelector('.kefe-visualiser-preset-row');if(pr)pr.hidden=false;
+      pr?.querySelectorAll('.kefe-visualiser-preset-set').forEach(set=>set.hidden=set!==sceneSet);
       const heading=document.getElementById('kefeVisualiserHeading'),description=document.getElementById('kefeVisualiserDescription');
       if(heading)heading.textContent='Slow Light';if(description)description.textContent='';
       setActive(true);
       window.dispatchEvent(new CustomEvent('kefe-visualiser-select',{detail:{id:'slow-light'}}));
     });
-    window.addEventListener('kefe-visualiser-select',e=>{if(e.detail&&e.detail.id!=='slow-light'){sceneSet.hidden=true;view.hidden=true;setActive(false);}});
-    tabsList.appendChild(option);
+    const onSelect=e=>{if(e.detail&&e.detail.id!=='slow-light'){sceneSet.hidden=true;view.hidden=true;setActive(false);}};
+    const onResize=()=>{if(shown())resize();};
+    if(scope){
+      scope.on(window,'kefe-visualiser-select',onSelect);
+      scope.on(window,'resize',onResize);
+      scope.on(window,'kefe-stage-resize',onResize);
+      scope.add(()=>{loop?.dispose();destroyGL();});
+    }else{
+      window.addEventListener('kefe-visualiser-select',onSelect);
+      window.addEventListener('resize',onResize);
+      window.addEventListener('kefe-stage-resize',onResize);
+    }
     ui.sceneName.textContent=SCENES[0].name;current=blend(from,to,1);syncScene();resize();
 
-    window.addEventListener('resize',resize);window.addEventListener('kefe-stage-resize',resize);
-    document.addEventListener('visibilitychange',()=>{if(document.hidden){if(raf)cancelAnimationFrame(raf);raf=0;}else if(shown())start();});
-    /* getState().enabled means "Slow Light is the visible preview" (export picks its canvas from it). */
-    window.kefeSlowLight={setEnabled,setActive,setScene:i=>goTo(clamp(Math.floor(i),0,SCENES.length-1)),getState:()=>({enabled:shown(),power:enabled,active,scene:SCENES[index].name,settings:{...cfg}}),canvas:()=>canvas};
+    const isReady=()=>!!(gl&&!gl.isContextLost()&&program&&canvas&&canvas.width>1&&canvas.height>1);
+    window.kefeSlowLight={setEnabled,setActive,isReady,setScene:i=>goTo(clamp(Math.floor(i),0,SCENES.length-1)),getState:()=>({enabled:shown()&&isReady(),power:enabled&&!rendererError,active,ready:isReady(),scene:SCENES[index].name,settings:{...cfg}}),canvas:()=>canvas};
   }
-  function shown(){return enabled&&active;}
-  function start(){if(!shown()||!gl||raf||document.hidden)return;last=performance.now();raf=requestAnimationFrame(frame);}
+  function shown(){return enabled&&active&&!rendererError;}
+  function start(){if(!shown()||document.hidden)return;if(!ensureGL())return;last=performance.now();loop?.start();}
+  function syncUI(){
+    if(canvas)canvas.style.display=shown()&&gl&&!gl.isContextLost()?'block':'none';
+    if(ui){
+      ui.power.disabled=!!rendererError;
+      ui.powerState.textContent=rendererError?'Unavailable':(enabled?'On':'Off');
+      ui.power.classList.toggle('is-on',enabled&&!rendererError);
+      ui.power.setAttribute('aria-checked',String(enabled&&!rendererError));
+    }
+  }
   function sync(){
-    if(canvas)canvas.style.display=shown()?'block':'none';
-    if(ui){ui.powerState.textContent=enabled?'On':'Off';ui.power.classList.toggle('is-on',enabled);ui.power.setAttribute('aria-checked',String(enabled));}
-    if(shown()){resize();start();}else{if(raf)cancelAnimationFrame(raf);raf=0;last=0;}
-    window.dispatchEvent(new CustomEvent('kefe-slow-light-change',{detail:{enabled:shown(),power:enabled,active}}));
+    if(shown()){
+      if(ensureGL()){resize();syncUI();start();}
+    }else{
+      loop?.stop();last=0;syncUI();
+    }
+    window.dispatchEvent(new CustomEvent('kefe-slow-light-change',{detail:{enabled:shown()&&!!(gl&&!gl.isContextLost()),power:enabled&&!rendererError,active}}));
   }
-  function setEnabled(value){enabled=!!value;sync();}
+  function setEnabled(value){enabled=!!value;if(enabled)rendererError=null;sync();}
   function setActive(value){active=!!value;sync();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

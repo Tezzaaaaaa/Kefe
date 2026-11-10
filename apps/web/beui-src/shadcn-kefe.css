@@ -1371,6 +1371,7 @@ button.kefe-shad-switch-native {
 .shad-progress { position: relative; height: 8px; width: 100%; overflow: hidden; border-radius: 999px; background: var(--shad-accent-soft); }
 .shad-progress-indicator { width: 100%; height: 100%; background: var(--shad-primary); transition: transform 160ms ease; }
 .shad-export-footnote { margin: 14px 0 0; }
+.shad-export-cancel,
 .shad-export-close { display: flex; margin: 22px 0 0 auto; }
 @media (max-width: 480px) { .shad-export-details { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
@@ -1506,3 +1507,526 @@ html:root .kefe-alert .shad-btn.kefe-alert-close { min-width: 28px; min-height: 
 /* Keep the Radix thumb inside narrow editor forms, including when a slider was
    mounted while its workspace was hidden and has not measured its width yet. */
 .kefe-panel .shad-slider-container { box-sizing: border-box; padding-inline: 8px; }
+
+/* --------------------------------------------------------------------------
+   11. shadcn Badge, Label & Separator
+   -------------------------------------------------------------------------- */
+.shad-badge[data-slot="badge"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.shad-badge--default {
+  background: var(--shad-primary);
+  color: var(--shad-primary-foreground);
+}
+
+.shad-badge--secondary {
+  background: var(--shad-secondary);
+  color: var(--shad-secondary-foreground);
+  border-color: var(--shad-border);
+}
+
+.shad-badge--outline {
+  background: transparent;
+  color: var(--shad-foreground);
+  border-color: var(--shad-border-strong);
+}
+
+.shad-badge--destructive {
+  background: color-mix(in srgb, var(--shad-danger) 18%, transparent);
+  color: var(--shad-danger);
+  border-color: color-mix(in srgb, var(--shad-danger) 38%, transparent);
+}
+
+.shad-label[data-slot="label"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--shad-foreground);
+  user-select: none;
+}
+
+.shad-separator[data-slot="separator"] {
+  flex-shrink: 0;
+  background: var(--shad-border);
+}
+
+.shad-separator--horizontal[data-slot="separator"] {
+  width: 100%;
+  height: 1px;
+}
+
+.shad-separator--vertical[data-slot="separator"] {
+  width: 1px;
+  align-self: stretch;
+}
+
+/* --------------------------------------------------------------------------
+   12. shadcn Collapsible (.shad-collapsible)
+   -------------------------------------------------------------------------- */
+.shad-collapsible[data-slot="collapsible"] {
+  min-width: 0;
+}
+
+.shad-collapsible-trigger[data-slot="collapsible-trigger"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+}
+
+.shad-collapsible-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--shad-muted-foreground);
+  transition: transform 160ms ease;
+}
+
+[data-state="open"] > .shad-collapsible-trigger .shad-collapsible-chevron {
+  transform: rotate(180deg);
+}
+
+.shad-collapsible-content[data-slot="collapsible-content"][data-state="closed"] {
+  display: none !important;
+}
+
+.kefe-style-disclosure[data-slot="collapsible"] > .shad-collapsible-content[data-state="open"] {
+  display: contents;
+}
+
+.kefe-more[data-slot="collapsible"] > .shad-collapsible-content[data-state="open"] {
+  display: block;
+}
+
+.kefe-style-disclosure > .shad-collapsible-trigger[data-slot="collapsible-trigger"] {
+  width: 100%;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  text-align: left;
+  font-size: var(--font-sm, 12px);
+  font-weight: 600;
+}
+
+.kefe-more > .shad-collapsible-trigger[data-slot="collapsible-trigger"] {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--shad-border-strong);
+  border-radius: var(--shad-radius-md);
+  background: transparent;
+  color: var(--shad-foreground);
+  font-size: var(--font-sm, 12px);
+  font-weight: 600;
+}
+
+.kefe-more > .shad-collapsible-trigger[data-slot="collapsible-trigger"]:hover {
+  background: var(--shad-accent);
+}
+
+/* --------------------------------------------------------------------------
+   13. shadcn Popover & Volume Popover (.shad-volume-popover-content)
+   -------------------------------------------------------------------------- */
+.shad-popover-content[data-slot="popover-content"] {
+  z-index: 950;
+  border-radius: var(--shad-radius-lg);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-popover);
+  color: var(--shad-popover-foreground);
+  box-shadow: var(--shad-shadow-md);
+  outline: none;
+}
+
+.shad-popover-content[data-slot="popover-content"][data-state="closed"] {
+  display: none !important;
+}
+
+.shad-volume-popover-host,
+.shad-btn-host {
+  display: contents;
+}
+
+.shad-volume-popover-content[data-slot="popover-content"] {
+  padding: 10.5px;
+  width: min(220px, calc(100vw - 24px));
+}
+
+.shad-volume-popover-content .kefe-volume-popover {
+  position: static !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   14. shadcn ToggleGroup & Visualiser Segmented Controls
+   -------------------------------------------------------------------------- */
+[data-slot="toggle-group"].shad-toggle-group {
+  display: grid;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--shad-radius-md);
+  border: 1px solid var(--shad-border);
+  background: var(--shad-muted);
+}
+
+[data-slot="toggle-group-item"].shad-toggle-group-item {
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: var(--shad-radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--shad-muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+[data-slot="toggle-group-item"].shad-toggle-group-item:hover:not(:disabled) {
+  color: var(--shad-foreground);
+  background: color-mix(in srgb, var(--shad-card) 55%, transparent);
+}
+
+[data-slot="toggle-group-item"].shad-toggle-group-item:is([data-state="on"], [aria-pressed="true"], .primary) {
+  background: var(--shad-card);
+  color: var(--shad-foreground);
+  border-color: var(--shad-border-strong);
+  box-shadow: var(--shad-shadow-xs);
+  font-weight: 600;
+}
+
+[data-slot="toggle-group-item"].shad-toggle-group-item:focus-visible {
+  outline: 2px solid var(--shad-ring-solid);
+  outline-offset: 2px;
+}
+
+.shad-visualiser-toggle-group[data-slot="toggle-group"] {
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+
+.shad-vis-preset-host {
+  display: contents;
+}
+
+/* --------------------------------------------------------------------------
+   15. shadcn Tooltip
+   -------------------------------------------------------------------------- */
+.shad-tooltip-content[data-slot="tooltip-content"] {
+  z-index: 10050;
+  padding: 5px 9px;
+  border-radius: var(--shad-radius-sm);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-popover);
+  color: var(--shad-popover-foreground);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  box-shadow: var(--shad-shadow-sm);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   16. shadcn Dropzone (#kefeUploadZone & #kefeBgVideoZone)
+   -------------------------------------------------------------------------- */
+:is(.kefe-editor, .kefe-ms-host) .shad-dropzone[data-slot="dropzone"] {
+  border-radius: var(--shad-radius-lg);
+}
+
+:is(.kefe-editor, .kefe-ms-host) .shad-dropzone[data-slot="dropzone"] .kefe-upload-card[data-slot="card"] {
+  border-color: var(--shad-border-strong);
+  border-radius: var(--shad-radius-lg);
+  background: color-mix(in srgb, var(--shad-secondary) 65%, transparent);
+  color: var(--shad-card-foreground);
+}
+
+:is(.kefe-editor, .kefe-ms-host) .shad-dropzone[data-slot="dropzone"]:hover .kefe-upload-card[data-slot="card"] {
+  border-color: color-mix(in srgb, var(--shad-primary) 55%, var(--shad-border-strong));
+  background: color-mix(in srgb, var(--shad-secondary) 92%, transparent);
+}
+
+:is(.kefe-editor, .kefe-ms-host) .shad-dropzone[data-slot="dropzone"].is-dragging .kefe-upload-card[data-slot="card"] {
+  border-color: var(--shad-primary);
+  background: var(--shad-accent-soft);
+  box-shadow: 0 0 0 3px var(--shad-ring);
+}
+
+.shad-media-card-host {
+  display: contents;
+}
+
+:is(#kefeMediaTrack, #kefeSuggestions, #kefeDisplayGroup, #kefeAutoSync, #kefeSyncGuide, .kefe-review)[data-slot="card"] {
+  background: var(--shad-card);
+  color: var(--shad-card-foreground);
+  border-color: var(--shad-border);
+  border-radius: var(--shad-radius-lg);
+}
+
+/* --------------------------------------------------------------------------
+   17. Motion Artwork Studio (#kefeMotionArtwork) — Night/Day --shad-* tokens
+   -------------------------------------------------------------------------- */
+#kefeMotionArtwork {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  margin-top: 16px;
+  border: 1px solid var(--shad-border);
+  border-radius: var(--shad-radius-xl);
+  background: var(--shad-card);
+  color: var(--shad-card-foreground);
+  box-shadow: var(--shad-shadow-xs);
+}
+
+#kefeMotionArtwork .kma-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+#kefeMotionArtwork .kma-kicker {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  color: var(--shad-muted-foreground);
+  font-weight: 700;
+}
+
+#kefeMotionArtwork h3 {
+  font-size: 15px;
+  margin: 4px 0;
+  color: var(--shad-foreground);
+}
+
+#kefeMotionArtwork p {
+  font-size: 12px;
+  color: var(--shad-muted-foreground);
+  margin: 0;
+  line-height: 1.45;
+}
+
+#kefeMotionArtwork .kma-upload {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px dashed var(--shad-border-strong);
+  border-radius: var(--shad-radius-lg);
+  background: color-mix(in srgb, var(--shad-secondary) 60%, transparent);
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+#kefeMotionArtwork .kma-upload:hover {
+  border-color: color-mix(in srgb, var(--shad-primary) 55%, var(--shad-border-strong));
+  background: var(--shad-secondary);
+}
+
+#kefeMotionArtwork .kma-upload-icon {
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--shad-radius-md);
+  background: var(--shad-accent);
+  color: var(--shad-foreground);
+}
+
+#kefeMotionArtwork .kma-upload b,
+#kefeMotionArtwork .kma-upload small {
+  display: block;
+}
+
+#kefeMotionArtwork .kma-upload b {
+  font-size: 12px;
+  color: var(--shad-foreground);
+}
+
+#kefeMotionArtwork .kma-upload small {
+  font-size: 10.5px;
+  color: var(--shad-muted-foreground);
+  margin-top: 2px;
+}
+
+#kefeMotionArtwork input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#kefeMotionArtwork .kma-preview-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--shad-radius-lg);
+  border: 1px solid var(--shad-border);
+  background: #101114;
+  max-width: 360px;
+  width: 100%;
+  margin: auto;
+  aspect-ratio: 3 / 4;
+}
+
+#kefeMotionArtwork .kma-preview-wrap:has(canvas[data-square="true"]) {
+  aspect-ratio: 1;
+}
+
+#kefeMotionArtwork canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#kefeMotionArtwork .kma-preview-label {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.56);
+  color: #ffffff;
+}
+
+#kefeMotionArtwork .kma-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+#kefeMotionArtwork .kma-controls > label,
+#kefeMotionArtwork .kma-export-row > label {
+  display: grid;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--shad-foreground);
+}
+
+#kefeMotionArtwork .kma-range {
+  grid-column: 1 / -1;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+#kefeMotionArtwork output {
+  font-variant-numeric: tabular-nums;
+  color: var(--shad-muted-foreground);
+}
+
+#kefeMotionArtwork .kma-export-row {
+  display: flex;
+  gap: 10px;
+  align-items: end;
+}
+
+#kefeMotionArtwork .kma-export-row > label {
+  width: 120px;
+}
+
+#kefeMotionArtwork #kmaExport {
+  flex: 1;
+  min-height: 36px;
+}
+
+#kefeMotionArtwork #kmaCancel {
+  min-height: 36px;
+}
+
+#kefeMotionArtwork .kma-foot {
+  min-height: 18px;
+}
+
+@media (max-width: 520px) {
+  #kefeMotionArtwork {
+    padding: 11px;
+  }
+  #kefeMotionArtwork .kma-preview-wrap {
+    max-width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   18. Inline Resilience & Manual Metadata Alerts (#kefeManualNotice, .kefe-resilience-banner)
+   -------------------------------------------------------------------------- */
+#kefeManualNotice[data-slot="alert"],
+.kefe-resilience-banner[data-slot="alert"] {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--shad-radius-lg);
+  border: 1px solid var(--shad-border-strong);
+  background: var(--shad-card);
+  color: var(--shad-card-foreground);
+  box-shadow: var(--shad-shadow-xs);
+}
+
+.kefe-resilience-banner[data-slot="alert"].is-warning {
+  border-color: color-mix(in srgb, var(--shad-warning) 50%, var(--shad-border));
+}
+
+.kefe-resilience-banner[data-slot="alert"].is-error {
+  border-color: color-mix(in srgb, var(--shad-danger) 55%, var(--shad-border));
+}
+
+.kefe-resilience-banner[data-slot="alert"].is-info {
+  border-color: color-mix(in srgb, var(--shad-info) 50%, var(--shad-border));
+}
+
+#kefeManualNotice[data-slot="alert"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  border-color: color-mix(in srgb, var(--shad-info) 45%, var(--shad-border));
+}
+
+#kefeManualNotice[data-slot="alert"][hidden] {
+  display: none !important;
+}
+
+.shad-manual-notice-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--shad-info);
+}
+
+.kft-context-popover[data-slot="popover-content"],
+.kft-context-popover {
+  border-color: var(--shad-border-strong);
+  background: var(--shad-popover);
+  color: var(--shad-popover-foreground);
+  box-shadow: var(--shad-shadow-md);
+}
+
+

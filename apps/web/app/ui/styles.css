@@ -1,4 +1,4 @@
-*{box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
 :root {
   color-scheme: light;
   --bg: #eff0ed;
@@ -642,7 +642,7 @@ button{border:0;cursor:pointer;
 .kefe-panel[data-panel-view="media"] .kefe-form{
   gap:12px;
 }
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-dropzone){
+.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.shad-dropzone){
   min-height:104px;
   padding:16px;
   border:1px dashed var(--line);
@@ -651,8 +651,8 @@ button{border:0;cursor:pointer;
   box-shadow:var(--inner);
   transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease;
 }
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-dropzone):hover,
-.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.beui-upload-dropzone).is-dragging{
+.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.shad-dropzone):hover,
+.kefe-panel[data-panel-view="media"] .kefe-upload-zone:not(.shad-dropzone).is-dragging{
   transform:translateY(-1px);
   border-color:var(--accent);
   background:var(--surface-hi);
@@ -1194,8 +1194,8 @@ button{border:0;cursor:pointer;
 @container kefe-media-step (min-width: 501px){.kefe-panel[data-panel-view="media"] .kefe-details-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .kefe-media-upload-row>.kefe-upload-zone{min-height:92px}
 .kefe-media-upload-row>div>.kefe-upload-zone{min-height:92px}
-.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.beui-upload-wrap{display:grid;grid-template-columns:minmax(0,1fr);align-self:stretch;min-width:0;width:100%;height:auto;grid-column:auto;grid-row:auto;gap:8px}
-.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{box-sizing:border-box;grid-column:1;grid-row:auto;align-self:stretch;width:100%;min-width:0;max-width:100%;min-height:192px;height:auto;max-height:none;padding:12px 16px;border-radius:var(--r2)}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.shad-upload-wrap{display:grid;grid-template-columns:minmax(0,1fr);align-self:stretch;min-width:0;width:100%;height:auto;grid-column:auto;grid-row:auto;gap:8px}
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row>.shad-upload-wrap>.kefe-upload-zone{box-sizing:border-box;grid-column:1;grid-row:auto;align-self:stretch;width:100%;min-width:0;max-width:100%;min-height:192px;height:auto;max-height:none;padding:12px 16px;border-radius:var(--r2)}
 .kefe-song-details{display:grid;gap:8px;padding-top:12px;border-top:1px solid var(--line-soft)}
 .kefe-song-details-head h4{margin:0;font-size: var(--font-base);font-weight:800;color: var(--text);}
 .kefe-song-details-head p{margin:3px 0 0;font-size: var(--font-xs);color: var(--muted);}
@@ -1263,7 +1263,7 @@ button{border:0;cursor:pointer;
   font-size: var(--font-sm);
   font-family: inherit;}
 }
-@media(max-width:520px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}.kefe-media-upload-row>.beui-upload-wrap{min-height:0;height:auto}.kefe-media-upload-row>.beui-upload-wrap>.kefe-upload-zone{min-height:192px;height:auto;max-height:none}.kefe-details-grid{grid-template-columns:1fr}.kefe-carousel{height:290px;min-height:290px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-carousel{height:290px;min-height:290px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack{column-gap:18px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card{width:148px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav{width:34px;height:34px;margin-top:-17px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav.prev{left:7px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav.next{right:7px}}
+@media(max-width:520px){.kefe-media-upload-row{grid-template-columns:minmax(0,1fr)}.kefe-media-upload-row>.shad-upload-wrap{min-height:0;height:auto}.kefe-media-upload-row>.shad-upload-wrap>.kefe-upload-zone{min-height:192px;height:auto;max-height:none}.kefe-details-grid{grid-template-columns:1fr}.kefe-carousel{height:290px;min-height:290px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-carousel{height:290px;min-height:290px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-stack{column-gap:18px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-card{width:148px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav{width:34px;height:34px;margin-top:-17px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav.prev{left:7px}.kefe-panel[data-panel-view="media"] .kefe-find-step .kefe-car-nav.next{right:7px}}
 
 
 /* Project identity / repository information */
@@ -1448,7 +1448,9 @@ button{border:0;cursor:pointer;
 .kefe-export-progress{height:18px;border-radius:999px;padding:4px;background:#191a20;box-shadow:inset 4px 4px 8px rgba(0,0,0,.68),inset -2px -2px 5px rgba(255,255,255,.045);overflow:hidden}
 .kefe-export-progress span{display:block;width:1%;height:100%;border-radius:999px;background:linear-gradient(90deg,#bd252b,#ff554d 72%,#ff8b7d);box-shadow:0 0 14px rgba(255,65,59,.38),inset 1px 1px 2px rgba(255,255,255,.38);transition:width .22s ease}
 .kefe-export-footnote{font-size:12px;line-height:1.55;color:#90929e;margin:14px 0 0}
-.kefe-export-close{display:block;margin:22px 0 0 auto;border:0;border-radius:var(--r3);padding:11px 22px;background:#292a32;color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:5px 5px 12px rgba(0,0,0,.4),-3px -3px 8px rgba(255,255,255,.04)}
+.kefe-export-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.kefe-export-actions:empty{display:none}
+.kefe-export-close{display:block;margin:0;border:0;border-radius:var(--r3);padding:11px 22px;background:#292a32;color:#fff;font:inherit;font-weight:700;cursor:pointer;box-shadow:5px 5px 12px rgba(0,0,0,.4),-3px -3px 8px rgba(255,255,255,.04)}
 .kefe-export-close:hover{background:#383943}
 @media(max-width:480px){.kefe-export-overlay{padding:12px}.kefe-export-card{padding:22px 18px;border-radius:var(--r3);max-height:calc(100dvh - 24px)}.kefe-export-details{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.kefe-export-summary{padding:14px}.kefe-export-intro{margin-bottom:18px}}
 
@@ -3941,7 +3943,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   background: var(--surface-hi);
   box-shadow: var(--inner);
 }
-.kefe-panel[data-panel-view="effects"] .kefe-style-disclosure > summary {
+.kefe-panel[data-panel-view="effects"] .kefe-style-disclosure > :is(summary, [data-slot="collapsible-trigger"]) {
   cursor: pointer;
   list-style: none;
   display: flex;
@@ -3952,6 +3954,12 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   font-size: var(--font-sm);
   font-weight: 600;
   min-height: 32px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-align: left;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-style-disclosure > summary::-webkit-details-marker { display: none; }
 .kefe-panel[data-panel-view="effects"] .kefe-style-disclosure > summary::after {
@@ -3961,7 +3969,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   line-height: 1;
 }
 .kefe-panel[data-panel-view="effects"] .kefe-style-disclosure[open] > summary::after { content: "−"; }
-.kefe-panel[data-panel-view="effects"] .kefe-style-disclosure[open] > summary {
+.kefe-panel[data-panel-view="effects"] .kefe-style-disclosure:is([open], [data-state="open"]) > :is(summary, [data-slot="collapsible-trigger"]) {
   padding-bottom: var(--s2);
   margin-bottom: var(--control-gap, 8px);
   border-bottom: 1px solid var(--line-soft);
@@ -4004,7 +4012,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
 .kefe-panel[data-panel-view="effects"] #kefeStyleGroup {
   grid-template-columns: minmax(0, 1fr);
 }
-.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure[open] > summary {
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure:is([open], [data-state="open"]) > :is(summary, [data-slot="collapsible-trigger"]) {
   margin-bottom: var(--control-gap, 8px);
 }
 .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > .kefe-visualiser-field,
@@ -4123,8 +4131,8 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
   gap: var(--s2, 8px);
   align-content: start;
 }
-.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > summary,
-.kefe-panel[data-panel-view="visualiser"] .kefe-style-disclosure > summary {
+.kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > :is(summary, [data-slot="collapsible-trigger"]),
+.kefe-panel[data-panel-view="visualiser"] .kefe-style-disclosure > :is(summary, [data-slot="collapsible-trigger"]) {
   grid-column: 1 / -1;
 }
 .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > .kefe-visualiser-field,
@@ -4248,7 +4256,7 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     min-width: 0;
   }
 
-  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > summary {
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > :is(summary, [data-slot="collapsible-trigger"]) {
     grid-column: auto;
   }
 
@@ -4739,8 +4747,8 @@ html[data-theme="night"] .kefe-lyrics-timing-reset {
     width: 100%;
   }
 
-  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > summary,
-  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-style-disclosure > summary {
+  .kefe-panel[data-panel-view="effects"] #kefeStyleGroup > .kefe-style-disclosure > :is(summary, [data-slot="collapsible-trigger"]),
+  .kefe-panel[data-panel-view="effects"] .kefe-form > .kefe-style-disclosure > :is(summary, [data-slot="collapsible-trigger"]) {
     grid-column: 1 / -1;
   }
 
@@ -5270,7 +5278,7 @@ body {
 
 
 
-/* beUI navigation icon sizing */
+/* shadcn navigation icon sizing */
 .kefe-sidebar-link>span svg,.kefe-sidebar-toggle svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .kefe-vis-tabs .kefe-vis-option{flex:1 1 0;min-width:0}
 .kefe-vis-tabs .kefe-vis-option>[role="tab"]{width:100%;min-width:0;min-height:40px;padding:8px 12px;gap:0;justify-content:center;white-space:nowrap;font-size:13px;line-height:1.2}
@@ -5625,7 +5633,7 @@ body {
 }
 
 
-/* Background effect choices: selectable preview cards following the beUI card pattern. */
+/* Background effect choices: selectable preview cards following the shadcn Card pattern. */
 .kefe-panel[data-panel-view="background-effects"] .kefe-background-effect-options{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));
@@ -5699,7 +5707,7 @@ body {
 @media(prefers-reduced-motion:reduce){.kefe-background-effect-card{transition:none}}
 
 
-/* Visualiser control appearance; layout is owned by the beUI bridge section below. */
+/* Visualiser control appearance; layout is owned by the shadcn bridge section below. */
 .kefe-vis-option > [role="tab"]{
   box-sizing:border-box;
   font-size:var(--font-sm);
@@ -5984,7 +5992,7 @@ body {
 }
 
 
-/* Shared beUI document shell for KEFE's public policy pages. */
+/* Shared shadcn document shell for KEFE's public policy pages. */
 html:has(body.kefe-legal-page),body.kefe-legal-page{height:auto;min-height:100%;overflow:auto}
 body.kefe-legal-page{
   min-height:100vh;
@@ -6281,7 +6289,7 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
   .kefe-panel,.kefe-btn,.kefe-control,.kefe-style-swatch,.kefe-visualiser-spin-row .kefe-switch::after{transition:none}
 }
 
-/* Slider layout inside editor panels. The track and thumb come from the beUI slider block at the end of this file. */
+/* Slider layout inside editor panels. The track and thumb come from the shadcn slider block at the end of this file. */
 .kefe-panel input[type="range"]:not(#kefeTime){
   display:block;width:100%;min-width:0;height:28px;min-height:28px;
   margin:8px 0 2px;padding:0;border:0;border-radius:0;touch-action:pan-y;
@@ -6293,7 +6301,7 @@ html,body{min-height:100%;height:auto;background:var(--bg);color:var(--text)}
 @media(max-width:640px){.kefe-gradient-stop{grid-template-columns:30px minmax(0,1fr) 34px 28px;gap:6px}}
 
 
-/* Integrated beUI workspace layer — native KEFE controls, no demo-only UI. */
+/* Integrated shadcn workspace layer — native KEFE controls, no demo-only UI. */
 .kefe-top{
   background:color-mix(in srgb,var(--surface) 82%,transparent);
   -webkit-backdrop-filter:blur(16px);
@@ -6408,11 +6416,11 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 .kefe-volume-popover{position:absolute;right:0;bottom:calc(100% + 10px);z-index:100;display:flex;flex-direction:column;align-items:normal;gap:7px;width:min(220px,calc(100vw - 24px));padding:10.5px;border:1px solid var(--shell-line,currentColor);border-radius:12px;background:var(--shell-panel,transparent);color:var(--shell-text,var(--text));box-shadow:0 16px 40px rgba(0,0,0,.28)}
 .kefe-volume-popover[hidden]{display:none!important}
 .kefe-volume-popover label{flex:0 0 auto;color:var(--muted);font-size:12px;font-weight:650}
-.kefe-volume-popover input[type="range"].beui-slider{appearance:none;-webkit-appearance:none;flex:1;min-width:0;width:100%;height:24px;margin:0;background:transparent;cursor:pointer;accent-color:var(--accent)}
-.kefe-volume-popover input[type="range"].beui-slider::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line)}
-.kefe-volume-popover input[type="range"].beui-slider::-webkit-slider-thumb{-webkit-appearance:none;width:6px;height:14px;margin-top:-5px;border:0;border-radius:2px;background:var(--accent);box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent)}
-.kefe-volume-popover input[type="range"].beui-slider::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
-.kefe-volume-popover input[type="range"].beui-slider::-moz-range-thumb{width:6px;height:14px;border:0;border-radius:2px;background:var(--accent)}
+.kefe-volume-popover input[type="range"].kefe-slider-backing{appearance:none;-webkit-appearance:none;flex:1;min-width:0;width:100%;height:24px;margin:0;background:transparent;cursor:pointer;accent-color:var(--accent)}
+.kefe-volume-popover input[type="range"].kefe-slider-backing::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line)}
+.kefe-volume-popover input[type="range"].kefe-slider-backing::-webkit-slider-thumb{-webkit-appearance:none;width:6px;height:14px;margin-top:-5px;border:0;border-radius:2px;background:var(--accent);box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent)}
+.kefe-volume-popover input[type="range"].kefe-slider-backing::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+.kefe-volume-popover input[type="range"].kefe-slider-backing::-moz-range-thumb{width:6px;height:14px;border:0;border-radius:2px;background:var(--accent)}
 .kefe-volume-popover output{flex:0 0 34px;color:var(--muted);font:11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;text-align:right;font-variant-numeric:tabular-nums}
 .kefe-volume-control button:focus-visible,.kefe-volume-control input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:640px){.kefe-volume-popover{right:0;bottom:calc(100% + 8px);width:min(210px,calc(100vw - 20px));gap:7px;padding:10.5px}.kefe-volume-control>button{width:30px;height:34px}}
@@ -6451,44 +6459,44 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
     .kefe-top-profile .kefe-top-link:not(.kefe-command-trigger):not(.kefe-github-link){flex:0 0 auto;width:auto;min-width:0;overflow:visible;white-space:nowrap}
 }
 
-/* beUI Motion Range Slider styling shared by every editor/settings range control.
+/* shadcn Motion Range Slider styling shared by every editor/settings range control.
    Only the media transport scrubber stays on its dedicated timeline styling. */
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider){
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing){
   -webkit-appearance:none;appearance:none;display:block;width:100%;height:40px;min-height:40px;
   margin:0;padding:0;border:0;border-radius:var(--r2);overflow:visible;background:transparent;
   cursor:pointer;accent-color:var(--accent);touch-action:pan-y;
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-runnable-track{
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-webkit-slider-runnable-track{
   height:40px;border:0;border-radius:var(--r2);
   background:
     radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
     linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
   box-shadow:inset 0 1px 2px color-mix(in srgb,var(--text) 5%,transparent);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-thumb{
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-webkit-slider-thumb{
   -webkit-appearance:none;appearance:none;width:4px;height:24px;margin-top:8px;border:0;border-radius:999px;
   background:var(--text);cursor:grab;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--surface) 35%,transparent);
   transition:transform .16s cubic-bezier(.2,.8,.2,1);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-track{
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-moz-range-track{
   height:40px;border:0;border-radius:var(--r2);
   background:
     radial-gradient(circle,color-mix(in srgb,var(--text) 32%,transparent) 1.5px,transparent 1.8px) 8px 50% / calc(11.111% - 1.78px) 4px repeat-x,
     linear-gradient(to right,color-mix(in srgb,var(--accent) 20%,var(--surface)) 0 var(--kefe-slider-progress,0%),color-mix(in srgb,var(--text) 7%,var(--surface)) var(--kefe-slider-progress,0%) 100%);
   box-shadow:inset 0 1px 2px color-mix(in srgb,var(--text) 5%,transparent);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-thumb{
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-moz-range-thumb{
   width:4px;height:24px;border:0;border-radius:999px;background:var(--text);cursor:grab;
   box-shadow:0 0 0 1px color-mix(in srgb,var(--surface) 35%,transparent);
   transition:transform .16s cubic-bezier(.2,.8,.2,1);
 }
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):hover::-webkit-slider-thumb,
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-webkit-slider-thumb{transform:scaleY(1.3)}
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):hover::-moz-range-thumb,
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):active::-moz-range-thumb{transform:scaleY(1.3)}
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:var(--r2)}
-:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider):disabled{opacity:.45;cursor:not-allowed}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing):hover::-webkit-slider-thumb,
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing):active::-webkit-slider-thumb{transform:scaleY(1.3)}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing):hover::-moz-range-thumb,
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing):active::-moz-range-thumb{transform:scaleY(1.3)}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing):focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:var(--r2)}
+:is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing):disabled{opacity:.45;cursor:not-allowed}
 .kefe-panel[data-panel-view="lyrics"] .kefe-lyrics-timing-slider{
   height:40px;min-height:40px;border-radius:var(--r2);touch-action:pan-x;
 }
@@ -6521,16 +6529,16 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 .kefe-settings-backdrop{z-index:1100}
 
 
-/* beUI dock icon system: consistent 18px Lucide-style outline icons. */
+/* shadcn dock icon system: consistent 18px Lucide-style outline icons. */
 .kefe-workspace-dock button{font-size:0}
 .kefe-workspace-dock button svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 
-/* beUI-inspired transport controls: spring press feedback, animated aspect menu,
+/* shadcn.io-inspired transport controls: spring press feedback, animated aspect menu,
    and a dedicated restart action beside play/pause. */
 .kefe-editor .kefe-transport{gap:6px}
-.kefe-editor .kefe-play.beui-button,
-.kefe-editor .kefe-restart.beui-button{
+.kefe-editor .kefe-play,
+.kefe-editor .kefe-restart{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   border:1px solid var(--line);background:var(--surface);color:var(--text);
   transition:transform .16s cubic-bezier(.2,.8,.2,1),background .16s ease,border-color .16s ease,box-shadow .16s ease;
@@ -6540,24 +6548,24 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   border:1px solid var(--line);background-color:var(--surface);color:var(--text);
   -webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
-.kefe-editor .kefe-play.beui-button{
+.kefe-editor .kefe-play{
   width:40px;height:40px;min-width:40px;padding:0;border-radius:999px;
   background:var(--text);color:var(--bg);border-color:transparent;
 }
-.kefe-editor .kefe-restart.beui-button{
+.kefe-editor .kefe-restart{
   width:34px;height:34px;min-width:34px;padding:0;border-radius:999px;
   background:var(--surface);color:var(--muted);
 }
 .kefe-editor .kefe-restart svg{width:17px;height:17px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.kefe-editor .kefe-play.beui-button svg{width:18px;height:18px;display:block}
-.kefe-editor .kefe-play.beui-button:hover,
-.kefe-editor .kefe-restart.beui-button:hover{
+.kefe-editor .kefe-play svg{width:18px;height:18px;display:block}
+.kefe-editor .kefe-play:hover,
+.kefe-editor .kefe-restart:hover{
   transform:scale(1.02);border-color:color-mix(in srgb,var(--text) 22%,var(--line));
 }
-.kefe-editor .kefe-play.beui-button:active,
-.kefe-editor .kefe-restart.beui-button:active{transform:scale(.96)}
-.kefe-editor .kefe-play.beui-button:focus-visible,
-.kefe-editor .kefe-restart.beui-button:focus-visible,
+.kefe-editor .kefe-play:active,
+.kefe-editor .kefe-restart:active{transform:scale(.96)}
+.kefe-editor .kefe-play:focus-visible,
+.kefe-editor .kefe-restart:focus-visible,
 .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kefe-editor .kefe-aspect-controls{
   position:relative;z-index:12;display:flex;align-items:center;justify-content:center;
@@ -6577,8 +6585,8 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 }
 @media(max-width:700px){
   .kefe-editor .kefe-transport{gap:4px}
-  .kefe-editor .kefe-play.beui-button{width:36px;height:36px;min-width:36px}
-  .kefe-editor .kefe-restart.beui-button{width:28px;height:30px;min-width:28px}
+  .kefe-editor .kefe-play{width:36px;height:36px;min-width:36px}
+  .kefe-editor .kefe-restart{width:28px;height:30px;min-width:28px}
   .kefe-editor .kefe-aspect-controls{width:52px;min-width:52px;flex-basis:52px}
   .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native{width:52px;min-width:52px;height:32px;padding:0 16px 0 5px;font-size:10px;background-position:right 3px center;background-size:10px}
   .kefe-editor .kefe-aspect-trigger svg{width:12px;height:12px}
@@ -6588,7 +6596,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   .kefe-editor select.kefe-aspect-trigger.kefe-aspect-native{width:44px;min-width:44px;height:30px;padding:0 13px 0 3px;font-size:9px;background-position:right 2px center;background-size:9px}
 }
 @media(prefers-reduced-motion:reduce){
-  .kefe-editor .kefe-play.beui-button,.kefe-editor .kefe-restart.beui-button{transition:none}
+  .kefe-editor .kefe-play,.kefe-editor .kefe-restart{transition:none}
 }
 
 
@@ -6678,7 +6686,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
 }
 
 
-/* KEFE beUI — site-wide component consistency contract.
+/* KEFE shadcn — site-wide component consistency contract.
    One token system owns spacing, surfaces, control geometry and typography.
    Purpose-specific previews and artwork keep their own visual treatment. */
 .kefe-editor,
@@ -6889,7 +6897,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   }
 }
 
-/* Fluid Ink controls use the same beUI control geometry as every other editor section. */
+/* Fluid Ink controls use the same shadcn control geometry as every other editor section. */
 .kefe-fluid-ink-controls {
   display:flex;
   flex-direction:column;
@@ -6998,7 +7006,7 @@ body:has(.kefe-workspace-dock){padding-bottom:82px}
   display:none;
 }
 
-/* Lyric inspiration settings use the same beUI panel, field and control tokens. */
+/* Lyric inspiration settings use the same shadcn panel, field and control tokens. */
 .kefe-inspiration-panel {
   margin-top:var(--s3);
   padding:var(--s3);
@@ -7637,7 +7645,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
 }
 
 
-/* beUI editor accordion containers: preserve the heading row and collapse the
+/* shadcn editor accordion containers: preserve the heading row and collapse the
    content wrapper as a whole so nested grid/flex/display:contents rules cannot leak. */
 @media (min-width: 1280px) {
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view] {
@@ -7649,7 +7657,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     box-shadow: var(--lift);
     transition: border-color .16s ease, box-shadow .16s ease;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy {
   height: auto;
   min-height: 0;
   overflow: hidden;
@@ -7673,7 +7681,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   min-width: 0;
   flex: 1 1 auto;
 }
-.beui-accordion-trigger {
+.shad-accordion-trigger-legacy {
   display: inline-grid;
   place-items: center;
   flex: 0 0 32px;
@@ -7687,10 +7695,10 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   cursor: pointer;
   transition: background .16s ease, transform 220ms cubic-bezier(.2, .9, .25, 1.35), border-color .16s ease;
 }
-.beui-accordion-trigger:hover { transform: translateY(-1px); border-color: var(--line); }
-.beui-accordion-trigger:active { transform: scale(.94); }
-.beui-accordion-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.beui-accordion-chevron {
+.shad-accordion-trigger-legacy:hover { transform: translateY(-1px); border-color: var(--line); }
+.shad-accordion-trigger-legacy:active { transform: scale(.94); }
+.shad-accordion-trigger-legacy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shad-accordion-chevron-legacy {
   width: 8px;
   height: 8px;
   border-right: 1.8px solid currentColor;
@@ -7698,13 +7706,13 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   transform: translateY(-2px) rotate(45deg);
   transition: transform 240ms cubic-bezier(.2, .9, .25, 1.35);
 }
-.beui-accordion-trigger[aria-expanded="false"] .beui-accordion-chevron {
+.shad-accordion-trigger-legacy[aria-expanded="false"] .shad-accordion-chevron-legacy {
   transform: translateY(1px) rotate(-45deg);
 }
-.beui-accordion-enter > :not(.kefe-panel-head) {
-  animation: beui-accordion-bounce-in 320ms cubic-bezier(.2, .9, .25, 1.25) both;
+.shad-accordion-enter-legacy > :not(.kefe-panel-head) {
+  animation: shad-accordion-bounce-in-legacy 320ms cubic-bezier(.2, .9, .25, 1.25) both;
 }
-@keyframes beui-accordion-bounce-in {
+@keyframes shad-accordion-bounce-in-legacy {
   from { opacity: .5; transform: translateY(-5px) scale(.99); }
   70% { opacity: 1; transform: translateY(1px) scale(1.002); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -7716,16 +7724,16 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
 .kefe-tabs .kefe-section:active { transform: scale(.97); }
 .kefe-tabs .kefe-section:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
-  .beui-accordion-trigger, .beui-accordion-chevron, .kefe-tabs .kefe-section { transition: none; }
+  .shad-accordion-trigger-legacy, .shad-accordion-chevron-legacy, .kefe-tabs .kefe-section { transition: none; }
 }
 
 /* Keep the accordion heading independent from the content's layout rules.
    Hiding the complete form prevents nested display:contents controls from leaking. */
 @media (min-width: 1280px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy > :not(.kefe-panel-head):not(.kefe-form):not(.kefe-panel[data-panel-view]) {
     display: none;
   }
-    .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-form {
+    .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy > .kefe-form {
     display: none;
   }
 }
@@ -7806,7 +7814,7 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
   .kefe-editor .kefe-editing .kefe-panel[data-panel-view] > .kefe-form > .kefe-panel-head .kefe-meta {
     color: var(--muted);
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .beui-accordion-trigger {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .shad-accordion-trigger-legacy {
     position: relative;
     z-index: 2;
     visibility: visible;
@@ -7823,10 +7831,10 @@ html:has(body.kefe-standalone-lyrics){box-sizing:border-box;padding-top:env(safe
     min-height: 0;
     height: auto;
   }
-  .kefe-editor .kefe-editing .kefe-panels > .kefe-panel[data-panel-view].beui-accordion-collapsed {
+  .kefe-editor .kefe-editing .kefe-panels > .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy {
     overflow: visible;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy .kefe-panel-head {
     min-height: 36px;
   }
 }
@@ -8119,7 +8127,7 @@ html:root .kefe-stage.is-empty #kefeCanvas { opacity: 0; }
 /* Classes for controls the editor script creates (replaces inline styles). */
 html:root .kefe-lyrics-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
 html:root .kefe-lyrics-tools .kefe-btn { min-height: 36px; padding: 0 14px; font-weight: 600; }
-/* Accessible beUI-style alert notifications, shared across editor workflows. */
+/* Accessible shadcn-style alert notifications, shared across editor workflows. */
 html:root .kefe-alert-stack {
   position: fixed; z-index: 10000; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right));
   display: grid; gap: 10px; width: min(420px, calc(100vw - 32px)); pointer-events: none;
@@ -8160,9 +8168,59 @@ html:root .kefe-notice {
   background: var(--accent-soft); border: 1px solid var(--accent-ring);
   font-size: var(--font-sm); line-height: 1.4; color: var(--text);
 }
+html:root .kefe-resilience-banner {
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--lk-gap-s, 8px);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: var(--lk-pad, 12px);
+  border-radius: var(--lk-radius, 12px);
+  border: 1px solid color-mix(in srgb, var(--warning, #d99a24) 45%, var(--border, transparent));
+  background: color-mix(in srgb, var(--warning, #d99a24) 10%, var(--surface-hi, var(--surface, #242426)));
+  color: var(--text, #f5f5f5);
+  font-size: var(--font-sm, 13px);
+  line-height: 1.45;
+}
+html:root .kefe-resilience-banner.is-error {
+  border-color: color-mix(in srgb, var(--destructive, #e05252) 50%, var(--border, transparent));
+  background: color-mix(in srgb, var(--destructive, #e05252) 10%, var(--surface-hi, var(--surface, #242426)));
+}
+html:root .kefe-resilience-banner.is-info {
+  border-color: var(--accent-ring, rgba(124, 156, 255, 0.35));
+  background: var(--accent-soft, rgba(124, 156, 255, 0.1));
+}
+html:root .kefe-resilience-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+html:root .kefe-resilience-head strong {
+  font-weight: 650;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+html:root .kefe-resilience-close {
+  flex: 0 0 auto;
+  min-height: 26px;
+  min-width: 26px;
+  padding: 0 6px;
+  line-height: 1;
+}
+html:root .kefe-resilience-message {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+html:root .kefe-resilience-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 
 /* One predictable visualiser-tab layout: four columns on desktop, two equal columns on mobile. */
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]):not([hidden]) {
+html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-shad-mounted="true"]):not([hidden]) {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: stretch;
@@ -8173,12 +8231,12 @@ html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-b
   margin: 0;
   padding: var(--s2) 0;
 }
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]) > .kefe-vis-option {
+html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-shad-mounted="true"]) > .kefe-vis-option {
   display: flex;
   min-width: 0;
   width: 100%;
 }
-html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]) .kefe-vis-option > [role="tab"] {
+html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-shad-mounted="true"]) .kefe-vis-option > [role="tab"] {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -8195,12 +8253,12 @@ html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-b
   line-height: 1.25;
 }
 @media (max-width: 700px) {
-  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]):not([hidden]) {
+  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-shad-mounted="true"]):not([hidden]) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--s2);
     padding-block: var(--s2);
   }
-  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-beui-mounted="true"]) .kefe-vis-option > [role="tab"] {
+  html:root .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([data-shad-mounted="true"]) .kefe-vis-option > [role="tab"] {
     min-height: 48px;
     padding: 10px 7px;
     font-size: var(--font-sm);
@@ -8249,13 +8307,13 @@ html:root .kefe-panel[data-panel-view="visualiser"] :is(.kefe-fluid-presets, .ke
   html:root .kefe-form { gap: 10px; }
 
   /* Sliders */
-  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider) {
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing) {
     height: 32px; min-height: 32px;
   }
-  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-runnable-track { height: 32px; }
-  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-track { height: 32px; }
-  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-webkit-slider-thumb { height: 20px; margin-top: 6px; }
-  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].beui-slider)::-moz-range-thumb { height: 20px; }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-webkit-slider-runnable-track { height: 32px; }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-moz-range-track { height: 32px; }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-webkit-slider-thumb { height: 20px; margin-top: 6px; }
+  html:root :is(.kefe-editor input[type="range"]:not(.kefe-slider):not(#kefeTime), .kefe-settings input[type="range"]:not(.kefe-slider):not(#kefeTime), input[type="range"].kefe-slider-backing)::-moz-range-thumb { height: 20px; }
 
   /* Keep rows from wrapping or overflowing in the narrower panels */
   html:root .kefe-seg-btn { padding-inline: 12px; white-space: nowrap; }
@@ -8304,15 +8362,15 @@ html:root .kefe-panel[data-panel-view="visualiser"] :is(.kefe-fluid-presets, .ke
   --float: 0 3px 7px rgba(28, 39, 58, .08), 0 10px 24px rgba(28, 39, 58, .10);
   --in-md: inset 0 1px 3px rgba(28, 39, 58, .10);
   --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
-  --beui-background: var(--shell-bg);
-  --beui-foreground: var(--shell-text);
-  --beui-muted: #e8ecf3;
-  --beui-muted-foreground: var(--shell-muted);
-  --beui-border: var(--shell-line);
-  --beui-ring: var(--shell-accent);
-  --beui-primary: var(--shell-accent);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel);
+  --shad-background: var(--shell-bg);
+  --shad-foreground: var(--shell-text);
+  --shad-muted: #e8ecf3;
+  --shad-muted-foreground: var(--shell-muted);
+  --shad-border: var(--shell-line);
+  --shad-ring: var(--shell-accent);
+  --shad-primary: var(--shell-accent);
+  --shad-primary-foreground: #ffffff;
+  --shad-card: var(--shell-panel);
 }
 html:root[data-theme="day"],
 html:root[data-theme="day"] body { background: var(--bg); color: var(--text); }
@@ -8353,9 +8411,7 @@ html:root[data-theme="day"] .kefe-toolbar-format select {
   }
 }
 html:root[data-theme="day"] .kefe-panel,
-html:root[data-theme="day"] .kefe-settings,
-html:root[data-theme="day"] .beui-panel,
-html:root[data-theme="day"] .beui-settings-card {
+html:root[data-theme="day"] .kefe-settings {
   color: var(--text);
   background: var(--surface);
   border-color: var(--line);
@@ -8375,7 +8431,7 @@ html:root[data-theme="day"] :is(
 }
 html:root[data-theme="day"] :is(
   .kefe-input, .kefe-select, .kefe-textarea, .kefe-search > input,
-  .beui-select-control, .beui-select-trigger, .beui-combobox-trigger
+  .shad-select-trigger
 ) {
   color: var(--text);
   background-color: var(--surface-hi);
@@ -8393,7 +8449,7 @@ html:root[data-theme="day"] :is(
   .kefe-btn:not(.primary), .kefe-chip:not(.active), .kefe-seg-btn:not(.active),
   .kefe-lyric-effect-option, .kefe-font-option, .kefe-card, .kefe-song-result,
   .kefe-suggestion, .kefe-visualiser-preset, .kefe-font-card, .kefe-media-track,
-  .kefe-background-effect-card, .expand-button, .beui-button, .kefe-panel-action, .beui-segmented-control button
+  .kefe-background-effect-card, .expand-button, .kefe-panel-action
 ) {
   color: var(--text);
   background-color: var(--surface-hi);
@@ -8436,10 +8492,8 @@ html:root[data-theme="day"] .kefe-editor .kefe-panel .kefe-style-color-row {
   box-shadow: none;
 }
 html:root[data-theme="day"] .kefe-settings-backdrop { background: rgba(32, 38, 51, .28); }
-html:root[data-theme="day"] .beui-radio-control,
-html:root[data-theme="day"] .beui-switch-control { color: var(--text); }
-html:root[data-theme="day"] .beui-select-content,
-html:root[data-theme="day"] .beui-popover-content,
+html:root[data-theme="day"] .shad-select-content,
+html:root[data-theme="day"] .shad-popover-content,
 html:root[data-theme="day"] [role="listbox"],
 html:root[data-theme="day"] [role="menu"] {
   color: var(--text);
@@ -8482,27 +8536,27 @@ html:root[data-theme="day"] .kefe-editor .kefe-export-progress {
 html:root[data-theme="day"] .kefe-editor .kefe-export-close {
   color: var(--text);
 }
-html:root[data-theme="day"] .beui-settings-root,
-html:root[data-theme="day"] .beui-range-host {
+html:root[data-theme="day"] .shad-settings-root,
+html:root[data-theme="day"] .shad-slider-host {
   color-scheme: light;
 }
-html:root[data-theme="day"] .beui-settings-root {
-  --beui-background: var(--shell-bg);
-  --beui-foreground: var(--shell-text);
-  --beui-muted: #e8ecf3;
-  --beui-muted-foreground: var(--shell-muted);
-  --beui-border: var(--shell-line);
-  --beui-ring: var(--shell-accent);
-  --beui-primary: var(--shell-accent);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel);
+html:root[data-theme="day"] .shad-settings-root {
+  --shad-background: var(--shell-bg);
+  --shad-foreground: var(--shell-text);
+  --shad-muted: #e8ecf3;
+  --shad-muted-foreground: var(--shell-muted);
+  --shad-border: var(--shell-line);
+  --shad-ring: var(--shell-accent);
+  --shad-primary: var(--shell-accent);
+  --shad-primary-foreground: #ffffff;
+  --shad-card: var(--shell-panel);
 }
 /* Liquid Glass timeline visual layer; KEFE playback and range input remain authoritative. */
 
 
 /* Keep the label as the native file/drop target; its inner Card owns the surface. */
-#kefeUploadZone.beui-upload-dropzone,
-#kefeBgVideoZone.beui-upload-dropzone{
+#kefeUploadZone.shad-dropzone,
+#kefeBgVideoZone.shad-dropzone{
   position:relative;display:block;box-sizing:border-box;width:100%;height:auto;min-height:129px;max-height:154px;padding:0;
   overflow:hidden;border:0;border-radius:0;background:transparent;box-shadow:none;color:var(--text);
   text-align:center;cursor:pointer;transition:none;
@@ -8513,62 +8567,62 @@ html:root[data-theme="day"] .beui-settings-root {
   border:1px dashed var(--line);border-radius:10px;background:var(--surface);color:var(--text);box-shadow:var(--inner);
   text-align:center;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
 }
-#kefeUploadZone.beui-upload-dropzone:hover .kefe-upload-card,
-#kefeUploadZone.beui-upload-dropzone.is-dragging .kefe-upload-card,
-#kefeBgVideoZone.beui-upload-dropzone:hover .kefe-upload-card,
-#kefeBgVideoZone.beui-upload-dropzone.is-dragging .kefe-upload-card{
+#kefeUploadZone.shad-dropzone:hover .kefe-upload-card,
+#kefeUploadZone.shad-dropzone.is-dragging .kefe-upload-card,
+#kefeBgVideoZone.shad-dropzone:hover .kefe-upload-card,
+#kefeBgVideoZone.shad-dropzone.is-dragging .kefe-upload-card{
   border-color:var(--accent);background:var(--surface-hi);box-shadow:var(--lift);
 }
-#kefeUploadZone.beui-upload-dropzone.has-selected-file .kefe-upload-card,
-#kefeBgVideoZone.beui-upload-dropzone.has-selected-file .kefe-upload-card{border-style:solid}
-.beui-upload-symbol{display:grid;place-items:center;width:48px;height:48px;margin-bottom:2px;border:1px solid var(--line);border-radius:15px;background:var(--surface);box-shadow:var(--lift);color:var(--muted)}
-.beui-upload-symbol svg{display:block;width:23px;height:23px}
-.kefe-upload-zone.beui-upload-dropzone .kefe-upload-title{
+#kefeUploadZone.shad-dropzone.has-selected-file .kefe-upload-card,
+#kefeBgVideoZone.shad-dropzone.has-selected-file .kefe-upload-card{border-style:solid}
+.shad-upload-symbol{display:grid;place-items:center;width:48px;height:48px;margin-bottom:2px;border:1px solid var(--line);border-radius:15px;background:var(--surface);box-shadow:var(--lift);color:var(--muted)}
+.shad-upload-symbol svg{display:block;width:23px;height:23px}
+.kefe-upload-zone.shad-dropzone .kefe-upload-title{
   font-weight:750;
   line-height:1.35;
 }
-.kefe-upload-zone.beui-upload-dropzone .kefe-upload-name{
+.kefe-upload-zone.shad-dropzone .kefe-upload-name{
   max-width:100%;
   overflow-wrap:anywhere;
   color:var(--muted);
 }
-.kefe-upload-zone.beui-upload-dropzone .kefe-upload-help{font-size:var(--font-xs);color:var(--muted)}
-.beui-upload-browse{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-top:3px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:var(--lift);font-size:var(--font-sm);font-weight:700;color:var(--text);transition:box-shadow .16s ease,transform .16s ease}
-.kefe-upload-zone.beui-upload-dropzone:hover .beui-upload-browse{box-shadow:var(--float)}
-.beui-upload-wrap{display:grid;grid-column:1/-1;gap:9px;min-width:0}
-.beui-upload-file{display:flex;align-items:center;gap:11px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--inner)}
-.beui-upload-file[hidden]{display:none}
-.beui-upload-file-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border:1px solid var(--line-soft);border-radius:11px;background:var(--surface-hi);color:var(--muted)}
-.beui-upload-file-icon svg{width:20px;height:20px;display:block}
-.beui-upload-file-copy{display:grid;gap:3px;flex:1;min-width:0}
-.beui-upload-file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--font-sm);font-weight:700;color:var(--text)}
-.beui-upload-file-meta{font-size:var(--font-xs);color:var(--muted)}
-.beui-upload-file-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-size:var(--font-xs);font-weight:650;color:var(--muted)}
-.beui-upload-status-dot{width:7px;height:7px;border-radius:50%;background:#38a873;box-shadow:0 0 0 3px rgba(56,168,115,.12)}
-.beui-upload-file .kefe-btn{min-height:32px;padding:0 10px;font-size:var(--font-xs)}
-#kefeUploadZone.beui-upload-dropzone:focus-within{outline:2px solid var(--focus);outline-offset:3px}
+.kefe-upload-zone.shad-dropzone .kefe-upload-help{font-size:var(--font-xs);color:var(--muted)}
+.shad-upload-browse{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-top:3px;padding:0 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:var(--lift);font-size:var(--font-sm);font-weight:700;color:var(--text);transition:box-shadow .16s ease,transform .16s ease}
+.kefe-upload-zone.shad-dropzone:hover .shad-upload-browse{box-shadow:var(--float)}
+.shad-upload-wrap{display:grid;grid-column:1/-1;gap:9px;min-width:0}
+.shad-upload-file{display:flex;align-items:center;gap:11px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--inner)}
+.shad-upload-file[hidden]{display:none}
+.shad-upload-file-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border:1px solid var(--line-soft);border-radius:11px;background:var(--surface-hi);color:var(--muted)}
+.shad-upload-file-icon svg{width:20px;height:20px;display:block}
+.shad-upload-file-copy{display:grid;gap:3px;flex:1;min-width:0}
+.shad-upload-file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--font-sm);font-weight:700;color:var(--text)}
+.shad-upload-file-meta{font-size:var(--font-xs);color:var(--muted)}
+.shad-upload-file-status{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;font-size:var(--font-xs);font-weight:650;color:var(--muted)}
+.shad-upload-status-dot{width:7px;height:7px;border-radius:50%;background:#38a873;box-shadow:0 0 0 3px rgba(56,168,115,.12)}
+.shad-upload-file .kefe-btn{min-height:32px;padding:0 10px;font-size:var(--font-xs)}
+#kefeUploadZone.shad-dropzone:focus-within{outline:2px solid var(--focus);outline-offset:3px}
 @media(max-width:600px){
-  #kefeUploadZone.beui-upload-dropzone,#kefeBgVideoZone.beui-upload-dropzone{min-height:125px}
-  .beui-upload-file{gap:8px;padding:9px}
-  .beui-upload-file-icon{flex-basis:34px;width:34px;height:34px}
-  .beui-upload-file-status{display:none}
-  .beui-upload-file .kefe-btn{padding:0 8px}
+  #kefeUploadZone.shad-dropzone,#kefeBgVideoZone.shad-dropzone{min-height:125px}
+  .shad-upload-file{gap:8px;padding:9px}
+  .shad-upload-file-icon{flex-basis:34px;width:34px;height:34px}
+  .shad-upload-file-status{display:none}
+  .shad-upload-file .kefe-btn{padding:0 8px}
 }
 @media(prefers-reduced-motion:reduce){
-  .kefe-upload-zone.beui-upload-dropzone,.beui-upload-browse{transition:none}
+  .kefe-upload-zone.shad-dropzone,.shad-upload-browse{transition:none}
 }
 
 
 /* Keep the upload affordances compact inside the native Card surface. */
-.kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol{
+.kefe-upload-zone.shad-dropzone .shad-upload-symbol{
   flex:0 0 38px;width:38px;height:38px;margin:0;border-radius:12px;
 }
-.kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol svg{width:20px;height:20px}
-.kefe-upload-zone.beui-upload-dropzone .kefe-upload-title{margin:0;font-size:var(--font-sm)}
-.kefe-upload-zone.beui-upload-dropzone .kefe-upload-name{font-size:var(--font-xs);line-height:1.3}
-.kefe-upload-zone.beui-upload-dropzone .beui-upload-browse{min-height:30px;margin-top:1px;padding:0 12px;border-radius:9px}
+.kefe-upload-zone.shad-dropzone .shad-upload-symbol svg{width:20px;height:20px}
+.kefe-upload-zone.shad-dropzone .kefe-upload-title{margin:0;font-size:var(--font-sm)}
+.kefe-upload-zone.shad-dropzone .kefe-upload-name{font-size:var(--font-xs);line-height:1.3}
+.kefe-upload-zone.shad-dropzone .shad-upload-browse{min-height:30px;margin-top:1px;padding:0 12px;border-radius:9px}
 @media(max-width:600px){
-  .kefe-upload-zone.beui-upload-dropzone .beui-upload-symbol{flex-basis:34px;width:34px;height:34px}
+  .kefe-upload-zone.shad-dropzone .shad-upload-symbol{flex-basis:34px;width:34px;height:34px}
 }
 
 /* Compact Find your song card while preserving comfortable spacing. */
@@ -8578,11 +8632,11 @@ html:root[data-theme="day"] .beui-settings-root {
 .kefe-panel[data-panel-view="media"] .kefe-find{gap:8px}
 .kefe-panel[data-panel-view="media"] .kefe-carousel{height:232px}
 
-/* Font picker uses the shared beUI select control, not a horizontal card rail. */
+/* Font picker uses the shared shadcn select control, not a horizontal card rail. */
 .kefe-panel[data-panel-view="effects"] .kefe-font-selector-control .kefe-font-selector-strip[hidden]{display:none}
 
 
-/* Effects panel: shared spacing, clear grouping, compact beUI controls. */
+/* Effects panel: shared spacing, clear grouping, compact shadcn controls. */
 .kefe-panel[data-panel-view="effects"] .kefe-lyric-effects-control{
   padding:var(--s3);
   border:1px solid var(--line);
@@ -8756,10 +8810,10 @@ html:root[data-theme="day"] .beui-settings-root {
 /* Native editor panels own their heading and form directly. Preserve the desktop
    accordion behavior without relying on an intermediate React Card wrapper. */
 @media (min-width: 1280px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy {
     padding: 10px;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy > .kefe-panel-head {
     display: flex;
     visibility: visible;
     align-items: center;
@@ -8770,22 +8824,22 @@ html:root[data-theme="day"] .beui-settings-root {
     border: 0;
     overflow: visible;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head h2,
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > .kefe-panel-head .kefe-meta {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy > .kefe-panel-head h2,
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy > .kefe-panel-head .kefe-meta {
     visibility: visible;
     opacity: 1;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed > :not(.kefe-panel-head) {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy > :not(.kefe-panel-head) {
     display: none;
   }
 }
 @media (min-width: 1280px) {
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head > .beui-accordion-trigger {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-panel-head > .shad-accordion-trigger-legacy {
     position: absolute;
     top: 0;
     right: 0;
   }
-  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head > .beui-accordion-trigger {
+  .kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy .kefe-panel-head > .shad-accordion-trigger-legacy {
     top: 50%;
     margin-top: -16px;
   }
@@ -8930,7 +8984,7 @@ html:root[data-theme="day"] .beui-settings-root {
   font-weight: 650;
   line-height: 1;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger {
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .shad-accordion-trigger-legacy {
   position: static;
   flex: 0 0 30px;
   width: 30px;
@@ -8939,14 +8993,14 @@ html:root[data-theme="day"] .beui-settings-root {
   margin: 0 0 0 2px;
   padding: 0;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view].beui-accordion-collapsed .kefe-panel-head {
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view].shad-accordion-collapsed-legacy .kefe-panel-head {
   min-height: 38px;
   margin-bottom: 0;
   padding-bottom: 0;
   border-bottom-color: transparent;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger:hover,
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .beui-accordion-trigger:focus-visible {
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .shad-accordion-trigger-legacy:hover,
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view] .kefe-section-heading-row > .shad-accordion-trigger-legacy:focus-visible {
   transform: none;
 }
 
@@ -9130,12 +9184,12 @@ html:root[data-theme="day"] .beui-settings-root {
     min-width: 0;
     width: 100%;
   }
-  .kefe-panel[data-panel-view="background-effects"] .kefe-form > .beui-upload-wrap {
+  .kefe-panel[data-panel-view="background-effects"] .kefe-form > .shad-upload-wrap {
     width: 100%;
     min-width: 0;
     max-width: 100%;
   }
-  .kefe-panel[data-panel-view="background-effects"] .kefe-form > .beui-upload-wrap .kefe-upload-zone {
+  .kefe-panel[data-panel-view="background-effects"] .kefe-form > .shad-upload-wrap .kefe-upload-zone {
     width: 100%;
     min-width: 0;
     max-width: 100%;
@@ -9157,8 +9211,8 @@ html:root[data-theme="day"] .beui-settings-root {
 
 @media (prefers-reduced-motion: reduce) {
   .kefe-section-info::after,
-  .kefe-section-heading-row .beui-accordion-chevron { transition: none; }
-  .beui-accordion-enter > :not(.kefe-panel-head) { animation: none; }
+  .kefe-section-heading-row .shad-accordion-chevron-legacy { transition: none; }
+  .shad-accordion-enter-legacy > :not(.kefe-panel-head) { animation: none; }
 }
 
 
@@ -9372,7 +9426,7 @@ html:root[data-theme="day"] .beui-settings-root {
   opacity: 1;
 }
 .kefe-editor .kefe-editing:not(.kefe-settings-layout):not([data-selected-section="visualiser"]) .kefe-vis-tabs,
-.kefe-editor .kefe-editing:not(.kefe-settings-layout):not([data-selected-section="visualiser"]) .beui-vis-tabs-host {
+.kefe-editor .kefe-editing:not(.kefe-settings-layout):not([data-selected-section="visualiser"]) .shad-vis-tabs-host {
   display: none !important;
 }
 @media (max-width: 520px) {
@@ -9388,23 +9442,23 @@ html:root[data-theme="day"] .beui-settings-root {
   }
 }
 
-/* beUI component styling consolidated into this stylesheet. */
-.beui-range-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
+/* shadcn/ui component styling consolidated into this stylesheet. */
+.shad-slider-host {
+  --shad-background: var(--shell-bg, #171719);
+  --shad-foreground: var(--shell-text, #f5f5f5);
+  --shad-muted: var(--shell-panel, #29292d);
+  --shad-muted-foreground: var(--shell-muted, #a1a1aa);
+  --shad-border: var(--shell-line, #39393f);
+  --shad-ring: var(--shell-accent, #ef4444);
   width: 100%;
   min-width: 0;
 }
 
-.beui-range-host > div {
+.shad-slider-host > div {
   width: 100%;
 }
 
-input.beui-native-range {
+input.shad-native-range {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
@@ -9416,26 +9470,24 @@ input.beui-native-range {
   border: 0 !important;
 }
 
-.beui-native-command-button { display: none !important; }
-
-.beui-settings-root {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
+.shad-settings-root {
+  --shad-background: var(--shell-bg, #171719);
+  --shad-foreground: var(--shell-text, #f5f5f5);
+  --shad-muted: var(--shell-panel, #29292d);
+  --shad-muted-foreground: var(--shell-muted, #a1a1aa);
+  --shad-border: var(--shell-line, #39393f);
+  --shad-ring: var(--shell-accent, #ef4444);
+  --shad-primary: var(--shell-accent, #ef4444);
+  --shad-primary-foreground: #ffffff;
+  --shad-card: var(--shell-panel, #222225);
   color-scheme: dark;
 }
-.beui-settings-root select option {
-  background: var(--beui-background);
-  color: var(--beui-foreground);
+.shad-settings-root select option {
+  background: var(--shad-background);
+  color: var(--shad-foreground);
 }
 
-input.beui-native-range {
+input.shad-native-range {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
@@ -9450,7 +9502,7 @@ input.beui-native-range {
 
 
 .kefe-panel-action { min-width: 0; }
-.kefe-panel-action:not(.kefe-btn):not(.kefe-switch):not(.beui-accordion-trigger):not(.kefe-seg-btn):not(.kefe-gradient-chip):not(.kefe-chip):not(.kefe-lyrics-timing-step):not(.kefe-lyrics-timing-reset) {
+.kefe-panel-action:not(.kefe-btn):not(.kefe-switch):not(.shad-accordion-trigger-legacy):not(.kefe-seg-btn):not(.kefe-gradient-chip):not(.kefe-chip):not(.kefe-lyrics-timing-step):not(.kefe-lyrics-timing-reset) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -9468,55 +9520,36 @@ input.beui-native-range {
   user-select: none;
   transition: color .15s ease, background-color .15s ease, border-color .15s ease;
 }
-.kefe-panel-action:not(.kefe-btn):not(.kefe-switch):not(.beui-accordion-trigger):not(.kefe-seg-btn):not(.kefe-gradient-chip):not(.kefe-chip):not(.kefe-lyrics-timing-step):not(.kefe-lyrics-timing-reset):hover:not(:disabled) {
+.kefe-panel-action:not(.kefe-btn):not(.kefe-switch):not(.shad-accordion-trigger-legacy):not(.kefe-seg-btn):not(.kefe-gradient-chip):not(.kefe-chip):not(.kefe-lyrics-timing-step):not(.kefe-lyrics-timing-reset):hover:not(:disabled) {
   color: var(--text);
   background: color-mix(in srgb, var(--muted) 60%, transparent);
 }
 .kefe-panel-action:disabled { cursor: not-allowed; opacity: .5; }
 .kefe-panel-action[hidden] { display: none !important; }
 
-.beui-command-button-host {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
-  display: contents;
-}
-.beui-command-button-host[hidden] { display: none !important; }
-.beui-command-action { width: 100%; justify-content: space-between; text-align: left; }
-.beui-command-action > span { display: inline-flex; align-items: center; justify-content: center; }
-
-.beui-command-dialog-root { display: contents; }
-.beui-command-dialog { flex: 0 1 520px; }
-
 /* Native panel controls keep their own semantic classes and behavior. */
 .kefe-panel[data-panel-view] {
-  --beui-background: var(--shell-bg, #171719);
-  --beui-foreground: var(--shell-text, #f5f5f5);
-  --beui-muted: var(--shell-panel, #29292d);
-  --beui-muted-foreground: var(--shell-muted, #a1a1aa);
-  --beui-border: var(--shell-line, #39393f);
-  --beui-ring: var(--shell-accent, #ef4444);
-  --beui-primary: var(--shell-accent, #ef4444);
-  --beui-primary-foreground: #ffffff;
-  --beui-card: var(--shell-panel, #222225);
+  --shad-background: var(--shell-bg, #171719);
+  --shad-foreground: var(--shell-text, #f5f5f5);
+  --shad-muted: var(--shell-panel, #29292d);
+  --shad-muted-foreground: var(--shell-muted, #a1a1aa);
+  --shad-border: var(--shell-line, #39393f);
+  --shad-ring: var(--shell-accent, #ef4444);
+  --shad-primary: var(--shell-accent, #ef4444);
+  --shad-primary-foreground: #ffffff;
+  --shad-card: var(--shell-panel, #222225);
 }
 
 
-/* beUI Tabs adapters for the legacy editor and visualiser navigation. */
-.beui-vis-tabs-host {
+/* shadcn Tabs adapters for the legacy editor and visualiser navigation. */
+.shad-vis-tabs-host {
   width: 100%;
   min-width: 0;
 }
 
 
 
-/* Visualiser section container and preset rows. Tab cards use the single beUI card system below. */
+/* Visualiser section container and preset rows. Tab cards use the single shadcn Card system below. */
 .kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] > .kefe-vis-tabs:not([hidden]) {
   display: block;
   grid-template-columns: none;
@@ -9530,7 +9563,7 @@ input.beui-native-range {
   background: transparent;
   overflow: visible;
 }
-.kefe-vis-tabs[data-beui-mounted="true"] > .beui-vis-tabs-host {
+.kefe-vis-tabs[data-shad-mounted="true"] > .shad-vis-tabs-host {
   display: block;
   grid-column: 1 / -1;
   box-sizing: border-box;
@@ -9689,13 +9722,13 @@ input.beui-native-range {
   min-width: 0;
   overflow: visible;
 }
-.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .beui-vis-tabs-host {
+.kefe-editor .kefe-editing .kefe-panel[data-panel-view="visualiser"] .shad-vis-tabs-host {
   min-width: 0;
   overflow: visible;
 }
 /* ===== Visualiser panel: card grid + preset rows (final layout) ===== */
 .kefe-vis-tabs { display: block; width: 100%; min-width: 0; }
-.kefe-vis-tabs .beui-vis-tabs-host { width: 100%; min-width: 0; }
+.kefe-vis-tabs .shad-vis-tabs-host { width: 100%; min-width: 0; }
 .kefe-panel[data-panel-view="visualiser"] .kefe-fluid-presets,
 .kefe-panel[data-panel-view="visualiser"] .kefe-slow-light-scenes,
 .kefe-panel[data-panel-view="visualiser"] #flutedModes {
@@ -9721,8 +9754,8 @@ input.beui-native-range {
 .kefe-lyric-effect-carousel > .kefe-lyric-effect-carousel-nav:last-child { grid-column: 3; grid-row: 1; }
 
 /* ===== Export status ===== */
-.kefe-download-row { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
-.kefe-download-row .kefe-panel-action { flex: 1 1 auto; min-width: 0; max-width: 100%; display: flex; width: 100%; font-size: 12.5px; padding-inline: 10px; white-space: normal; overflow-wrap: anywhere; }
+.kefe-download-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-width: 0; }
+.kefe-download-row .kefe-panel-action { flex: 1 1 auto; min-width: 0; max-width: 100%; display: flex; width: 100%; font-size: 12.5px; padding-inline: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #exportStatus:empty { display: none; }
 
 /* The work area contains only the preview and timeline; the editor panel is a sibling grid item. */
@@ -9802,7 +9835,7 @@ input.beui-native-range {
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-9x16:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:9/16}
 .kefe-editor .kefe-work > .kefe-preview > .kefe-stage.is-1x1:not(.kefe-pseudo-fullscreen):not(:fullscreen){aspect-ratio:1/1}
 
-/* Keep the visible beUI fullscreen action attached to the preview while fullscreen is active. */
+/* Keep the visible shadcn fullscreen action attached to the preview while fullscreen is active. */
 .kefe-stage:fullscreen #previewFullscreen,
 .kefe-stage.kefe-pseudo-fullscreen #previewFullscreen{
   position:absolute;
@@ -10084,7 +10117,7 @@ html:root[data-theme="day"] .kefe-editor .kefe-editing > .kefe-panels:not(.kefe-
 /* The legacy Canvas status label sat underneath the fullscreen button. */
 .kefe-preview-dock .kefe-toolbar-status { display: none; }
 
-/* Keep the beUI volume action visible against both preview and transport surfaces. */
+/* Keep the shadcn volume action visible against both preview and transport surfaces. */
 #kefeMuteToggle {
   display: inline-flex;
   align-items: center;
@@ -10649,8 +10682,8 @@ body .kefe-editor > header.kefe-sidebar::-webkit-scrollbar { display: none; }
 @media(max-width:640px){.kefe-lyric-effect-carousel{grid-template-columns:24px minmax(0,1fr) 24px;gap:4px}.kefe-lyric-effect-carousel-nav{width:24px;height:32px}.kefe-lyric-effect-carousel #lyricEffectOptions>.kefe-lyric-effect-option{flex-basis:152px;min-height:124px}}
 
 /* ===== Final responsive page frame =====
-   Keep the preview, editor controls and navigation on one shared page width.
-   Let the document scroll instead of trapping content in a viewport-sized grid. */
+   Lock the editor shell to the viewport on every screen so only the active
+   settings workspace scrolls internally, while non-editor pages keep document flow. */
 html,
 body {
   width: 100%;
@@ -10661,19 +10694,26 @@ body {
   overflow-y: visible;
 }
 
-body {
-  min-height: 100vh;
-  min-height: 100dvh;
+html:has(.kefe-editor),
+body:has(.kefe-editor) {
+  width: 100%;
+  max-width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .kefe-editor {
   width: 100%;
-  height: auto;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 56px auto auto;
-  overflow: visible;
+  grid-template-rows: 56px auto minmax(0, 1fr);
+  overflow: hidden;
 }
 
 body .kefe-editor > .kefe-sidebar {
@@ -10732,23 +10772,23 @@ body .kefe-editor > .kefe-sidebar {
 
 @media (min-width: 701px) and (max-width: 1279px) {
   .kefe-editor {
-    grid-template-rows: 56px auto auto;
+    grid-template-rows: 56px auto minmax(0, 1fr);
   }
 
   .kefe-editor > .kefe-work {
-    grid-template-rows: minmax(300px, 58dvh) 58px;
+    grid-template-rows: minmax(200px, 32dvh) 64px;
   }
 }
 
 @media (max-width: 700px) {
   .kefe-editor {
-    min-height: 100vh;
-    min-height: 100dvh;
-    grid-template-rows: 50px auto auto;
+    height: 100dvh;
+    min-height: 0;
+    grid-template-rows: 56px auto minmax(0, 1fr);
   }
 
   .kefe-editor > .kefe-work {
-    grid-template-rows: minmax(230px, 42dvh) 54px;
+    grid-template-rows: minmax(180px, 32dvh) 64px;
   }
 
   .kefe-editor > .kefe-editing {
@@ -10825,7 +10865,7 @@ html:root .kefe-editor .kefe-work > .kefe-timeline .kefe-wave {
   .kefe-sidebar-group-editor > #kefeFloatingToolbar { flex-basis: 28px; width: 28px; }
   .kefe-sidebar-group-editor > #kefeFloatingToolbar .kft-launch { width: 28px; height: 28px; }
   .kefe-sidebar-bottom { gap: 2px; padding-left: 5px; }
-  .kefe-sidebar-bottom > .kefe-sidebar-link { width: 30px; min-width: 30px; height: 30px; }
+  .kefe-sidebar-bottom > .kefe-sidebar-link { width: 30px; min-width: 30px; height: 34px; }
   .kefe-search .kefe-header-search { width: 30px; min-width: 30px; }
 }
 
@@ -10993,7 +11033,7 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
   min-width: 0;
 }
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .kefe-upload-zone,
-.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap,
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -11006,7 +11046,7 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
   margin: 0;
 }
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .kefe-upload-zone,
-.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap > .kefe-upload-zone,
+.kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap > .kefe-upload-zone,
 .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > div > .kefe-upload-zone {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -11086,7 +11126,7 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
     grid-auto-rows: auto;
   }
   .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .kefe-upload-zone,
-  .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap,
+  .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap,
   .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > div {
     min-height: 148px;
   }
@@ -11232,12 +11272,12 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
     padding: 6px 8px;
   }
   .kefe-editor .kefe-work > .kefe-timeline > .kefe-transport { gap: 5px; }
-  .kefe-editor .kefe-work > .kefe-timeline .kefe-play.beui-button {
+  .kefe-editor .kefe-work > .kefe-timeline .kefe-play {
     width: 36px;
     min-width: 36px;
     height: 36px;
   }
-  .kefe-editor .kefe-work > .kefe-timeline .kefe-restart.beui-button {
+  .kefe-editor .kefe-work > .kefe-timeline .kefe-restart {
     width: 30px;
     min-width: 30px;
     height: 32px;
@@ -11260,12 +11300,12 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
 /* Lyric Sync: numbered steps, one-tap Sync, optional "More" disclosures */
 .kefe-step-label{flex:1 0 100%}
 .kefe-more{min-width:0}
-.kefe-more>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border:1px solid var(--line,rgba(127,127,127,.3));border-radius:8px;font-size:var(--font-sm,12px);font-weight:600;user-select:none}
+.kefe-more>summary,.kefe-more>[data-slot="collapsible-trigger"]{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border:1px solid var(--line,rgba(127,127,127,.3));border-radius:8px;background:transparent;color:inherit;font-size:var(--font-sm,12px);font-weight:600;user-select:none}
 .kefe-more>summary::-webkit-details-marker{display:none}
-.kefe-more>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.kefe-more[open]{flex:1 0 100%}
-.kefe-more[open]>summary{margin-bottom:8px}
-#kefeAutoSync .kefe-more>.kefe-select{display:block;width:100%;margin-bottom:6px}
+.kefe-more>summary:focus-visible,.kefe-more>[data-slot="collapsible-trigger"]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.kefe-more[open],.kefe-more[data-state="open"]{flex:1 0 100%}
+.kefe-more[open]>summary,.kefe-more[data-state="open"]>[data-slot="collapsible-trigger"]{margin-bottom:8px}
+#kefeAutoSync .kefe-more>:is(.kefe-select,[data-slot="collapsible-content"]>.kefe-select){display:block;width:100%;margin-bottom:6px}
 .kefe-line-more-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .kefe-sync{font-weight:700}
 
@@ -11277,9 +11317,9 @@ html:root[data-theme="day"] .kefe-editor > .kefe-work > .kefe-preview > .kefe-st
 
 /* Audio + background video cards: identical size, no dead space around them. */
 .kefe-panel[data-panel-view="media"] .kefe-form{align-items:stretch}
-.kefe-panel[data-panel-view="media"] .beui-upload-wrap{display:flex;flex-direction:column;gap:0;align-self:stretch}
-.kefe-panel[data-panel-view="media"] .beui-upload-wrap .beui-upload-file:not([hidden]){margin-top:9px}
-#kefeUploadZone.beui-upload-dropzone,#kefeBgVideoZone.beui-upload-dropzone{height:154px;min-height:154px;max-height:154px;margin:0}
+.kefe-panel[data-panel-view="media"] .shad-upload-wrap{display:flex;flex-direction:column;gap:0;align-self:stretch}
+.kefe-panel[data-panel-view="media"] .shad-upload-wrap .shad-upload-file:not([hidden]){margin-top:9px}
+#kefeUploadZone.shad-dropzone,#kefeBgVideoZone.shad-dropzone{height:154px;min-height:154px;max-height:154px;margin:0}
 
 
 /* KEFE unified layout system: one spacing, sizing, type and alignment rhythm. */

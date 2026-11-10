@@ -26,7 +26,7 @@ try {
   const dialog = document.querySelector('[role="dialog"]');
   assert.ok(dialog, "settings dialog opens");
   assert.equal(dialog.getAttribute("data-slot"), "dialog-content");
-  assert.equal(document.querySelector('.beui-settings-root').hidden, false);
+  assert.equal(document.querySelector('.shad-settings-root').hidden, false);
   assert.equal(dialog.querySelectorAll('[data-slot="accordion-trigger"]').length, 3);
   assert.equal(dialog.querySelectorAll('button[aria-controls$="-content"]').length, 3);
   const toggle = dialog.querySelector('[role="switch"]');
@@ -56,7 +56,7 @@ try {
   assert.equal(window.kefeSettings.get("aspect"), "16:9");
   [...dialog.querySelectorAll('button')].find(b => b.textContent === "Done").click(); await tick();
   assert.equal(document.querySelector('[role="dialog"]'), null);
-  assert.equal(document.querySelector('.beui-settings-root').hidden, true);
+  assert.equal(document.querySelector('.shad-settings-root').hidden, true);
   await waitForFocus(opener);
   assert.equal(document.activeElement, opener);
   opener.click(); await tick();

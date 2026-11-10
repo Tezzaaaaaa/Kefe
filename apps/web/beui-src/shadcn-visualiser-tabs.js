@@ -91,21 +91,21 @@ function findNativePowerSwitch(backingButton) {
 
 function mountVisualiserTabs() {
   const nav = document.querySelector('.kefe-vis-tabs');
-  if (!nav || nav.dataset.beuiMounted === 'true') return;
+  if (!nav || nav.dataset.shadMounted === 'true') return;
   const backingButtons = new Map();
   nav.querySelectorAll('button[role="tab"][data-visualiser]').forEach(button => {
     if (!button.classList.contains('kv-tab') && button.dataset.visualiser) backingButtons.set(button.dataset.visualiser, button);
   });
   if (!backingButtons.size) return;
-  nav.dataset.beuiMounted = 'true';
+  nav.dataset.shadMounted = 'true';
   nav.removeAttribute('role');
 
   const backingHost = document.createElement('div');
-  backingHost.className = 'beui-vis-backing-controls';
+  backingHost.className = 'shad-vis-backing-controls';
   backingHost.hidden = true;
   backingHost.setAttribute('aria-hidden', 'true');
   const host = document.createElement('div');
-  host.className = 'beui-vis-tabs-host';
+  host.className = 'shad-vis-tabs-host';
   const root = createRoot(host);
   let activeValue = '', activating = false, pointerStartValue = null;
   const cards = new Map();
@@ -194,7 +194,7 @@ function mountVisualiserTabs() {
     if (activating) return;
     const target = event.target instanceof Element ? event.target : null;
     if (!target || target.closest('.kv-tab')) return;
-    const backingTab = target.closest('.beui-vis-backing-controls [role="tab"][data-visualiser]');
+    const backingTab = target.closest('.shad-vis-backing-controls [role="tab"][data-visualiser]');
     if (backingTab) {
       if (backingTab.dataset.visualiser) activeValue = backingTab.dataset.visualiser;
       const power = findNativePowerSwitch(backingTab);
@@ -207,7 +207,7 @@ function mountVisualiserTabs() {
       render();
       return;
     }
-    const power = target.closest('.beui-vis-backing-controls .kefe-switch');
+    const power = target.closest('.shad-vis-backing-controls .kefe-switch');
     if (power && power.getAttribute('aria-checked') !== 'true') {
       const tab = power.closest('.kefe-vis-option')?.querySelector('[role="tab"][data-visualiser]');
       if (tab && tab.getAttribute('aria-selected') !== 'true') {

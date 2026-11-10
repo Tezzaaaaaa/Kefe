@@ -39,7 +39,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.locator('#kefeStyleGroup .kefe-style-color-row button.shad-btn[data-slot="button"]').count(), 43);
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
-      await page.locator('#kefeStyleGroup details').evaluateAll(details => details.forEach(detail => { detail.open = true; }));
+      await page.locator('#kefeStyleGroup [data-slot="collapsible-trigger"][data-state="closed"]').evaluateAll(triggers => triggers.forEach(trigger => trigger.click()));
       const rows = page.locator('#kefeStyleGroup .kefe-style-color-row');
       const first = rows.nth(0), palette = first.locator('.kefe-style-color-swatches');
       const red = palette.locator('button[title="#f16a67"]');

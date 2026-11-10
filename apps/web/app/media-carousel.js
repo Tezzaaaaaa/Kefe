@@ -219,15 +219,16 @@
     el.Carousel.style.cursor=V.dragging?'grabbing':(V.hit?'pointer':'');
 
     var tiltBusy=Math.abs(V.tiltX-tX)>.02||Math.abs(V.tiltY-tY)>.02;
-    return moving||liftBusy||tiltBusy||V.inside;
+    return moving||liftBusy||tiltBusy;
   }
   function frame(now){
     V.raf=0;
+    if(document.hidden)return;
     var dt=Math.min(.05,(now-V.last)/1000);V.last=now;
     if(step(dt))V.raf=requestAnimationFrame(frame);
   }
   function kick(){
-    if(V.raf)return;
+    if(V.raf||document.hidden)return;
     V.last=performance.now();V.raf=requestAnimationFrame(frame);
   }
 

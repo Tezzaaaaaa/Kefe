@@ -48,9 +48,13 @@ for (const requiredModule of [
   "beui-src/shadcn-slider.js",
   "beui-src/shadcn-settings-dialog.js",
   "beui-src/shadcn-visualiser-tabs.js",
-  "beui-src/shadcn-command-dialog.js",
-  "beui-src/shadcn-controls.js",
-  "beui-src/mobile-sidebar.js",
+  "beui-src/shadcn-shell-actions.js",
+  "beui-src/shadcn-media.js",
+  "beui-src/shadcn-lyric-disclosures.js",
+  "beui-src/shadcn-visualiser-controls.js",
+  "beui-src/shadcn-volume-button.js",
+  "beui-src/shadcn-header-actions.js",
+  "beui-src/shadcn-toolbar-buttons.js",
   "beui-src/shadcn-kefe.css",
 ]) {
   if (!existsSync(resolve(root, requiredModule))) {

@@ -149,20 +149,26 @@ void main(){
   const level = { bass: 0, low: 0, mid: 0, high: 0 };
   const mean = (a, b) => { let s = 0; for (let i = a; i < b; i++) s += specSm[i]; return s / (b - a); };
   function analyse(dt) {
-    const an = window.kefeAudioGraph?.analyser?.();
+    const g = window.kefeAudioGraph;
+    const an = g?.analyser?.();
     let frameMax = 0;
+    let activeAudio = false;
     if (an) {
       if (!bins || bins.length !== an.frequencyBinCount) bins = new Uint8Array(an.frequencyBinCount);
-      an.getByteFrequencyData(bins);
-      const hz = (an.context?.sampleRate || 48000) / (an.fftSize || 2048);
-      for (let i = 0; i < N; i++) {
-        const lo = 40 * Math.pow(14000 / 40, i / N), hi = 40 * Math.pow(14000 / 40, (i + 1) / N);
-        const a = Math.max(1, Math.floor(lo / hz)), b = Math.min(bins.length - 1, Math.max(a, Math.ceil(hi / hz)));
-        let m = 0; for (let k = a; k <= b; k++) if (bins[k] > m) m = bins[k];
-        raw[i] = (m / 255) * (1 + 1.8 * i / N);
-        if (raw[i] > frameMax) frameMax = raw[i];
+      const res = g?.readFrequencyData ? g.readFrequencyData(bins) : (an.getByteFrequencyData(bins), { ok: true });
+      if (res.ok) {
+        activeAudio = true;
+        const hz = (an.context?.sampleRate || 48000) / (an.fftSize || 2048);
+        for (let i = 0; i < N; i++) {
+          const lo = 40 * Math.pow(14000 / 40, i / N), hi = 40 * Math.pow(14000 / 40, (i + 1) / N);
+          const a = Math.max(1, Math.floor(lo / hz)), b = Math.min(bins.length - 1, Math.max(a, Math.ceil(hi / hz)));
+          let m = 0; for (let k = a; k <= b; k++) if (bins[k] > m) m = bins[k];
+          raw[i] = (m / 255) * (1 + 1.8 * i / N);
+          if (raw[i] > frameMax) frameMax = raw[i];
+        }
       }
-    } else raw.fill(0);
+    }
+    if (!activeAudio) raw.fill(0);
     specPeak = Math.max(frameMax, specPeak * Math.exp(-dt / 25), .1);
     for (let i = 0; i < N; i++) {
       const target = Math.pow(Math.min(1, raw[i] / specPeak), 1.4);
@@ -179,6 +185,7 @@ void main(){
   /* ---- textures (recreated if the GL context changes) ---- */
   const S = { gl: null, img: null, spec: null, bound: '', aspect: 1.5 };
   const cache = new Map();
+  const failedAssets = new Set();
   function ensureGL(gl) {
     if (S.gl === gl) return;
     const mk = () => {
@@ -195,13 +202,39 @@ void main(){
     if (S.bound === key) return true;
     const file = IMAGES[key] || IMAGES.logo, el = cache.get(key);
     if (el && el.complete && el.naturalWidth) {
-      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, S.img);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, el);
-      S.bound = key; S.aspect = el.naturalWidth / el.naturalHeight;
-      return true;
+      try {
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, S.img);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, el);
+        S.bound = key; S.aspect = el.naturalWidth / el.naturalHeight;
+        return true;
+      } catch (err) {
+        failedAssets.add(key);
+        cache.delete(key);
+        console.warn('[KEFE Apple FX texture]', err);
+        return false;
+      }
     }
-    if (!cache.has(key)) { const im = new Image(); im.decoding = 'async'; im.src = BASE + file; cache.set(key, im); }
+    if (!cache.has(key) && !failedAssets.has(key)) {
+      const im = new Image();
+      im.decoding = 'async';
+      im.onload = () => { window.kefeResilience?.clearPanelError('visualiser', 'apple-fx-asset'); };
+      im.onerror = () => {
+        failedAssets.add(key);
+        cache.delete(key);
+        window.kefeResilience?.panelError('visualiser', {
+          id: 'apple-fx-asset',
+          title: 'Apple FX image failed to load',
+          message: 'Could not load the visual asset for "' + (NAMES[key] || key) + '".',
+          retryLabel: 'Retry image',
+          onRetry: () => { failedAssets.delete(key); cache.delete(key); },
+          continueLabel: 'Continue with Fluid Ink',
+          onContinue: () => { document.querySelector('[data-visualiser="gradient"]')?.click(); },
+        });
+      };
+      im.src = BASE + file;
+      cache.set(key, im);
+    }
     return false;
   }
 

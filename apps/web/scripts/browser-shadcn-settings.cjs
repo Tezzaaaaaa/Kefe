@@ -130,7 +130,7 @@ const server = http.createServer((req, res) => {
       for (let index = 0; index < await cards.count(); index++) {
         const card = cards.nth(index);
         const value = await card.getAttribute('data-visualiser');
-        const backing = page.locator(`.beui-vis-backing-controls [data-visualiser="${value}"]`).locator('xpath=..').locator('.kefe-switch');
+        const backing = page.locator(`.shad-vis-backing-controls [data-visualiser="${value}"]`).locator('xpath=..').locator('.kefe-switch');
         const power = card.locator('[data-slot="switch"]');
         const before = await backing.getAttribute('aria-checked');
         await power.click();

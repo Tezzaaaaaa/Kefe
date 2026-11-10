@@ -40,8 +40,12 @@
 
 .kefe-floating-toolbar,
 .kefe-floating-toolbar *,
+.kefe-floating-toolbar *::before,
+.kefe-floating-toolbar *::after,
 .kft-popover,
-.kft-popover * { box-sizing: border-box; }
+.kft-popover *,
+.kft-popover *::before,
+.kft-popover *::after { box-sizing: border-box; }
 
 .kefe-floating-toolbar {
   position: relative;
@@ -99,21 +103,28 @@
 .kft-bar {
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
   min-width: 0;
   animation: kftStrip 160ms var(--kt-ease) both;
   border: 1px solid var(--kt-border);
   background: var(--kt-surface);
   box-shadow: var(--kt-shadow);
 }
+.kft-bar::-webkit-scrollbar { display: none; }
+.kefe-floating-toolbar.is-floating .kft-bar {
+  max-width: calc(100vw - 16px);
+}
 .kft-main {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
   gap: var(--kt-gap);
   width: max-content;
-  max-width: 100%;
+  max-width: none;
   overflow: visible;
   white-space: nowrap;
 }
@@ -387,7 +398,7 @@
 
 html .kefe-editor .kefe-work > .kefe-preview > .kefe-preview-dock {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px 10px;
@@ -450,8 +461,8 @@ html .kefe-editor .kefe-preview-dock #previewFullscreen { width: 32px; min-width
 /* ───────── Timeline controls: same language as the toolbar (surface, 1px border, accent fill + edge) ───────── */
 html .kefe-editor .kefe-timeline { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 html .kefe-editor .kefe-timeline .kefe-transport { gap: 6px; }
-html .kefe-editor .kefe-timeline .kefe-play.beui-button,
-html .kefe-editor .kefe-timeline .kefe-restart.beui-button,
+html .kefe-editor .kefe-timeline .kefe-play,
+html .kefe-editor .kefe-timeline .kefe-restart,
 html .kefe-editor .kefe-timeline .kefe-volume-control > button {
   display: inline-grid;
   place-items: center;
@@ -463,15 +474,15 @@ html .kefe-editor .kefe-timeline .kefe-volume-control > button {
   box-shadow: none;
   transition: background-color 150ms, border-color 150ms, color 150ms;
 }
-html .kefe-editor .kefe-timeline .kefe-play.beui-button svg,
-html .kefe-editor .kefe-timeline .kefe-restart.beui-button svg,
+html .kefe-editor .kefe-timeline .kefe-play svg,
+html .kefe-editor .kefe-timeline .kefe-restart svg,
 html .kefe-editor .kefe-timeline .kefe-volume-control > button svg { width: 16px; height: 16px; }
-html .kefe-editor .kefe-timeline .kefe-play.beui-button { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); }
-html .kefe-editor .kefe-timeline .kefe-play.beui-button:hover,
-html .kefe-editor .kefe-timeline .kefe-restart.beui-button:hover,
+html .kefe-editor .kefe-timeline .kefe-play { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--accent); }
+html .kefe-editor .kefe-timeline .kefe-play:hover,
+html .kefe-editor .kefe-timeline .kefe-restart:hover,
 html .kefe-editor .kefe-timeline .kefe-volume-control > button:hover,
 html .kefe-editor .kefe-timeline .kefe-volume-control > button[aria-expanded="true"] { background: var(--kt-surface-hover, var(--surface-hi)); border-color: var(--kt-border-hover, var(--line)); color: var(--text); transform: none; }
-html .kefe-editor .kefe-timeline .kefe-play.beui-button:hover { background: color-mix(in srgb, var(--accent) 28%, var(--surface)); color: var(--accent); border-color: var(--accent); }
+html .kefe-editor .kefe-timeline .kefe-play:hover { background: color-mix(in srgb, var(--accent) 28%, var(--surface)); color: var(--accent); border-color: var(--accent); }
 
 html .kefe-editor .kefe-timeline .kefe-timebar {
   position: relative;
@@ -592,14 +603,67 @@ html .kefe-editor .kefe-timeline > #previewFullscreen { display: none !important
   html .kefe-editor .kefe-timeline { grid-template-columns: auto minmax(0, 1fr) auto 36px; gap: 6px; }
 }
 
-/* Phones: the toolbar stays docked directly above the timeline slider (never pinned to the top of the preview).
-   Keep its natural width, right-aligned, capped to the screen; it wraps onto a second row if the screen is narrower. */
+/* Phones: the toolbar stays docked on a single horizontal strip directly above the timeline. */
 @media (max-width: 520px) {
   html .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-bar {
-    width: max-content; max-width: calc(100vw - 16px);
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
   html .kefe-editor .kefe-timeline > #kefeFloatingToolbar:not(.is-floating) .kft-main {
-    width: max-content; max-width: 100%; flex-wrap: wrap; justify-content: flex-start;
+    width: max-content;
+    max-width: none;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 390px) {
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-main {
+    padding: 2px;
+    gap: 0;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cluster {
+    padding: 0 2px;
+    gap: 1px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cluster + .kft-cluster {
+    margin-left: 0;
+    padding-left: 3px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-grip {
+    width: 16px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cell {
+    width: 28px;
+    height: 28px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cell--ratio {
+    width: auto;
+    min-width: 44px;
+    padding: 0 4px;
+    gap: 3px;
+    font-size: 11px;
+  }
+}
+@media (max-width: 350px) {
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cluster {
+    padding: 0 1px;
+    gap: 1px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cluster + .kft-cluster {
+    padding-left: 2px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-grip {
+    width: 14px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cell {
+    width: 26px;
+    height: 26px;
+  }
+  html .kefe-editor .kefe-timeline > #kefeFloatingToolbar .kft-cell--ratio {
+    min-width: 40px;
+    padding: 0 3px;
   }
 }
 

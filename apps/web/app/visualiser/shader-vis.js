@@ -15,72 +15,136 @@
     const key = 'kefe.shaderVis.' + def.id + '.v1';
     let cfg = { ...def.defaults };
     try { const s = JSON.parse(localStorage.getItem(key) || 'null'); if (s) cfg = { ...cfg, ...s }; } catch (_) {}
-    let stage, canvas, gl, program, loc = {}, enabled = false, active = false, raf = 0, last = 0, t = 0, tick = 0;
+    let stage, canvas, gl, program, vertexBuffer = null, loc = {}, enabled = false, active = false, last = 0, t = 0, tick = 0;
+    let rendererError = null, loop = null;
     let tabs, form, tab, view, power, powerState, presetSet, ui = { sync: [] };
     let bins = null, smoothed = [0, 0, 0, 0], peak = [.1, .1, .1, .1];
-    const shown = () => enabled && active;
+    const scope = window.kefeResilience?.createScope?.();
+    const shown = () => enabled && active && !rendererError;
     const persist = () => { try { localStorage.setItem(key, JSON.stringify(cfg)); } catch (_) {} };
+    const opts = { antialias: false, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' };
 
     function compile(type, src) {
       const sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh);
       if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) { console.error('[KEFE ' + def.name + ' shader]', gl.getShaderInfoLog(sh)); gl.deleteShader(sh); return null; }
       return sh;
     }
+    function destroyGL() {
+      if (gl && !gl.isContextLost()) {
+        try { if (vertexBuffer) gl.deleteBuffer(vertexBuffer); } catch (_) {}
+        try { if (program) gl.deleteProgram(program); } catch (_) {}
+      }
+      vertexBuffer = null;
+      program = null;
+    }
     function build() {
+      destroyGL();
       const vs = compile(gl.VERTEX_SHADER, VS), fs = compile(gl.FRAGMENT_SHADER, def.fs);
       if (!vs || !fs) return false;
       const p = gl.createProgram(); gl.attachShader(p, vs); gl.attachShader(p, fs); gl.linkProgram(p);
       gl.deleteShader(vs); gl.deleteShader(fs);
       if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { console.error('[KEFE ' + def.name + ' program]', gl.getProgramInfoLog(p)); gl.deleteProgram(p); return false; }
-      if (program) gl.deleteProgram(program);
       program = p; gl.useProgram(program);
-      const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      vertexBuffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-      const a = gl.getAttribLocation(program, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+      const a = gl.getAttribLocation(program, 'a');
+      if (a < 0) { destroyGL(); return false; }
+      gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
       def.uniforms.forEach(n => { loc[n] = gl.getUniformLocation(program, n); });
       return true;
     }
+    function reportError(err, title, message) {
+      rendererError = err || new Error('WebGL unavailable');
+      enabled = false;
+      loop?.stop();
+      syncPowerUI();
+      window.kefeResilience?.panelError('visualiser', {
+        id: 'shader-vis-' + def.id,
+        title: title || (def.name + ' preview could not initialise'),
+        message: message || 'WebGL graphics acceleration is unavailable or blocked in this browser.',
+        retryLabel: 'Retry',
+        onRetry() {
+          rendererError = null;
+          if (ensureGL()) { enabled = true; sync(); }
+        },
+        continueLabel: 'Continue with Fluid Ink (2D)',
+        onContinue() { document.querySelector('[data-visualiser="gradient"]')?.click(); },
+      });
+    }
+    function ensureGL() {
+      if (gl && !gl.isContextLost() && program) return true;
+      if (rendererError) return false;
+      try {
+        gl = canvas.getContext('webgl', opts);
+        if (!gl || gl.isContextLost() || !build()) throw new Error('WebGL initialization failed');
+        rendererError = null;
+        window.kefeResilience?.clearPanelError('visualiser', 'shader-vis-' + def.id);
+        return true;
+      } catch (e) {
+        console.error('[KEFE ' + def.name + ']', e);
+        reportError(e);
+        return false;
+      }
+    }
     function resize() {
-      if (!canvas || !stage) return;
+      if (!canvas || !stage) return false;
       const r = stage.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
-      let w = Math.max(2, Math.round((r.width || 2) * dpr)), h = Math.max(2, Math.round((r.height || 2) * dpr));
+      if (r.width < 2 || r.height < 2) return false;
+      let w = Math.max(2, Math.round(r.width * dpr)), h = Math.max(2, Math.round(r.height * dpr));
       const cap = def.maxSide || 1920, big = Math.max(w, h);
       if (big > cap) { const k = cap / big; w = Math.max(2, Math.round(w * k)); h = Math.max(2, Math.round(h * k)); }
       if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
-      gl?.viewport(0, 0, canvas.width, canvas.height);
+      if (gl && !gl.isContextLost()) gl.viewport(0, 0, canvas.width, canvas.height);
+      return true;
     }
     function audio(dt) {
-      const an = window.kefeAudioGraph?.analyser?.();
+      const g = window.kefeAudioGraph;
+      const an = g?.analyser?.();
       let target = [0, 0, 0, 0];
       if (an) {
         if (!bins || bins.length !== an.frequencyBinCount) bins = new Uint8Array(an.frequencyBinCount);
-        an.getByteFrequencyData(bins);
-        const hz = (an.context?.sampleRate || 48000) / (an.fftSize || 2048);
-        const band = (lo, hi) => { const a = Math.max(1, Math.floor(lo / hz)), b = Math.min(bins.length - 1, Math.ceil(hi / hz)); let s = 0; for (let i = a; i <= b; i++) s += bins[i]; return s / (Math.max(1, b - a + 1) * 255); };
-        const raw = [band(30, 140), band(140, 500), band(500, 2200), band(2200, 9000)];
-        target = raw.map((v, i) => { peak[i] = Math.max(v, peak[i] * Math.exp(-dt / 30), .06); return Math.pow(clamp(v / peak[i]), 1.3); });
+        const res = g?.readFrequencyData ? g.readFrequencyData(bins) : (an.getByteFrequencyData(bins), { ok: true });
+        if (res.ok) {
+          const hz = (an.context?.sampleRate || 48000) / (an.fftSize || 2048);
+          const band = (lo, hi) => { const a = Math.max(1, Math.floor(lo / hz)), b = Math.min(bins.length - 1, Math.ceil(hi / hz)); let s = 0; for (let i = a; i <= b; i++) s += bins[i]; return s / (Math.max(1, b - a + 1) * 255); };
+          const raw = [band(30, 140), band(140, 500), band(500, 2200), band(2200, 9000)];
+          target = raw.map((v, i) => { peak[i] = Math.max(v, peak[i] * Math.exp(-dt / 30), .06); return Math.pow(clamp(v / peak[i]), 1.3); });
+        }
       }
       smoothed = smoothed.map((s, i) => s + (target[i] - s) * (1 - Math.exp(-dt / (target[i] > s ? .12 : .35))));
     }
-    function frame(now) {
-      raf = 0; if (!shown() || !gl || !program || document.hidden) return;
-      if (window.kefeFrameGate && !window.kefeFrameGate(now)) { raf = requestAnimationFrame(frame); return; }
+    function step(now) {
+      if (!shown() || document.hidden) return false;
+      if (!gl || gl.isContextLost() || !program) return false;
+      if (window.kefeFrameGate && !window.kefeFrameGate(now)) return true;
+      if (!resize()) return true;
       const dt = Math.min(.1, Math.max(0, (now - (last || now)) / 1000)); last = now; tick += dt;
-      audio(dt); resize();
+      audio(dt);
       gl.useProgram(program);
       def.draw({ gl, loc, cfg, dt, audio: smoothed, width: canvas.width, height: canvas.height, reducedMotion,
         advance: v => { t += v; return t; }, time: () => t });
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      raf = requestAnimationFrame(frame);
+      return true;
     }
-    function start() { if (!shown() || !gl || raf || document.hidden) return; last = performance.now(); raf = requestAnimationFrame(frame); }
+    function start() { if (!shown() || document.hidden) return; if (!ensureGL()) return; last = performance.now(); loop?.start(); }
+    function syncPowerUI() {
+      if (canvas) canvas.style.display = shown() && gl && !gl.isContextLost() ? 'block' : 'none';
+      if (power) {
+        power.disabled = !!rendererError;
+        powerState.textContent = rendererError ? 'Unavailable' : (enabled ? 'On' : 'Off');
+        power.classList.toggle('is-on', enabled && !rendererError);
+        power.setAttribute('aria-checked', String(enabled && !rendererError));
+      }
+    }
     function sync() {
-      if (canvas) canvas.style.display = shown() ? 'block' : 'none';
-      if (power) { powerState.textContent = enabled ? 'On' : 'Off'; power.classList.toggle('is-on', enabled); power.setAttribute('aria-checked', String(enabled)); }
-      if (shown()) { resize(); start(); } else { if (raf) cancelAnimationFrame(raf); raf = 0; last = 0; }
-      window.dispatchEvent(new CustomEvent('kefe-shader-vis-change', { detail: { id: def.id, enabled: shown(), power: enabled, active } }));
+      if (shown()) {
+        if (ensureGL()) { resize(); syncPowerUI(); start(); }
+      } else {
+        loop?.stop(); last = 0; syncPowerUI();
+      }
+      window.dispatchEvent(new CustomEvent('kefe-shader-vis-change', { detail: { id: def.id, enabled: shown(), power: enabled && !rendererError, active } }));
     }
-    function setEnabled(v) { enabled = !!v; sync(); }
+    function setEnabled(v) { enabled = !!v; if (enabled) rendererError = null; sync(); }
     function setActive(v) { active = !!v; sync(); }
 
     function field(label, k, min, max, step, fmt) {
@@ -111,11 +175,18 @@
       canvas = document.createElement('canvas'); canvas.id = def.canvasId; canvas.setAttribute('aria-label', def.name + ' visualiser output');
       Object.assign(canvas.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', display: 'none', opacity: String(def.opacity ?? .72), zIndex: '2', pointerEvents: 'none', borderRadius: '0' });
       stage.insertBefore(canvas, document.getElementById('kefeCanvas') || null);
-      const opts = { antialias: false, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' };
-      gl = canvas.getContext('webgl', opts);
-      if (!gl || !build()) { canvas.remove(); console.error('[KEFE ' + def.name + '] WebGL initialization failed.'); return; }
-      canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); if (raf) cancelAnimationFrame(raf); raf = 0; gl = null; });
-      canvas.addEventListener('webglcontextrestored', () => { gl = canvas.getContext('webgl', opts); if (gl && build()) { resize(); if (shown()) start(); } });
+      loop = window.kefeResilience?.createRenderLoop
+        ? window.kefeResilience.createRenderLoop(step, { onError: err => reportError(err, def.name + ' stopped rendering', 'A graphics error interrupted ' + def.name + '.') })
+        : { start() {}, stop() {}, dispose() {} };
+
+      canvas.addEventListener('webglcontextlost', e => {
+        e.preventDefault(); loop?.stop(); gl = null;
+        if (shown()) reportError(new Error('WebGL context lost'), def.name + ' paused', 'The browser paused 3D graphics. Tap Retry or switch to Fluid Ink.');
+      });
+      canvas.addEventListener('webglcontextrestored', () => {
+        rendererError = null;
+        if (shown() && ensureGL()) { resize(); syncPowerUI(); start(); }
+      });
 
       view = document.createElement('section'); view.className = 'kefe-vis-view kefe-shader-vis-view'; view.id = 'kefeVis' + def.id + 'View'; view.hidden = true;
       const intro = document.createElement('div'); intro.className = 'kefe-visualiser-intro'; intro.hidden = true; view.appendChild(intro);
@@ -155,15 +226,34 @@
         setActive(true);
       });
       /* Any other visualiser's tab (or a later-registered one) deselects this one. */
-      window.addEventListener('kefe-visualiser-select', e => { if (e.detail?.id !== def.id) { presetSet.hidden = true; view.hidden = true; setActive(false); } });
+      const onVisSelect = e => { if (e.detail?.id !== def.id) { presetSet.hidden = true; view.hidden = true; setActive(false); } };
+      const onResize = () => { if (shown()) resize(); };
+      if (scope) {
+        scope.on(window, 'kefe-visualiser-select', onVisSelect);
+        scope.on(window, 'resize', onResize);
+        scope.on(window, 'kefe-stage-resize', onResize);
+        scope.add(() => { loop?.dispose(); destroyGL(); });
+      } else {
+        window.addEventListener('kefe-visualiser-select', onVisSelect);
+        window.addEventListener('resize', onResize);
+        window.addEventListener('kefe-stage-resize', onResize);
+      }
       tabsList.addEventListener('click', e => {
         const c = e.target.closest('[role="tab"]');
         if (c && c !== tab && c.dataset.visualiser !== def.id) { presetSet.hidden = true; setActive(false); }
       });
-      resize();
-      window.addEventListener('resize', resize); window.addEventListener('kefe-stage-resize', resize);
-      document.addEventListener('visibilitychange', () => { if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = 0; } else if (shown()) start(); });
-      const api = { id: def.id, name: def.name, setEnabled, setActive, canvas: () => canvas, getState: () => ({ enabled: shown(), power: enabled, active, settings: { ...cfg } }) };
+
+      const isReady = () => !!(gl && !gl.isContextLost() && program && canvas && canvas.width > 1 && canvas.height > 1);
+      const api = {
+        id: def.id,
+        name: def.name,
+        setEnabled,
+        setActive,
+        isReady,
+        destroy() { scope?.dispose(); instances.delete(def.id); },
+        canvas: () => canvas,
+        getState: () => ({ enabled: shown(), power: enabled && !rendererError, active, ready: isReady(), settings: { ...cfg } }),
+      };
       instances.set(def.id, api);
       window.kefeShaderVis.instances = instances;
       window.dispatchEvent(new CustomEvent('kefe-shader-vis-ready', { detail: { id: def.id } }));
@@ -175,7 +265,7 @@
     instances,
     register(def) { const inst = make(def); if (ready) inst.init(); else queue.push(inst); },
     /* the canvas of whichever shader visualiser is the visible preview, or null */
-    current() { for (const v of instances.values()) if (v.getState().enabled) return v.canvas(); return null; },
+    current() { for (const v of instances.values()) if (v.getState().enabled && v.isReady()) return v.canvas(); return null; },
     canvases() { return [...instances.values()].map(v => v.canvas()).filter(Boolean); },
   };
   if (!ready) document.addEventListener('DOMContentLoaded', () => { ready = true; queue.splice(0).forEach(i => i.init()); }, { once: true });

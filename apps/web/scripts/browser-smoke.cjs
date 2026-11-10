@@ -201,7 +201,7 @@ async function captureEditorScreenState(page) {
 
     await page.goto("http://127.0.0.1:4173/editor.html", { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".kefe-sidebar [data-editor-tab]", { state: "attached", timeout: 20000 });
-    await page.waitForSelector(".beui-range-host", { state: "attached", timeout: 20000 });
+    await page.waitForSelector(":is(.shad-slider-host, .beui-range-host)", { state: "attached", timeout: 20000 });
     await page.waitForSelector("#songTitle", { state: "visible", timeout: 20000 });
     await page.waitForSelector(".kft-launch", { state: "attached", timeout: 10000 });
     await page.evaluate(() => {
@@ -870,16 +870,16 @@ async function captureEditorScreenState(page) {
           && panel.querySelector(":scope > .kefe-form")))
         && panels.every((panel) => !panel.querySelector(".beui-editor-panel-card"));
     }, null, { timeout: 20000 });
-    await page.waitForSelector("#kefeUploadZone.beui-upload-dropzone", { state: "visible", timeout: 20000 });
+    await page.waitForSelector("#kefeUploadZone:is(.shad-dropzone, .beui-upload-dropzone)", { state: "visible", timeout: 20000 });
     await page.waitForSelector("#kefeBgVideoZone", { state: "attached", timeout: 20000 });
     assert.equal(await page.locator("#kefeUploadZone").count(), 1, "there must be exactly one primary audio/video uploader");
     assert.equal(await page.locator("#kefeBgVideoZone").count(), 1, "there must be exactly one separate optional background-video uploader");
     assert.equal(await page.locator("#kefeUploadZone .beui-upload-card").count(), 0, "the primary uploader must not wrap itself in a React Card");
     assert.equal(await page.locator("#kefeUploadZone.beui-upload-card-hosted").count(), 0, "the native upload label must not have a mirrored Card host");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-title").textContent(), "Audio or video", "the primary uploader label must remain distinct");
-    assert.equal(await page.locator("#kefeUploadZone .beui-upload-symbol").count(), 1, "the primary uploader must have one upload icon");
+    assert.equal(await page.locator("#kefeUploadZone :is(.shad-upload-symbol, .beui-upload-symbol)").count(), 1, "the primary uploader must have one upload icon");
     assert.equal(await page.locator("#kefeUploadZone .kefe-upload-help").count(), 1, "the primary uploader must explain what the source media is used for");
-    assert.equal(await page.locator("#kefeUploadZone .beui-upload-browse").count(), 1, "the primary uploader must have a visible Browse files affordance");
+    assert.equal(await page.locator("#kefeUploadZone :is(.shad-upload-browse, .beui-upload-browse)").count(), 1, "the primary uploader must have a visible Browse files affordance");
     assert.match(await page.locator("#kefeBgVideoZone .kefe-upload-title").textContent(), /Optional background video/, "the second uploader must be clearly identified as optional background footage");
     const mediaUploadGeometry = await page.evaluate(() => {
       const primaryHost = document.querySelector("#kefeUploadZone");
@@ -946,13 +946,13 @@ async function captureEditorScreenState(page) {
     if (mediaMetadataColumns.width <= 500) assert.equal(mediaMetadataColumns.columns, 2,
       `mobile Media must keep Track title / Artist and Album / Year paired: ${JSON.stringify(mediaMetadataColumns)}`);
 
-    const initialVisualiserTabs = page.locator(".beui-vis-tabs-host");
+    const initialVisualiserTabs = page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)");
     assert.ok((await initialVisualiserTabs.count()) === 0 || !(await initialVisualiserTabs.isVisible()),
       "visualiser controls must remain inside the Audio & Visualiser workspace until selected");
     assert.equal(await page.locator("#mediaInput").getAttribute("type"), "file", "upload Card must preserve the native file input");
     await page.waitForFunction(() => {
       const ranges = [...document.querySelectorAll('.kefe-editor input[type="range"]')].filter((input) => input.id !== "kefeTime");
-      return ranges.length > 0 && ranges.every((input) => input.nextElementSibling?.classList.contains("beui-range-host"));
+      return ranges.length > 0 && ranges.every((input) => input.nextElementSibling?.classList.contains("shad-slider-host") || input.nextElementSibling?.classList.contains("beui-range-host"));
     }, null, { timeout: 20000 });
     await page.waitForSelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]', { state: "attached", timeout: 10000 });
     const nativeSelectState = await page.evaluate(() => {
@@ -1610,24 +1610,24 @@ async function captureEditorScreenState(page) {
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
 
     await openSection("visualiser");
-    await page.waitForSelector(".beui-vis-tabs-host [role='tab']", { state: "attached", timeout: 10000 });
-    assert.ok(await page.locator(".beui-vis-tabs-host [role='tab']").count() >= 1, "visualiser navigation should use beUI Tabs");
-    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Liquid Glass" }).count(), 1,
+    await page.waitForSelector(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']", { state: "attached", timeout: 10000 });
+    assert.ok(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']").count() >= 1, "visualiser navigation should use shadcn Tabs");
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']").filter({ hasText: "Liquid Glass" }).count(), 1,
       "Liquid Glass must be available in the visualiser tab list");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), true,
       "visualiser tabs must be visible while the Visualisers section is active");
 
     await openSection("background-effects");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), false,
       "visualiser choices remain visible in workspaces and section-scoped in the legacy layout");
     await openSection("visualiser");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), true,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), true,
       "visualiser tabs must reliably reappear when Visualisers is reopened");
     if (!workspaceMode) {
       assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
         "legacy visualiser preset row must follow the selected section visibility state");
     }
-    const visualiserTabGeometry = await page.locator(".beui-vis-tabs-host [role='tablist']").evaluate(list => {
+    const visualiserTabGeometry = await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tablist']").evaluate(list => {
       const rect = list.getBoundingClientRect();
       const tabs = [...list.querySelectorAll("[role='tab']")].map(tab => {
         const r = tab.getBoundingClientRect();
@@ -1650,19 +1650,19 @@ async function captureEditorScreenState(page) {
       `visualiser preset tabs must have consistent widths rather than bunching on one side: ${JSON.stringify(visualiserTabGeometry)}`);
     assert.ok(visualiserTabGeometry.tabs.every(tab => tab.left >= 0 && tab.right <= visualiserTabGeometry.viewportWidth + 1),
       `visualiser preset tabs must stay inside the viewport: ${JSON.stringify(visualiserTabGeometry)}`);
-    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 0,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab'][aria-selected='true']").count(), 0,
       "no visualiser tab should appear selected until the user chooses one");
-    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
+    assert.equal(await page.locator(":is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser='gradient']").getAttribute("aria-selected"), "false",
       "opening the Visualisers section must not automatically activate Fluid Ink");
-    await page.locator(".beui-vis-tabs-host [role='tab']").filter({ hasText: "Fluid Ink" }).click();
+    await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']").filter({ hasText: "Fluid Ink" }).click();
     await page.waitForFunction(() => {
-      const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
+      const tab = document.querySelector(":is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser='gradient']");
       const presets = document.querySelector("#kefeVisualiserPresetRow");
       return tab?.getAttribute("aria-selected") === "true" && presets && !presets.hidden;
     }, null, { timeout: 5000 });
     if (singleSectionMode) {
       await page.waitForFunction(() => {
-        const tab = document.querySelector(".beui-vis-backing-controls [data-visualiser='gradient']");
+        const tab = document.querySelector(":is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser='gradient']");
         const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
         const canvas = document.getElementById("kefeFluidInkCanvas");
         return tab?.getAttribute("aria-selected") === "true"
@@ -1678,58 +1678,58 @@ async function captureEditorScreenState(page) {
     if (visualiserParametersLayout.width <= 500) assert.equal(visualiserParametersLayout.columns, 1,
       `visualiser parameters must use one column in a narrow panel: ${JSON.stringify(visualiserParametersLayout)}`);
 
-    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
-      "selecting a visualiser should activate exactly one beUI tab");
-    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").textContent().then((text) => text.includes("Fluid Ink")), true,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab'][aria-selected='true']").count(), 1,
+      "selecting a visualiser should activate exactly one shadcn tab");
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab'][aria-selected='true']").textContent().then((text) => text.includes("Fluid Ink")), true,
       "Fluid Ink should become selected only after an explicit click");
-    assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
+    assert.equal(await page.locator(":is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
       "Fluid Ink must activate only after the user selects its tab");
-    const visualiserCards = page.locator(".beui-vis-tabs-host .kv-card");
+    const visualiserCards = page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) .kv-card");
     const visualiserCount = await visualiserCards.count();
     assert.ok(visualiserCount > 0, "the visualiser section must render its visualiser cards");
-    assert.equal(await page.locator(".beui-vis-tabs-host [role='switch']:not([aria-hidden='true'])").count(), visualiserCount,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='switch']:not([aria-hidden='true'])").count(), visualiserCount,
       "each visualiser tab must have exactly one independent power toggle");
     for (let index = 0; index < visualiserCount; index += 1) {
       const card = visualiserCards.nth(index);
       const tab = card.locator("[role='tab']");
       const value = await tab.getAttribute("data-visualiser");
       const toggle = card.locator("[role='switch']:not([aria-hidden='true'])");
-      const nativePower = page.locator(`.beui-vis-backing-controls [data-visualiser="${value}"]`).locator("xpath=..").locator(".kefe-switch");
+      const nativePower = page.locator(`:is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser="${value}"]`).locator("xpath=..").locator(".kefe-switch");
       assert.equal(await nativePower.count(), 1, `${value} must retain exactly one native power handler`);
       const initial = await nativePower.getAttribute("aria-checked");
       const visibleInitial = await toggle.getAttribute("aria-checked");
       assert.equal(visibleInitial, initial, `${value} toggle must display its real initial state`);
       await toggle.click();
       await page.waitForFunction(({ value, expected }) => {
-        const native = document.querySelector(`.beui-vis-backing-controls [data-visualiser="${value}"]`)?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+        const native = document.querySelector(`:is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser="${value}"]`)?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
         return native && native.getAttribute("aria-checked") !== expected;
       }, { value, expected: initial });
       assert.notEqual(await nativePower.getAttribute("aria-checked"), initial,
         `${value} toggle must change its own visualiser state`);
       await toggle.click();
       await page.waitForFunction(({ value, expected }) => {
-        const native = document.querySelector(`.beui-vis-backing-controls [data-visualiser="${value}"]`)?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
+        const native = document.querySelector(`:is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser="${value}"]`)?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
         return native && native.getAttribute("aria-checked") === expected;
       }, { value, expected: initial });
     }
-    assert.equal(await page.locator(".beui-vis-tabs-host [role='tab'][aria-selected='true']").count(), 1,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab'][aria-selected='true']").count(), 1,
       "exactly one visualiser tab must remain selected");
     if (singleSectionMode) {
       const lastVisualiserId = await visualiserCards.last().locator("[role='tab']").getAttribute("data-visualiser");
-      assert.equal(await page.locator(`.beui-vis-backing-controls [data-visualiser="${lastVisualiserId}"]`).getAttribute("aria-selected"), "true",
+      assert.equal(await page.locator(`:is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser="${lastVisualiserId}"]`).getAttribute("aria-selected"), "true",
         "turning on a visualiser must select that same visualiser before it renders");
     } else {
-      assert.equal(await page.locator(".beui-vis-backing-controls [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
+      assert.equal(await page.locator(":is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser='gradient']").getAttribute("aria-selected"), "true",
         "the main-branch baseline power toggles must not change the selected visualiser tab");
     }
     for (const id of ["silk-road", "visuals-mix"]) {
-      const shaderTab = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`);
+      const shaderTab = page.locator(`:is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab'][data-visualiser='${id}']`);
       assert.equal(await shaderTab.count(), 1, `${id} must register exactly one visualiser tab`);
       await shaderTab.click();
-      const shaderPower = page.locator(`.beui-vis-tabs-host [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']:not([aria-hidden='true'])");
+      const shaderPower = page.locator(`:is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab'][data-visualiser='${id}']`).locator("xpath=ancestor::*[contains(@class,'kv-card')][1]").locator("[role='switch']:not([aria-hidden='true'])");
       if (singleSectionMode) {
         await page.waitForFunction((value) => {
-          const tab = document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`);
+          const tab = document.querySelector(`:is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser='${value}']`);
           const power = tab?.closest(".kefe-vis-option")?.querySelector(".kefe-switch");
           return tab?.getAttribute("aria-selected") === "true"
             && power?.getAttribute("aria-checked") === "true"
@@ -1739,7 +1739,7 @@ async function captureEditorScreenState(page) {
         await page.waitForFunction((value) => window.kefeShaderVis?.instances?.get(value)?.getState().enabled === false, id);
         await shaderPower.click();
       } else {
-        await page.waitForFunction((value) => document.querySelector(`.beui-vis-backing-controls [data-visualiser='${value}']`)?.getAttribute("aria-selected") === "true", id);
+        await page.waitForFunction((value) => document.querySelector(`:is(.shad-vis-backing-controls, .beui-vis-backing-controls) [data-visualiser='${value}']`)?.getAttribute("aria-selected") === "true", id);
         await shaderPower.click();
       }
       await page.waitForFunction((value) => window.kefeShaderVis?.instances?.get(value)?.getState().enabled === true, id);
@@ -1748,7 +1748,7 @@ async function captureEditorScreenState(page) {
     }
     await page.evaluate(() => window.scrollTo(0, 0));
     await openSection("lyrics");
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), false,
       "visualiser choices remain available while the Lyrics section is visible");
     await assertSectionFits("lyrics");
     const nativeLyrics = page.locator("#lyricsInput");
@@ -1777,7 +1777,7 @@ async function captureEditorScreenState(page) {
     await effectNav.locator('[aria-label="Previous lyric effect"]').click();
     await page.waitForFunction(expected => document.querySelector("#lyricEffectOptions .kefe-lyric-effect-option.active")?.dataset.effect === expected, activeEffectBefore);
 
-    assert.equal(await page.locator(".beui-vis-tabs-host").isVisible(), false,
+    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), false,
       "visualiser choices remain available while the Effects section is visible");
 
     await openSection("export");

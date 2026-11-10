@@ -112,7 +112,7 @@ const groupCount = (panel, sectionId, groupId) =>
   const background = el("div", { classes: ["kefe-background-effect-control"] }).append(
     el("select", { id: "visualiserBackground" }),
   );
-  const video = el("div", { classes: ["beui-upload-wrap"] }).append(el("input", { id: "bgVideoInput" }));
+  const video = el("div", { classes: ["shad-upload-wrap"] }).append(el("input", { id: "bgVideoInput" }));
   const darkness = el("div", { classes: ["kefe-background-effect-control"] }).append(
     el("input", { id: "backgroundTransparency" }),
   );

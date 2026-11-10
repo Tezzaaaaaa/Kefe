@@ -35,15 +35,38 @@
     /* Keep the simulation dense enough for high-resolution preview and export.
        Resolution scales with the quality control, while the bounded grid prevents
        the CPU fluid solver from exploding in cost on large 4K output canvases. */
-    gridW=clamp(Math.round(512*values.quality),320,768);
-    gridH=clamp(Math.round(gridW*(canvas.height/Math.max(1,canvas.width))),120,432);
-    size=(gridW+2)*(gridH+2);
-    function field(){return new Float32Array(size);}
-    u=field();v=field();u0=field();v0=field();p=field();div=field();
-    dyeR=field();dyeG=field();dyeB=field();dyeR0=field();dyeG0=field();dyeB0=field();
-    simCanvas.width=gridW;simCanvas.height=gridH;
-    imageData=simCtx.createImageData(gridW,gridH);
-    lastTime=null;
+    var cw=Math.max(2,canvas.width||640),ch=Math.max(2,canvas.height||360);
+    function tryAlloc(q){
+      gridW=clamp(Math.round(512*q),192,768);
+      gridH=clamp(Math.round(gridW*(ch/cw)),108,432);
+      size=(gridW+2)*(gridH+2);
+      function field(){return new Float32Array(size);}
+      u=field();v=field();u0=field();v0=field();p=field();div=field();
+      dyeR=field();dyeG=field();dyeB=field();dyeR0=field();dyeG0=field();dyeB0=field();
+      simCanvas.width=gridW;simCanvas.height=gridH;
+      imageData=simCtx.createImageData(gridW,gridH);
+      lastTime=null;
+    }
+    try{
+      tryAlloc(values.quality);
+    }catch(err){
+      console.warn('[KEFE Fluid Ink alloc fallback]',err);
+      values.quality=0.6;
+      try{
+        tryAlloc(0.6);
+      }catch(fatal){
+        size=0;imageData=null;
+        window.kefeResilience?.panelError('visualiser',{
+          id:'fluid-ink-mem',
+          title:'Fluid Ink paused due to low memory',
+          message:'This browser ran low on memory for the fluid grid.',
+          retryLabel:'Retry at low quality',
+          onRetry:function(){values.quality=0.6;allocate();syncFluidLoop();},
+          continueLabel:'Turn Fluid Ink off',
+          onContinue:function(){document.querySelector('.kefe-vis-option [data-visualiser="gradient"]')?.closest('.kefe-vis-option')?.querySelector('.kefe-vis-option-power')?.click();}
+        });
+      }
+    }
   }
   function boundary(b,x){
     for(var i=1;i<=gridW;i++){
@@ -126,11 +149,17 @@
   }
   function readAudio(){
     try{
-      if(!analyser&&window.kefeAudioGraph){var graph=window.kefeAudioGraph.ensure();if(graph){analyser=graph.analyser;freq=new Uint8Array(analyser.frequencyBinCount);}}
-      if(!analyser||!freq)return {bass:0,mid:0,treble:0};
-      if(freq.length!==analyser.frequencyBinCount)freq=new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(freq);
-      var nyq=(window.kefeAudioGraph.context()?.sampleRate||44100)/2;
+      var g=window.kefeAudioGraph;
+      var an=g?.analyser?.();
+      if(!an)return {bass:0,mid:0,treble:0};
+      if(!freq||freq.length!==an.frequencyBinCount)freq=new Uint8Array(an.frequencyBinCount);
+      if(g?.readFrequencyData){
+        var res=g.readFrequencyData(freq);
+        if(!res.ok)return {bass:0,mid:0,treble:0};
+      }else{
+        an.getByteFrequencyData(freq);
+      }
+      var nyq=(g?.context?.()?.sampleRate||44100)/2;
       function band(lo,hi){var a=Math.max(0,Math.floor(lo/nyq*freq.length)),b=Math.min(freq.length-1,Math.ceil(hi/nyq*freq.length)),sum=0;for(var i=a;i<=b;i++)sum+=freq[i];return clamp(Math.pow(sum/Math.max(1,b-a+1)/255*2.8,1.25),0,1);}
       return {bass:band(20,250),mid:band(250,2000),treble:band(2000,12000)};
     }catch(e){return {bass:0,mid:0,treble:0};}
@@ -175,6 +204,7 @@
     w=Math.max(2,w|0);h=Math.max(2,h|0);
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     if(!size||simCanvas.width!==gridW||simCanvas.height!==gridH)allocate();
+    if(!size||!imageData)return;
     var now=Number(t)||0,dt=lastTime===null?1/60:clamp(now-lastTime,1/120,.04);
     if(lastTime!==null&&now<lastTime)dt=1/60;
     lastTime=now;
@@ -184,7 +214,7 @@
     ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=1;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(simCanvas,0,0,w,h);ctx.restore();
   }
   function active(){
-    var tab=document.querySelector('.beui-vis-backing-controls [data-visualiser="gradient"]');
+    var tab=document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"], .kefe-vis-tabs [data-visualiser="gradient"]');
     var power=tab&&tab.closest('.kefe-vis-option')?.querySelector('.kefe-vis-option-power');
     return !!tab&&tab.getAttribute('aria-selected')==='true'&&!!power&&power.getAttribute('aria-checked')==='true';
   }
@@ -268,31 +298,59 @@
     if(title)title.textContent='';
     if(description)description.textContent='';
 
+    var loop=window.kefeResilience?.createRenderLoop
+      ? window.kefeResilience.createRenderLoop(function(now){
+          if(document.hidden||!active()){canvas.style.display='none';return false;}
+          var rect=stage.getBoundingClientRect();
+          if(rect.width<2||rect.height<2)return true;
+          canvas.style.display='block';
+          if(window.kefeFrameGate&&!window.kefeFrameGate(now))return true;
+          var scale=Math.min(window.devicePixelRatio||1,1920/Math.max(rect.width,rect.height));
+          draw(Math.round(rect.width*scale),Math.round(rect.height*scale),(now-start)/1000);
+          return true;
+        },{onError:function(err){
+          console.error('[KEFE Fluid Ink]',err);
+          window.kefeResilience?.panelError('visualiser',{id:'fluid-ink-err',title:'Fluid Ink paused',message:'A rendering error interrupted Fluid Ink.'});
+        }})
+      : null;
+    function syncFluidLoop(){
+      var isOn=active();
+      canvas.style.display=isOn?'block':'none';
+      if(isOn){
+        window.kefeResilience?.clearPanelError('visualiser','fluid-ink-err');
+        loop?loop.start():(!raf&&(raf=requestAnimationFrame(frame)));
+      }else{
+        loop?loop.stop():(raf&&(cancelAnimationFrame(raf),raf=0));
+      }
+    }
     buildControls(view);setPreset(preset);
     window.kefeGradientLayer={
       paint:function(target,w,h,t){if(!active())return;draw(w,h,Number(t)||0);if(target)target.drawImage(canvas,0,0,w,h);},
       render:function(target,w,h,t){draw(w,h,Number(t)||0);if(target)target.drawImage(canvas,0,0,w,h);},
       state:function(){return {on:active(),preset:preset,palette:palettes[paletteIndex].name,values:Object.assign({},values)};},
       isOn:active,randomize:function(){var ids=Object.keys(presets);setPreset(ids[Math.floor(Math.random()*ids.length)]);paletteIndex=Math.floor(Math.random()*palettes.length);resetDye();},
-      stopPreview:function(){if(raf)cancelAnimationFrame(raf);raf=0;}
+      stopPreview:function(){loop?.stop();if(raf)cancelAnimationFrame(raf);raf=0;}
     };
-    window.kefeFluidInk={setPreset:setPreset,paint:window.kefeGradientLayer.paint,reset:resetDye};
+    window.kefeFluidInk={setPreset:setPreset,paint:window.kefeGradientLayer.paint,reset:resetDye,sync:syncFluidLoop};
     function frame(now){
-      raf=0;if(document.hidden)return;
+      raf=0;if(document.hidden||!active())return;
       var rect=stage.getBoundingClientRect();
       if(rect.width>1&&rect.height>1){
-        canvas.style.display=active()?'block':'none';
-        if(active()){
-          if(window.kefeFrameGate&&!window.kefeFrameGate(now)){raf=requestAnimationFrame(frame);return;}
-          var scale=Math.min(window.devicePixelRatio||1,1920/Math.max(rect.width,rect.height));
-          draw(Math.round(rect.width*scale),Math.round(rect.height*scale),(now-start)/1000);
-        }
+        canvas.style.display='block';
+        if(window.kefeFrameGate&&!window.kefeFrameGate(now)){raf=requestAnimationFrame(frame);return;}
+        var scale=Math.min(window.devicePixelRatio||1,1920/Math.max(rect.width,rect.height));
+        draw(Math.round(rect.width*scale),Math.round(rect.height*scale),(now-start)/1000);
       }
       raf=requestAnimationFrame(frame);
     }
-    raf=requestAnimationFrame(frame);
-    document.addEventListener('visibilitychange',function(){if(!document.hidden&&!raf)raf=requestAnimationFrame(frame);});
-    window.addEventListener('kefe-stage-resize',function(){if(canvas&&stage){var rect=stage.getBoundingClientRect(),scale=Math.min(window.devicePixelRatio||1,1200/Math.max(rect.width,rect.height));draw(Math.round(rect.width*scale),Math.round(rect.height*scale),(performance.now()-start)/1000);}});
+    syncFluidLoop();
+    window.addEventListener('kefe-gradient-toggle',syncFluidLoop);
+    window.addEventListener('kefe-visualiser-select',syncFluidLoop);
+    var tabsHost=document.querySelector('.kefe-vis-tabs');
+    if(tabsHost&&window.MutationObserver){
+      new MutationObserver(syncFluidLoop).observe(tabsHost,{subtree:true,attributes:true,attributeFilter:['aria-selected','aria-checked']});
+    }
+    window.addEventListener('kefe-stage-resize',function(){if(!active()||!canvas||!stage)return;var rect=stage.getBoundingClientRect();if(rect.width<2||rect.height<2)return;var scale=Math.min(window.devicePixelRatio||1,1200/Math.max(rect.width,rect.height));draw(Math.round(rect.width*scale),Math.round(rect.height*scale),(performance.now()-start)/1000);});
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

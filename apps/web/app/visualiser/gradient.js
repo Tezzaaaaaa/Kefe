@@ -79,6 +79,7 @@
       power.classList.toggle('is-on', enabled);
       powerState.textContent = enabled ? 'On' : 'Off';
       power.title = enabled ? 'Turn Fluid Ink off' : 'Turn Fluid Ink on';
+      window.dispatchEvent(new CustomEvent('kefe-gradient-toggle', { detail: { enabled } }));
     });
     power.style.flex = '0 0 auto';
     option.appendChild(power);
@@ -112,6 +113,7 @@
       });
       window.kefeFlutedGlassActive = false;
       window.dispatchEvent(new CustomEvent('kefe-visualiser-select', { detail: { id: 'gradient' } }));
+      window.dispatchEvent(new CustomEvent('kefe-gradient-toggle'));
     }
 
     /* Single-selection contract: whichever visualiser is chosen takes over, so every other
@@ -121,6 +123,7 @@
       tab.setAttribute('aria-selected', 'false');
       tab.classList.remove('primary');
       view.hidden = true;
+      window.dispatchEvent(new CustomEvent('kefe-gradient-toggle'));
     });
 
     tab.addEventListener('click', showFluidInk);

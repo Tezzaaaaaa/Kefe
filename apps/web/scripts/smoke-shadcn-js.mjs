@@ -20,15 +20,38 @@ for (const name of requiredIcons) {
   assert.match(svg, /^<svg\b[\s\S]*\bclass="lucide\b[\s\S]*<\/svg>$/, `Icon "${name}" must render a valid <svg class="lucide">`);
 }
 
-// 2. Migrated primitives must use Radix, not data-slot tags alone.
+// 2. All Radix primitives and pure shadcn wrappers must be backed by real primitives.
 const slider = read("components/ui/slider.js");
 const bridge = read("beui-src/shadcn-slider.js");
 assert.match(slider, /@radix-ui\/react-slider/);
 assert.match(slider, /SliderPrimitive\.Root/);
 assert.match(bridge, /createRoot/);
 assert.match(bridge, /input\.dispatchEvent/);
-for (const [component, primitive] of [["checkbox", "react-checkbox"], ["switch", "react-switch"], ["select", "react-select"], ["dialog", "react-dialog"], ["accordion", "react-accordion"], ["tabs", "react-tabs"], ["progress", "react-progress"]]) {
-  assert.ok(read(`components/ui/${component}.js`).includes(`@radix-ui/${primitive}`), `${component} must use its Radix primitive`);
+
+for (const [component, primitive] of [
+  ["accordion", "react-accordion"],
+  ["button", "react-slot"],
+  ["badge", "react-slot"],
+  ["checkbox", "react-checkbox"],
+  ["collapsible", "react-collapsible"],
+  ["dialog", "react-dialog"],
+  ["dropzone", "react-slot"],
+  ["label", "react-label"],
+  ["popover", "react-popover"],
+  ["progress", "react-progress"],
+  ["radio-group", "react-radio-group"],
+  ["select", "react-select"],
+  ["separator", "react-separator"],
+  ["slider", "react-slider"],
+  ["switch", "react-switch"],
+  ["tabs", "react-tabs"],
+  ["toggle-group", "react-toggle-group"],
+  ["tooltip", "react-tooltip"],
+]) {
+  assert.ok(read(`components/ui/${component}.js`).includes(`@radix-ui/${primitive}`), `${component} must use @radix-ui/${primitive}`);
+}
+for (const component of ["alert", "card", "input", "table", "textarea"]) {
+  assert.ok(read(`components/ui/${component}.js`).includes("data-slot"), `${component} must define data-slot`);
 }
 
 // 3. Verify Settings panel HTML & CSS match KEFE's shadcn.io design tokens (#d92f33 accent, Lucide SVGs, no #4f9eff blue).
@@ -40,8 +63,10 @@ assert.doesNotMatch(panelCss, /#4f9eff/i, "panel.css must use KEFE --shad-* toke
 assert.doesNotMatch(panelCss, /Georgia,\s*serif/i, "panel.css must not style info buttons with Georgia serif");
 assert.doesNotMatch(panelCss, /content:\s*["']›["']/, "panel.css must use Lucide chevron SVGs instead of text '›'");
 
-// 4. Verify shadcn-kefe.css defines both Night and Day tokens and core shadcn primitives.
+// 4. Verify shadcn-kefe.css defines Night/Day tokens and core shadcn primitives (no legacy #7777e8 motion artwork override).
 const shadcnCss = read("beui-src/shadcn-kefe.css");
+const motionArtwork = read("app/visualiser/motion-artwork.js");
+assert.doesNotMatch(motionArtwork, /#7777e8/i, "motion-artwork.js must not inject hardcoded #7777e8 purple inline styles");
 for (const selector of [
   'html[data-theme="night"]',
   'html[data-theme="day"]',
@@ -52,14 +77,20 @@ for (const selector of [
   ".shad-dialog-content",
   ".shad-accordion-trigger",
   ".shad-command-dialog",
+  ".shad-badge[data-slot=\"badge\"]",
+  ".shad-label[data-slot=\"label\"]",
+  ".shad-separator[data-slot=\"separator\"]",
+  ".shad-collapsible[data-slot=\"collapsible\"]",
+  ".shad-popover-content[data-slot=\"popover-content\"]",
+  ".shad-volume-popover-content",
   '[data-slot="toggle-group"]',
+  ".shad-tooltip-content[data-slot=\"tooltip-content\"]",
   '[data-slot="dropzone"]',
   '[data-slot="checkbox"]',
   '[data-slot="alert"]',
+  "#kefeMotionArtwork",
 ]) {
   assert.ok(shadcnCss.includes(selector), `shadcn-kefe.css must define ${selector}`);
 }
 
-// The rest of the UI is still legacy. This check deliberately does not claim
-// that adding shadcn-style classes makes those controls shadcn components.
-console.log("PASS: migrated shadcn/Radix primitives, icons and existing design tokens verified.");
+console.log("PASS: all 23 shadcn/Radix primitives, icons, Night/Day tokens and pure shadcn styling verified.");

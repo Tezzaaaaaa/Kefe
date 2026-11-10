@@ -47,27 +47,196 @@ void main(){
  col+=vec3(.8,.94,1.)*clamp(length(ripple)*2.,0.,.25)*(.2+treble*.3);
  gl_FragColor=vec4(clamp(col,0.,1.),opacity);
 }`;
-let stage,canvas,gl,program,texture,loc={},tab,view,active=false,on=false,style=0,analyser=null,freq=null,t=0,last=0,smoothed={bass:0,mid:0,treble:0},react=1,opacity=.92,rendererError=null;
+let stage,canvas,gl,program,buffer,texture,loc={},tab,view,power,powerState,active=false,on=false,style=0,freq=null,t=0,last=0,smoothed={bass:0,mid:0,treble:0},react=1,opacity=.92,rendererError=null,loop=null;
+const failedSources=new WeakSet();
+const scope=window.kefeResilience?.createScope?.();
+
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
-function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
-function initGL(){gl=canvas.getContext('webgl',{alpha:true,antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});if(!gl)throw Error('WebGL unavailable');program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,VERT));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,FRAG));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);let b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);let a=gl.getAttribLocation(program,'p');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);['img','res','src','time','bass','mid','treble','react','opacity','style'].forEach(k=>loc[k]=gl.getUniformLocation(program,k));}
-function setSource(){let source=null,bg=$('kefeBackgroundCanvas'),video=window.kefeGetProjectVideo?.(),art=window.kefeGetAlbumArt?.();if(window.kefeBackground?.mode?.()==='video'&&bg&&bg.width)source=bg;else if(video&&video.readyState>=2&&video.videoWidth)source=video;else if(art&&art.complete&&art.naturalWidth)source=art;else if(bg&&bg.width)source=bg;if(!source)return;try{gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);canvas.dataset.sw=source.videoWidth||source.naturalWidth||source.width;canvas.dataset.sh=source.videoHeight||source.naturalHeight||source.height;}catch(e){}}
-function audio(){try{if(!analyser&&window.kefeAudioGraph){let g=window.kefeAudioGraph.ensure();if(g){analyser=g.analyser;freq=new Uint8Array(analyser.frequencyBinCount);}}if(!analyser)return {bass:0,mid:0,treble:0};if(freq.length!==analyser.frequencyBinCount)freq=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(freq);let rate=window.kefeAudioGraph.context()?.sampleRate||44100,nyq=rate/2;function band(lo,hi){let a=Math.floor(lo/nyq*freq.length),b=Math.min(freq.length-1,Math.ceil(hi/nyq*freq.length)),s=0;for(let i=a;i<=b;i++)s+=freq[i];return Math.min(1,Math.pow(s/Math.max(1,b-a+1)/255*2.5,1.2));}return {bass:band(25,160),mid:band(160,1800),treble:band(1800,10000)};}catch(e){return {bass:0,mid:0,treble:0};}}
-function resize(){if(!stage)return;let r=stage.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,1.75),w=Math.max(1,Math.round(r.width*d)),h=Math.max(1,Math.round(r.height*d));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;if(gl)gl.viewport(0,0,w,h);}}
+function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const err=gl.getShaderInfoLog(s);gl.deleteShader(s);throw Error(err||'Shader compile error');}return s;}
+function destroyGL(){
+  if(gl&&!gl.isContextLost()){
+    try{if(buffer)gl.deleteBuffer(buffer);}catch(_){}
+    try{if(texture)gl.deleteTexture(texture);}catch(_){}
+    try{if(program)gl.deleteProgram(program);}catch(_){}
+  }
+  buffer=null;texture=null;program=null;
+}
+function initGL(){
+  destroyGL();
+  gl=canvas.getContext('webgl',{alpha:true,antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+  if(!gl||gl.isContextLost())throw Error('WebGL unavailable');
+  const vs=shader(gl.VERTEX_SHADER,VERT),fs=shader(gl.FRAGMENT_SHADER,FRAG);
+  program=gl.createProgram();
+  gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);
+  gl.deleteShader(vs);gl.deleteShader(fs);
+  if(!gl.getProgramParameter(program,gl.LINK_STATUS)){const err=gl.getProgramInfoLog(program);gl.deleteProgram(program);program=null;throw Error(err||'Program link error');}
+  gl.useProgram(program);
+  buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const a=gl.getAttribLocation(program,'p');
+  if(a<0)throw Error('Vertex attribute missing');
+  gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+  texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  ['img','res','src','time','bass','mid','treble','react','opacity','style'].forEach(k=>loc[k]=gl.getUniformLocation(program,k));
+}
+function syncPowerUI(){
+  if(!power||!powerState)return;
+  power.disabled=!!rendererError;
+  powerState.textContent=rendererError?'Unavailable':(on?'On':'Off');
+  power.classList.toggle('is-on',on&&!rendererError);
+  power.setAttribute('aria-checked',String(on&&!rendererError));
+  window.kefeLiquidGlassEnabled=on&&!rendererError;
+  if(canvas)canvas.style.visibility=active&&on&&!rendererError&&gl&&!gl.isContextLost()?'visible':'hidden';
+}
+function reportError(err,title,message){
+  rendererError=err||new Error('WebGL unavailable');
+  on=false;
+  syncPowerUI();
+  loop?.stop();
+  window.kefeResilience?.panelError('visualiser',{
+    id:'liquid-glass-gl',
+    title:title||'Liquid Glass preview could not initialise',
+    message:message||'WebGL graphics acceleration is unavailable or blocked in this browser.',
+    retryLabel:'Retry',
+    onRetry:()=>{
+      rendererError=null;
+      if(ensureGL()){on=true;syncPowerUI();resize();loop?.start();}
+    },
+    continueLabel:'Continue with Fluid Ink (2D)',
+    onContinue:()=>{document.querySelector('[data-visualiser="gradient"]')?.click();}
+  });
+}
+function ensureGL(){
+  if(gl&&!gl.isContextLost()&&program)return true;
+  if(rendererError)return false;
+  try{
+    initGL();
+    rendererError=null;
+    window.kefeResilience?.clearPanelError('visualiser','liquid-glass-gl');
+    syncPowerUI();
+    return true;
+  }catch(e){
+    console.error('[KEFE Liquid Glass]',e);
+    reportError(e);
+    return false;
+  }
+}
+function setSource(){
+  if(!gl||gl.isContextLost()||!texture)return;
+  let source=null,bg=$('kefeBackgroundCanvas'),video=window.kefeGetProjectVideo?.(),art=window.kefeGetAlbumArt?.();
+  if(window.kefeBackground?.mode?.()==='video'&&bg&&bg.width>1&&bg.height>1)source=bg;
+  else if(video&&video.readyState>=2&&video.videoWidth)source=video;
+  else if(art&&art.complete&&art.naturalWidth&&!failedSources.has(art))source=art;
+  else if(bg&&bg.width>1&&bg.height>1)source=bg;
+  if(!source||failedSources.has(source))return;
+  try{
+    gl.bindTexture(gl.TEXTURE_2D,texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);
+    canvas.dataset.sw=source.videoWidth||source.naturalWidth||source.width;
+    canvas.dataset.sh=source.videoHeight||source.naturalHeight||source.height;
+  }catch(e){
+    failedSources.add(source);
+    console.warn('[KEFE Liquid Glass texture]',e);
+  }
+}
+function audio(){
+  try{
+    const g=window.kefeAudioGraph;
+    const analyser=g?.analyser?.();
+    if(!analyser)return {bass:0,mid:0,treble:0};
+    if(!freq||freq.length!==analyser.frequencyBinCount)freq=new Uint8Array(analyser.frequencyBinCount);
+    if(g?.readFrequencyData){
+      const res=g.readFrequencyData(freq);
+      if(!res.ok)return {bass:0,mid:0,treble:0};
+    }else{
+      analyser.getByteFrequencyData(freq);
+    }
+    const rate=g?.context?.()?.sampleRate||44100,nyq=rate/2;
+    function band(lo,hi){const a=Math.floor(lo/nyq*freq.length),b=Math.min(freq.length-1,Math.ceil(hi/nyq*freq.length));let s=0;for(let i=a;i<=b;i++)s+=freq[i];return Math.min(1,Math.pow(s/Math.max(1,b-a+1)/255*2.5,1.2));}
+    return {bass:band(25,160),mid:band(160,1800),treble:band(1800,10000)};
+  }catch(_){return {bass:0,mid:0,treble:0};}
+}
+function resize(){
+  if(!stage||!canvas)return false;
+  const r=stage.getBoundingClientRect();
+  if(r.width<2||r.height<2)return false;
+  const d=Math.min(devicePixelRatio||1,1.75),w=Math.max(2,Math.round(r.width*d)),h=Math.max(2,Math.round(r.height*d));
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+  if(gl&&!gl.isContextLost())gl.viewport(0,0,canvas.width,canvas.height);
+  return true;
+}
 function slider(label,min,max,step,value,fn){let l=el('label','kefe-visualiser-field'),head=el('span'),b=el('b',null,label),o=el('output',null,String(value)),i=el('input');i.type='range';i.min=min;i.max=max;i.step=step;i.value=value;head.append(b,o);i.addEventListener('input',()=>{o.textContent=i.value;fn(Number(i.value));});l.append(head,i);return l;}
 function build(){let form=document.querySelector('[data-panel-view="visualiser"] .kefe-visualiser-form'),tabs=document.querySelector('.kefe-vis-tabs');if(!form||!tabs)return;
  view=el('div','kefe-vis-view kefe-liquid-glass-view');view.id='kefeVisLiquidGlassView';view.hidden=true;
- let power=el('button','kefe-btn kefe-switch kefe-vis-option-power','');power.type='button';power.id='kefeLiquidGlassPower';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Liquid Glass visualiser');let state=el('span','kefe-switch-state','Off'),track=el('span','kefe-switch-track');track.setAttribute('aria-hidden','true');track.appendChild(el('span','kefe-switch-thumb'));power.append(state,track);
+ power=el('button','kefe-btn kefe-switch kefe-vis-option-power','');power.type='button';power.id='kefeLiquidGlassPower';power.setAttribute('role','switch');power.setAttribute('aria-checked','false');power.setAttribute('aria-label','Liquid Glass visualiser');powerState=el('span','kefe-switch-state','Off');let track=el('span','kefe-switch-track');track.setAttribute('aria-hidden','true');track.appendChild(el('span','kefe-switch-thumb'));power.append(powerState,track);
  let modes=el('div','kefe-liquid-glass-modes');[['Liquid Surface','A continuous glass membrane that buckles and rolls with bass pressure.'],['Bass Ripple','Concentric shockwaves, circular interference and refractive rings.'],['Speaker Droplets','Glass droplets form resonant patterns on a violently vibrating surface.']].forEach((m,i)=>{let b=el('button','kefe-btn'+(!i?' primary':''),m[0]);b.type='button';b.setAttribute('aria-pressed',String(i===0));b.addEventListener('click',()=>{style=i;modes.querySelectorAll('button').forEach((x,j)=>{x.classList.toggle('primary',j===i);x.setAttribute('aria-pressed',String(j===i));});desc.textContent=m[1];});modes.appendChild(b);});view.appendChild(modes);
  let desc=el('p','kefe-meta','A continuous glass membrane that buckles and rolls with bass pressure.');view.appendChild(desc);
  let controls=el('div','kefe-visualiser-control-group');controls.appendChild(el('div','kefe-label','Response'));controls.appendChild(slider('Bass and vibration intensity',0,2.5,.05,1,v=>react=v));controls.appendChild(slider('Glass transparency',.25,1,.01,.92,v=>opacity=v));view.appendChild(controls);form.appendChild(view);
  tab=el('button','kefe-btn','Liquid Glass');tab.type='button';tab.id='kefeLiquidGlassTab';tab.dataset.visualiser='liquid-glass';tab.dataset.icon='◌';tab.title='Liquid Glass visualiser';tab.setAttribute('aria-label','Liquid Glass');tab.setAttribute('role','tab');tab.setAttribute('aria-controls',view.id);tab.setAttribute('aria-selected','false');let option=el('div','kefe-vis-option');option.append(tab,power);tabs.appendChild(option);
- function hide(){active=false;view.hidden=true;tab.classList.remove('primary');tab.setAttribute('aria-selected','false');canvas.style.visibility='hidden';window.kefeLiquidGlassActive=false;}window.addEventListener('kefe-visualiser-select',e=>{if(e.detail&&e.detail.id&&e.detail.id.indexOf('liquid')<0)hide();});
+ function hide(){active=false;view.hidden=true;tab.classList.remove('primary');tab.setAttribute('aria-selected','false');canvas.style.visibility='hidden';window.kefeLiquidGlassActive=false;loop?.stop();}
+ const onSelect=e=>{if(e.detail&&e.detail.id&&e.detail.id!=='liquid-glass')hide();};
+ scope?scope.on(window,'kefe-visualiser-select',onSelect):window.addEventListener('kefe-visualiser-select',onSelect);
  tabs.querySelectorAll('.kefe-vis-option [role="tab"]').forEach(b=>{if(b!==tab)b.addEventListener('click',hide);});
- tab.addEventListener('click',()=>{active=true;view.hidden=false;if(rendererError){const notice=view.querySelector('[data-liquid-glass-error]');if(notice)notice.hidden=false;}tabs.querySelectorAll('.kefe-vis-option [role="tab"]').forEach(b=>{b.classList.toggle('primary',b===tab);b.setAttribute('aria-selected',String(b===tab));});form.querySelectorAll('.kefe-vis-view').forEach(n=>{n.hidden=n!==view;});let ps=$('kefeGradientPresetSet');if(ps)ps.hidden=true;let pr=$('kefeVisualiserPresetRow');if(pr)pr.hidden=true;window.kefeLiquidGlassActive=true;canvas.style.visibility=gl&&on?'visible':'hidden';resize();window.dispatchEvent(new CustomEvent('kefe-visualiser-select',{detail:{id:'liquid-glass'}}));});
- power.addEventListener('click',()=>{on=!on;state.textContent=on?'On':'Off';power.classList.toggle('is-on',on);power.setAttribute('aria-checked',String(on));canvas.style.visibility=active&&on&&gl?'visible':'hidden';window.kefeLiquidGlassEnabled=on;});
+ tab.addEventListener('click',()=>{
+   active=true;view.hidden=false;
+   tabs.querySelectorAll('.kefe-vis-option [role="tab"]').forEach(b=>{b.classList.toggle('primary',b===tab);b.setAttribute('aria-selected',String(b===tab));});
+   form.querySelectorAll('.kefe-vis-view').forEach(n=>{n.hidden=n!==view;});
+   let ps=$('kefeGradientPresetSet');if(ps)ps.hidden=true;let pr=$('kefeVisualiserPresetRow');if(pr)pr.hidden=true;
+   window.kefeLiquidGlassActive=true;
+   window.dispatchEvent(new CustomEvent('kefe-visualiser-select',{detail:{id:'liquid-glass'}}));
+   if(ensureGL()){resize();syncPowerUI();if(on)loop?.start();}
+   else{syncPowerUI();reportError(rendererError);}
+ });
+ power.addEventListener('click',()=>{
+   if(rendererError){ensureGL();return;}
+   on=!on;
+   if(on&&!ensureGL())return;
+   syncPowerUI();
+   if(active&&on){resize();loop?.start();}else loop?.stop();
+ });
 }
-function frame(now){requestAnimationFrame(frame);if(!gl||!canvas||!active||!on||document.hidden)return;if(window.kefeFrameGate&&!window.kefeFrameGate(now))return;let dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;t+=dt;resize();setSource();let a=audio();['bass','mid','treble'].forEach(k=>{let attack=a[k]>smoothed[k] ? .42 : .09;smoothed[k]+=(a[k]-smoothed[k])*attack;});gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);gl.uniform1i(loc.img,0);gl.uniform2f(loc.res,canvas.width,canvas.height);gl.uniform2f(loc.src,Number(canvas.dataset.sw)||canvas.width,Number(canvas.dataset.sh)||canvas.height);gl.uniform1f(loc.time,t);gl.uniform1f(loc.bass,smoothed.bass);gl.uniform1f(loc.mid,smoothed.mid);gl.uniform1f(loc.treble,smoothed.treble);gl.uniform1f(loc.react,react);gl.uniform1f(loc.opacity,opacity);gl.uniform1f(loc.style,style);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);}
-function init(){stage=document.querySelector('.kefe-stage');if(!stage||!document.querySelector('.kefe-vis-tabs'))return;canvas=document.createElement('canvas');canvas.id='kefeLiquidGlassCanvas';canvas.setAttribute('aria-label','Liquid Glass preview');canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;visibility:hidden;';stage.insertBefore(canvas,$('kefeCanvas')||null);try{build();}catch(e){console.error('[KEFE Liquid Glass UI]',e);return;}window.kefeLiquidGlassActive=false;window.kefeLiquidGlassEnabled=false;try{initGL();window.kefeLiquidGlassExport={canvas};window.addEventListener('resize',resize);window.addEventListener('kefe-stage-resize',resize);requestAnimationFrame(frame);}catch(e){rendererError=e;const notice=el('p','kefe-meta','Liquid Glass preview could not initialise. Check that WebGL is enabled, then reload KEFE.');notice.dataset.liquidGlassError='true';notice.setAttribute('role','status');view.prepend(notice);console.error('[KEFE Liquid Glass]',e);}}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+function step(now){
+  if(!active||!on||document.hidden)return false;
+  if(!gl||gl.isContextLost()||!program)return false;
+  if(window.kefeFrameGate&&!window.kefeFrameGate(now))return true;
+  if(!resize())return true;
+  const dt=Math.min(.05,Math.max(0,(now-(last||now))/1000));last=now;t+=dt;
+  setSource();
+  const a=audio();
+  ['bass','mid','treble'].forEach(k=>{const attack=a[k]>smoothed[k]?.42:.09;smoothed[k]+=(a[k]-smoothed[k])*attack;});
+  gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(program);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+  gl.uniform1i(loc.img,0);gl.uniform2f(loc.res,canvas.width,canvas.height);
+  gl.uniform2f(loc.src,Number(canvas.dataset.sw)||canvas.width,Number(canvas.dataset.sh)||canvas.height);
+  gl.uniform1f(loc.time,t);gl.uniform1f(loc.bass,smoothed.bass);gl.uniform1f(loc.mid,smoothed.mid);
+  gl.uniform1f(loc.treble,smoothed.treble);gl.uniform1f(loc.react,react);gl.uniform1f(loc.opacity,opacity);gl.uniform1f(loc.style,style);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  return true;
+}
+function init(){
+  stage=document.querySelector('.kefe-stage');
+  if(!stage||!document.querySelector('.kefe-vis-tabs'))return;
+  canvas=document.createElement('canvas');canvas.id='kefeLiquidGlassCanvas';canvas.setAttribute('aria-label','Liquid Glass preview');
+  canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;visibility:hidden;';
+  stage.insertBefore(canvas,$('kefeCanvas')||null);
+  loop=window.kefeResilience?.createRenderLoop
+    ? window.kefeResilience.createRenderLoop(step,{onError:err=>reportError(err,'Liquid Glass stopped rendering','A graphics error interrupted Liquid Glass.')})
+    : {start(){},stop(){},dispose(){}};
+  try{build();}catch(e){console.error('[KEFE Liquid Glass UI]',e);return;}
+  window.kefeLiquidGlassActive=false;window.kefeLiquidGlassEnabled=false;
+  window.kefeLiquidGlassExport={canvas,isReady:()=>!!(gl&&!gl.isContextLost()&&program&&canvas.width>1&&canvas.height>1)};
+  const onLost=e=>{e.preventDefault();loop?.stop();gl=null;if(active&&on)reportError(new Error('WebGL context lost'),'Liquid Glass paused','The browser paused 3D graphics. Tap Retry or switch to Fluid Ink.');};
+  const onRestored=()=>{rendererError=null;if(ensureGL()&&active&&on){syncPowerUI();resize();loop?.start();}};
+  canvas.addEventListener('webglcontextlost',onLost);
+  canvas.addEventListener('webglcontextrestored',onRestored);
+  const onResize=()=>{if(active&&on)resize();};
+  if(scope){scope.on(window,'resize',onResize);scope.on(window,'kefe-stage-resize',onResize);scope.add(()=>{loop?.dispose();destroyGL();});}
+  else{window.addEventListener('resize',onResize);window.addEventListener('kefe-stage-resize',onResize);}
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

@@ -2,7 +2,11 @@
    rendering nodes, native event handlers and file inputs stay authoritative. */
 // Production uses the editor's shared CSS bundle. The development page has
 // its own entry, so load the bridge styles explicitly there.
-if (import.meta.env.DEV) import('./legacy-bridge.css');
+if (import.meta.env.DEV) {
+  import('../app/ui/panels-compact.css');
+  import('../app/settings/panel.css');
+  import('./shadcn-kefe.css');
+}
 import * as React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';

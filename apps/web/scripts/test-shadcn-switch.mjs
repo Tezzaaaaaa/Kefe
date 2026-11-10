@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { JSDOM } from "jsdom";
 import { createServer } from "vite";
-const dom = new JSDOM('<!doctype html><html><body><main class="kefe-editor"><button class="kefe-switch" role="switch" aria-label="Lyrics" aria-checked="false">Off</button><div class="beui-vis-backing-controls"><button class="kefe-switch kefe-vis-option-power" role="switch" aria-checked="false"></button></div></main></body></html>', { url: "http://localhost/", pretendToBeVisual: true });
+const dom = new JSDOM('<!doctype html><html><body><main class="kefe-editor"><button class="kefe-switch" role="switch" aria-label="Lyrics" aria-checked="false">Off</button><div class="shad-vis-backing-controls"><button class="kefe-switch kefe-vis-option-power" role="switch" aria-checked="false"></button></div></main></body></html>', { url: "http://localhost/", pretendToBeVisual: true });
 for (const key of ["window", "document", "HTMLElement", "HTMLButtonElement", "Element", "Node", "MutationObserver", "Event", "MouseEvent", "getComputedStyle", "navigator"]) {
   Object.defineProperty(globalThis, key, { configurable: true, value: dom.window[key] });
 }

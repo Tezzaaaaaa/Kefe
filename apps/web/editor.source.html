@@ -29,7 +29,7 @@
       window.dispatchEvent(new Event('kefe-shell-ready'));
     });
   }
-  function mounted() { return !!(document.querySelector('.kefe-sidebar [data-editor-tab]') && document.querySelector('.beui-range-host')); }
+  function mounted() { return !!(document.querySelector('.kefe-sidebar [data-editor-tab]') && document.querySelector('.shad-slider-host')); }
   function arm() { clearTimeout(quiet); quiet = setTimeout(function () { if (mounted()) reveal(); else arm(); }, 140); }
   function begin() {
     observer = new MutationObserver(function (records) {
@@ -65,18 +65,21 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
 <meta name="apple-mobile-web-app-title" content="KEFE">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<link rel="stylesheet" href="./app/ui/styles.css?v=upload-even-20261108-1">
-<link rel="stylesheet" href="./app/ui/toolbar.css?v=shadcn-timeline-20261108-1">
+<link rel="stylesheet" href="./app/ui/styles.css?v=layout-refactor-20261109-1">
+<link rel="stylesheet" href="./app/ui/toolbar.css?v=layout-refactor-20261109-1">
 <link rel="stylesheet" href="./app/ui/carousel-dots.css?v=carousel-dots-20261101-1">
 <link rel="stylesheet" href="./app/ui/section-dropdowns.css?v=shadcn-select-20261108-2">
 <link rel="stylesheet" href="./app/ui/media-search.css?v=uploaded-audio-identification-confirm-20261109-3">
-<link rel="stylesheet" href="./app/settings/panel.css?v=export-workspace-shadcn-20261109-1">
-<link rel="stylesheet" href="./app/ui/section-layout.css?v=lyric-preview-hover-20261109-1">
-<link rel="stylesheet" href="./app/ui/layout-lock.css?v=layout-lock-20261109-1">
+<link rel="stylesheet" href="./app/ui/panels-compact.css?v=layout-refactor-20261109-1">
+<link rel="stylesheet" href="./app/settings/panel.css?v=layout-refactor-20261109-1">
+<link rel="stylesheet" href="./beui-src/shadcn-kefe.css?v=layout-refactor-20261109-1">
+<link rel="stylesheet" href="./app/ui/section-layout.css?v=layout-refactor-20261109-1">
+<link rel="stylesheet" href="./app/ui/layout-lock.css?v=layout-refactor-20261109-1">
 
 </head>
 <body>
 <script src="./app/ui/structure.js?v=lyric-preview-hover-20261109-1"></script>
+<script src="./app/ui/resilience.js?v=resilience-20261109-1"></script>
 <script src="./app/ui/typography.js?v=signature-four-fonts-20261109-1"></script>
 <script src="./app/effects/manifest.js?v=signature-lyricfx-20261109-2"></script>
 <script src="./app/effects/core.js?v=wrap-intact-words-20261017-1"></script>
@@ -189,12 +192,14 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
     button.setAttribute('aria-label', volume === 0 ? 'Volume muted; open volume options' : 'Open volume options');
     button.title = volume === 0 ? 'Muted — open volume options' : 'Volume options';
   };
-  button.addEventListener('click', () => setOpen(popover.hidden));
+  button.addEventListener('click', () => { if (button.dataset.shadcnPopover === 'true') return; setOpen(popover.hidden); });
   slider.addEventListener('input', syncVolume);
   document.addEventListener('pointerdown', event => {
+    if (button.dataset.shadcnPopover === 'true') return;
     if (!popover.hidden && !popover.contains(event.target) && !button.contains(event.target)) setOpen(false);
   });
   document.addEventListener('keydown', event => {
+    if (button.dataset.shadcnPopover === 'true') return;
     if (event.key === 'Escape' && !popover.hidden) { setOpen(false); button.focus({ preventScroll: true }); }
   });
   audio.addEventListener('volumechange', () => {
@@ -217,13 +222,16 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 <script type="module" src="./beui-src/shadcn-transport-buttons.js"></script>
 <script type="module" src="./beui-src/shadcn-volume-button.js"></script>
 <script type="module" src="./beui-src/shadcn-header-actions.js"></script>
+<script type="module" src="./beui-src/shadcn-shell-actions.js"></script>
 <script type="module" src="./beui-src/shadcn-toolbar-buttons.js"></script>
 <script type="module" src="./beui-src/shadcn-toolbar-panel-controls.js"></script>
 <script type="module" src="./beui-src/shadcn-toolbar-sliders.js"></script>
 <script type="module" src="./beui-src/shadcn-toolbar-radio.js"></script>
 <script type="module" src="./beui-src/shadcn-toolbar-selects.js"></script>
+<script type="module" src="./beui-src/shadcn-media.js"></script>
 <script type="module" src="./beui-src/shadcn-lyrics-textarea.js"></script>
 <script type="module" src="./beui-src/shadcn-lyric-inputs.js"></script>
+<script type="module" src="./beui-src/shadcn-lyric-disclosures.js"></script>
 <script type="module" src="./beui-src/shadcn-lyric-actions.js"></script>
 <script type="module" src="./beui-src/shadcn-lyric-card.js"></script>
 <script type="module" src="./beui-src/shadcn-lyric-display.js"></script>
@@ -232,10 +240,10 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 <script type="module" src="./beui-src/shadcn-alerts.js"></script>
 <script type="module" src="./beui-src/shadcn-export-button.js"></script>
 <script type="module" src="./beui-src/shadcn-visualiser-tabs.js"></script>
+<script type="module" src="./beui-src/shadcn-visualiser-controls.js"></script>
 <script type="module" src="./beui-src/shadcn-effect-buttons.js"></script>
 <script type="module" src="./beui-src/shadcn-effect-navigation.js"></script>
 <script type="module" src="./beui-src/shadcn-style-colours.js"></script>
-<script type="module" src="./beui-src/shadcn-controls.js"></script>
 <script type="module" src="./beui-src/shadcn-select-bridge.js"></script>
 <script type="module" src="./beui-src/shadcn-checkbox-bridge.js"></script>
 <script type="module" src="./beui-src/shadcn-switch-bridge.js"></script>

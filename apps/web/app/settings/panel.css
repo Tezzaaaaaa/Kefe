@@ -23,7 +23,7 @@
     --ksp-gap: 8px;
     --ksp-pad-x: 12px;
     --ksp-pad-y: 14px;
-  }.kefe-settings-panel *:not(.kefe-slot *){ box-sizing: border-box; }.kefe-settings-panel{
+  }.kefe-settings-panel, .kefe-settings-panel *, .kefe-settings-panel *::before, .kefe-settings-panel *::after{ box-sizing: border-box; }.kefe-settings-panel{
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -41,7 +41,7 @@
     gap: 16px;
     padding: 0 2px;
     min-height: 32px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }.kefe-settings-panel .kefe-status:not(.kefe-slot *){
     font-size: 12.5px;
     color: var(--ksp-text-dim);
@@ -372,9 +372,9 @@
 /* One shared page-width boundary for the header, preview and every editor section.
    The preview stage itself remains aspect-fitted inside this workspace. */
 .kefe-editor {
-  width: min(100%, 1280px);
+  width: 100%;
   min-width: 0;
-  margin-inline: auto;
+  margin-inline: 0;
 }
 .kefe-editor > .kefe-sidebar,
 .kefe-editor > .kefe-work,
@@ -384,12 +384,14 @@
 }
 .kefe-editor .kefe-editing.kefe-settings-layout {
   min-width: 0;
+  min-height: 0;
   width: 100%;
 }
 .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
   width: 100%;
   max-width: none;
   min-width: 0;
+  min-height: 0;
   margin: 0;
   padding: 0;
 }
@@ -398,33 +400,33 @@
 @media (min-width: 1024px) {
   html:root .kefe-editor {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 56px minmax(248px, 50vh) minmax(0, 1fr) auto;
-    height: 100vh;
-    min-height: 100vh;
+    grid-template-rows: 56px auto minmax(0, 1fr);
+    height: 100dvh;
+    min-height: 0;
     overflow: hidden;
   }
   html:root .kefe-editor .kefe-work {
     grid-column: 1;
     grid-row: 2;
-    height: 50vh;
-    min-height: 248px;
-    grid-template-rows: minmax(180px, 1fr) var(--timeline-h, 58px);
+    min-height: 0;
   }
   html:root .kefe-editor .kefe-editing {
     grid-column: 1;
     grid-row: 3;
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 100%;
     min-height: 0;
     overflow: hidden;
   }
   html:root .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
     display: block;
+    flex: 1 1 auto;
     width: 100%;
-    height: 100%;
+    min-height: 0;
     max-width: none;
     margin: 0;
-    padding: 0 0 24px;
+    padding: 0;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -435,7 +437,7 @@
     flex-direction: column;
     width: 100%;
     height: auto;
-    min-height: 100%;
+    min-height: 0;
     max-width: none;
     overflow: visible;
   }
@@ -519,7 +521,7 @@
 .kefe-settings-panel .kefe-slot .kefe-panel-head > .kefe-meta,
 .kefe-settings-panel .kefe-slot .kefe-section-title-group,
 .kefe-settings-panel .kefe-slot .kefe-section-description,
-.kefe-settings-panel .kefe-slot .beui-accordion-trigger,
+.kefe-settings-panel .kefe-slot .shad-accordion-trigger-legacy,
 .kefe-settings-panel .kefe-slot .kefe-effects-heading {
   display: none;
 }
@@ -548,7 +550,7 @@
 .kefe-settings-panel .kefe-slot .kefe-vis-tabs {
   display: block;
 }
-.kefe-settings-panel .kefe-slot .beui-vis-tabs-host {
+.kefe-settings-panel .kefe-slot .shad-vis-tabs-host {
   display: block;
   width: 100%;
   min-width: 0;
@@ -743,7 +745,7 @@
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-panel-head {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
   margin: 0 0 10px;
@@ -774,15 +776,20 @@
   grid-column: 1 / -1;
 }
 .kefe-editor .kefe-editing.kefe-settings-layout {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   min-width: 0;
   min-height: 0;
-  height: auto;
-  overflow: visible;
+  height: 100%;
+  overflow: hidden;
 }
 .kefe-editor .kefe-settings-layout > .kefe-settings-mount {
   display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 .kefe-editor #kefe-settings-panel .kefe-topbar {
   justify-content: flex-end;
@@ -823,9 +830,10 @@
     overflow: visible;
   }
   .kefe-editor .kefe-editing.kefe-settings-layout {
-    display: block;
-    grid-template: none;
-    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
@@ -1034,9 +1042,8 @@
 }
 .kefe-settings-panel .section-header {
   min-width: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   column-gap: var(--kefe-layout-gap);
-  row-gap: 6px;
 }
 .kefe-settings-panel .expand-button,
 .kefe-settings-panel .section-title-wrap,
@@ -1051,7 +1058,7 @@
   min-width: 0;
   max-width: 100%;
   flex: 0 1 auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: var(--kefe-layout-gap);
 }
@@ -1060,16 +1067,21 @@
   .kefe-section-heading-row,
   .kefe-lyric-settings-head,
   .kefe-lyrics-timing-head,
-  .kefe-timing-editor-head,
-  .kefe-find-bar,
-  .kefe-media-upload-row,
-  .kefe-download-row,
   .kefe-vis-tabs,
   .kefe-chips
 ) {
   min-width: 0;
   max-width: 100%;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  gap: var(--kefe-layout-gap);
+}
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(
+  .kefe-timing-editor-head,
+  .kefe-media-upload-row,
+  .kefe-download-row
+) {
+  min-width: 0;
+  max-width: 100%;
   gap: var(--kefe-layout-gap);
 }
 .kefe-settings-panel .kefe-panel[data-panel-view] :where(
@@ -1090,7 +1102,7 @@
   .kefe-btn,
   .kefe-panel-action,
   .kefe-chip,
-  .beui-upload-browse,
+  .shad-upload-browse,
   input,
   select,
   textarea
@@ -1099,9 +1111,15 @@
   max-width: 100%;
   box-sizing: border-box;
 }
-.kefe-settings-panel .kefe-panel[data-panel-view] :where(button, .kefe-btn, .kefe-panel-action, .kefe-chip, .beui-upload-browse) {
-  overflow-wrap: anywhere;
-  white-space: normal;
+.kefe-settings-panel .kefe-panel[data-panel-view] :where(
+  .kefe-btn,
+  .kefe-panel-action:not(.kefe-lyric-effect-option):not(.kefe-background-effect-card):not(.kv-tab),
+  .kefe-chip,
+  .shad-upload-browse
+) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .kefe-settings-panel .kefe-panel[data-panel-view] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), select, textarea) {
   width: 100%;
@@ -1256,46 +1274,42 @@
 }
 
 
-/* Folder-tab connection: the selected workspace heading visually joins its
-   workspace body, while the feature subtabs sit inside that same folder. */
+/* Folder-tab connection: tabs stay on a single aligned row with no overlap margins. */
 .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
-  gap: 4px;
-  padding: 7px 7px 0;
+  gap: var(--kefe-space-2, 8px);
+  padding: var(--kefe-space-2, 8px);
   margin-bottom: 0;
-  border-bottom: 0;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   background: var(--ksp-surface);
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace-tab[aria-selected="true"] {
   position: relative;
   z-index: 1;
-  margin-bottom: -1px;
-  border-bottom-color: transparent;
-  border-radius: 9px 9px 0 0;
-  box-shadow: inset 0 2px 0 var(--kefe-tab-accent);
+  margin-bottom: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 -2px 0 var(--kefe-tab-accent);
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) {
   position: relative;
   margin-top: 0;
-  padding: 0 12px 12px;
-  border-top: 1px solid color-mix(in srgb, var(--kefe-workspace-accent) 48%, var(--ksp-border));
-  border-radius: 0 0 12px 12px;
-  background: color-mix(in srgb, var(--kefe-workspace-accent) 3%, var(--ksp-surface));
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtabs {
   position: relative;
-  gap: 4px;
-  margin: 0 -12px 12px;
-  padding: 8px 12px 7px;
-  border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--kefe-workspace-accent) 38%, var(--ksp-border));
-  border-radius: 0;
+  gap: var(--kefe-space-2, 8px);
+  margin: 0;
+  padding: var(--kefe-space-2, 8px);
+  border: 1px solid color-mix(in srgb, var(--kefe-workspace-accent) 30%, var(--ksp-border));
+  border-radius: 12px;
   background: color-mix(in srgb, var(--kefe-workspace-accent) 8%, var(--ksp-surface));
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtab {
   border: 1px solid transparent;
   border-bottom: 2px solid transparent;
-  border-radius: 6px 6px 0 0;
+  border-radius: 7px;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtab[aria-selected="true"] {
   border-color: color-mix(in srgb, var(--kefe-workspace-accent) 30%, transparent);
@@ -1304,11 +1318,11 @@
 }
 @media (max-width: 760px) {
   .kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) {
-    padding: 0 10px 10px;
+    padding: 0;
   }
   .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtabs {
-    margin-inline: -10px;
-    padding-inline: 10px;
+    margin-inline: 0;
+    padding: var(--kefe-space-2, 8px);
   }
 }
 
@@ -1377,31 +1391,37 @@
   gap: var(--kefe-space-3, 12px);
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
-  gap: var(--kefe-space-1, 4px);
-  padding: var(--kefe-space-2, 8px) var(--kefe-space-2, 8px) 0;
+  gap: var(--kefe-space-2, 8px);
+  padding: var(--kefe-space-2, 8px);
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace-tab {
   min-height: 40px;
-  padding: 0 var(--kefe-space-4, 16px);
-  border-radius: 8px 8px 0 0;
+  padding: 0 var(--kefe-space-3, 12px);
+  border-radius: 8px;
   font-size: var(--font-sm, 13px);
-  line-height: 1.3;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) {
-  padding: 0 var(--kefe-space-4, 16px) var(--kefe-space-4, 16px);
-  border-radius: 0 0 var(--r3, 12px) var(--r3, 12px);
+  padding: 0;
+  border-radius: 0;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtabs {
-  gap: var(--kefe-space-1, 4px);
-  margin: 0 calc(-1 * var(--kefe-space-4, 16px)) var(--kefe-space-3, 12px);
-  padding: var(--kefe-space-2, 8px) var(--kefe-space-4, 16px);
+  gap: var(--kefe-space-2, 8px);
+  margin: 0;
+  padding: var(--kefe-space-2, 8px);
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtab {
   min-height: 36px;
   padding: 0 var(--kefe-space-3, 12px);
-  border-radius: var(--r1, 6px) var(--r1, 6px) 0 0;
+  border-radius: var(--r1, 6px);
   font-size: var(--font-sm, 13px);
-  line-height: 1.3;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .kefe-editor #kefe-settings-panel .kefe-workspace-stack {
   display: grid;
@@ -1461,11 +1481,11 @@
 }
 @media (max-width: 760px) {
   .kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) {
-    padding: 0 var(--kefe-space-3, 12px) var(--kefe-space-3, 12px);
+    padding: 0;
   }
   .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtabs {
-    margin-inline: calc(-1 * var(--kefe-space-3, 12px));
-    padding-inline: var(--kefe-space-3, 12px);
+    margin-inline: 0;
+    padding: var(--kefe-space-2, 8px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

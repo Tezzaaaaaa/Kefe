@@ -1,5 +1,4 @@
 /* Settings UI built with shadcn/ui components; window.kefeSettings remains the store. */
-import "./legacy-bridge.css";
 import * as React from "react";
 import { createRoot } from "react-dom/client";
 import { renderKefeIcon } from "../app/ui/icons.js";
@@ -113,9 +112,9 @@ function SettingsDialog({ api, host }) {
 
 function mountSettingsDialog() {
   const api = window.kefeSettings;
-  if (!api || typeof api.schema !== "function" || document.querySelector(".beui-settings-root")) return;
+  if (!api || typeof api.schema !== "function" || document.querySelector(".shad-settings-root")) return;
   const host = document.createElement("div");
-  host.className = "beui-settings-root shad-dialog-root";
+  host.className = "shad-settings-root shad-dialog-root";
   host.hidden = true;
   document.body.append(host);
   createRoot(host).render(h(SettingsDialog, { api, host }));

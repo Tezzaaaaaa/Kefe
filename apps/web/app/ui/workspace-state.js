@@ -6,11 +6,17 @@
   function openDb() {
     if (dbPromise) return dbPromise;
     dbPromise = new Promise((resolve, reject) => {
-      if (!('indexedDB' in window)) return reject(new Error('IndexedDB unavailable'));
-      const request = indexedDB.open(DB_NAME, 1);
-      request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(DB_STORE)) request.result.createObjectStore(DB_STORE); };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      if (!('indexedDB' in window)) { dbPromise = null; return reject(new Error('IndexedDB unavailable')); }
+      try {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(DB_STORE)) request.result.createObjectStore(DB_STORE); };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => { dbPromise = null; reject(request.error); };
+        request.onblocked = () => { dbPromise = null; reject(new Error('IndexedDB open blocked')); };
+      } catch (err) {
+        dbPromise = null;
+        reject(err);
+      }
     });
     return dbPromise;
   }
@@ -45,8 +51,13 @@
       dbPromise = null;
     }
     await new Promise(resolve => {
-      const request = indexedDB.deleteDatabase(DB_NAME);
-      request.onsuccess = request.onerror = request.onblocked = () => resolve();
+      let settled = false;
+      const done = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
+      const timer = setTimeout(done, 1500);
+      try {
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        request.onsuccess = request.onerror = request.onblocked = done;
+      } catch (_) { done(); }
     });
     if ('caches' in window) {
       const keys = await caches.keys();
@@ -93,21 +104,24 @@
     const effect = $('[data-effect].active', $('#lyricEffectOptions') || document);
     // Gallery cards also carry data-visualiser, but the engine buttons own
     // selection and power. Prefer the backing tab when the gallery is mounted.
-    const visualiser = $('.beui-vis-backing-controls [role="tab"][aria-selected="true"], .beui-vis-backing-controls button.primary') ||
+    const visualiser = $('.shad-vis-backing-controls [role="tab"][aria-selected="true"], .shad-vis-backing-controls button.primary') ||
       $('.kefe-vis-tabs [role="tab"][aria-selected="true"], .kefe-vis-tabs button.primary');
     const visualiserOption = visualiser?.closest('.kefe-vis-option');
     const visualiserPower = visualiserOption?.querySelector('button[role="switch"]');
-    const visualiserPreset = $('.kefe-visualiser-preset-set:not([hidden]) button[aria-pressed="true"], .kefe-visualiser-preset-set:not([hidden]) button.primary');
+    const visualiserPreset = $$('.kefe-visualiser-preset-set:not([hidden]) button[aria-pressed="true"], .kefe-visualiser-preset-set:not([hidden]) button.primary')
+      .find(button => !button.closest('[data-shadcn-backing]'));
     const background = $('#kefeBackgroundEffectOptions [data-background-mode].active, #kefeBackgroundEffectOptions [data-background-mode][aria-pressed="true"]');
     const backgroundToggle = $('#kefeBackgroundEffectToggle');
     const lyricsToggle = $('#lyricsEnabledToggle');
     const presetKey = visualiserPreset?.dataset.preset || visualiserPreset?.dataset.scene || visualiserPreset?.dataset.value || visualiserPreset?.textContent.trim() || '';
     const activeVisualiserView = $('.kefe-visualiser-form .kefe-vis-view:not([hidden])');
     const visualiserChoices = activeVisualiserView
-      ? $$('button[aria-pressed]', activeVisualiserView).reduce((selected, button, index) => {
-        if (button.getAttribute('aria-pressed') === 'true') selected.push(index);
-        return selected;
-      }, [])
+      ? $$('button[aria-pressed]', activeVisualiserView)
+        .filter(button => !button.closest('[data-shadcn-backing]'))
+        .reduce((selected, button, index) => {
+          if (button.getAttribute('aria-pressed') === 'true') selected.push(index);
+          return selected;
+        }, [])
       : [];
     return { version: 2, savedAt: Date.now(), values, selections: { lyricEffect: effect?.dataset.effect || '', lyricsEnabled: lyricsToggle?.getAttribute('aria-checked') !== 'false', visualiser: visualiser?.dataset.visualiser || '', visualiserPreset: presetKey, visualiserChoices, visualiserPower: visualiserPower?.getAttribute('aria-checked') === 'true', background: background?.dataset.backgroundMode || '', backgroundEnabled: backgroundToggle?.getAttribute('aria-checked') === 'true', toolbarContext: contextButton?.dataset.settingsContext || context } };
   }
@@ -177,7 +191,7 @@
       if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
       if (selected.visualiser) {
         const selector = 'button[role="tab"][data-visualiser="' + CSS.escape(selected.visualiser) + '"]';
-        ($('.beui-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector))?.click();
+        ($('.shad-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector))?.click();
       }
       if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + CSS.escape(selected.background) + '"]')?.click();
       if (typeof selected.backgroundEnabled === 'boolean') {
@@ -186,13 +200,15 @@
       }
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       if (selected.visualiserPreset) {
-        const preset = $$('.kefe-visualiser-preset-set:not([hidden]) button').find(button =>
-          (button.dataset.preset || button.dataset.scene || button.dataset.value || button.textContent.trim()) === selected.visualiserPreset);
+        const preset = $$('.kefe-visualiser-preset-set:not([hidden]) button')
+          .filter(button => !button.closest('[data-shadcn-backing]'))
+          .find(button =>
+            (button.dataset.preset || button.dataset.scene || button.dataset.value || button.textContent.trim()) === selected.visualiserPreset);
         preset?.click();
       }
       if (Array.isArray(selected.visualiserChoices)) {
         const activeView = $('.kefe-visualiser-form .kefe-vis-view:not([hidden])');
-        const choices = activeView ? $$('button[aria-pressed]', activeView) : [];
+        const choices = activeView ? $$('button[aria-pressed]', activeView).filter(button => !button.closest('[data-shadcn-backing]')) : [];
         selected.visualiserChoices.forEach(index => {
           const button = choices[index];
           if (button && button.getAttribute('aria-pressed') !== 'true') button.click();
@@ -200,7 +216,7 @@
       }
       if (typeof selected.visualiserPower === 'boolean' && selected.visualiser) {
         const selector = 'button[role="tab"][data-visualiser="' + CSS.escape(selected.visualiser) + '"]';
-        const visualiserTab = $('.beui-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector);
+        const visualiserTab = $('.shad-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector);
         const power = visualiserTab?.closest('.kefe-vis-option')?.querySelector('button[role="switch"]');
         if (power && (power.getAttribute('aria-checked') === 'true') !== selected.visualiserPower) power.click();
       }
@@ -232,7 +248,7 @@
       // A shadcn bridge hides only the canonical control from the accessibility
       // tree. It is still the source for toolbar proxies; hidden *ancestors*
       // must continue to suppress controls from inactive feature panels.
-      const bridgedSource = node === el && node.matches('.beui-native-range, .kefe-dd-native, .kefe-shad-checkbox-native, .kefe-shad-switch-native');
+      const bridgedSource = node === el && node.matches('.shad-native-range, .kefe-dd-native, .kefe-shad-checkbox-native, .kefe-shad-switch-native');
       if ((node.hidden || (node.getAttribute('aria-hidden') === 'true' && !bridgedSource))
         && !node.matches('.kefe-panel[data-panel-view], .kefe-workspace, .kefe-workspace-stack')) return true;
       node = node.parentElement;
@@ -248,7 +264,7 @@
       return controls;
     }).filter(el => {
       // Do not clone a rendered bridge in addition to its original control.
-      if (seen.has(el) || el.disabled || el.closest('.beui-range-host, .kefe-checkbox-host, .kefe-switch-host') || hasHiddenFeatureAncestor(el) || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
+      if (seen.has(el) || el.disabled || el.closest('.shad-slider-host, .kefe-checkbox-host, .kefe-switch-host') || hasHiddenFeatureAncestor(el) || (['submit','button','hidden'].includes(el.type) && !el.matches('button'))) return false;
       seen.add(el); return true;
     });
   }
@@ -294,9 +310,9 @@
       const proxy = source.cloneNode(true); proxy.removeAttribute('id'); proxy.removeAttribute('name'); proxy.removeAttribute('form');
       // Clones must be visible and focusable, not inherit the backing control's
       // off-screen bridge markers. Range bridges can then enhance them normally.
-      if (source.matches('.beui-native-range, .kefe-dd-native, .kefe-shad-checkbox-native, .kefe-shad-switch-native')) {
-        proxy.classList.remove('beui-native-range', 'kefe-dd-native', 'kefe-shad-checkbox-native', 'kefe-shad-switch-native');
-        proxy.removeAttribute('aria-hidden'); proxy.removeAttribute('tabindex'); proxy.removeAttribute('data-beui-range-mounted');
+      if (source.matches('.shad-native-range, .kefe-dd-native, .kefe-shad-checkbox-native, .kefe-shad-switch-native')) {
+        proxy.classList.remove('shad-native-range', 'kefe-dd-native', 'kefe-shad-checkbox-native', 'kefe-shad-switch-native');
+        proxy.removeAttribute('aria-hidden'); proxy.removeAttribute('tabindex'); proxy.removeAttribute('data-shad-slider-mounted');
       }
       if (!proxy.hasAttribute('aria-label') && !proxy.hasAttribute('aria-labelledby')) proxy.setAttribute('aria-label', title.textContent);
       proxy.disabled = source.disabled;

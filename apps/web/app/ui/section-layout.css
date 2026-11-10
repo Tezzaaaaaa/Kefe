@@ -36,7 +36,7 @@
   margin-left: auto;
   font-variant-numeric: tabular-nums;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field :is(.beui-range-host, .shad-slider) {
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field :is(.shad-slider-host, .shad-slider) {
   width: 100%;
 }
 
@@ -183,7 +183,7 @@
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-vis-tabs[hidden] {
   display: none !important;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) .beui-vis-tabs-host {
+:is(#kefe-settings-panel, .kefe-ms-host) .shad-vis-tabs-host {
   width: 100%;
   min-width: 0;
 }
@@ -240,101 +240,11 @@
   text-align: right;
 }
 
-/* ── Mobile sheet: compact two-column galleries and single-column settings ───────── */
+/* ── Mobile sheet: hide empty single-group tab strip ───────── */
 @media (max-width: 1023px) {
   /* The empty tab strip (one group only) must not leave a blank bar. */
   .kefe-ms-surface-head [data-slot="tabs"][hidden] {
     display: none !important;
-  }
-
-  /* Panel heading holds only the on/off switch: right-aligned, one row. */
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-panel-head,
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-effects-panel-head {
-    justify-content: flex-end !important;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-lyrics-power {
-    margin-left: auto;
-  }
-
-  /* Two-column desktop boxes become one full-width column: sliders, segmented
-     controls and selects all span the sheet and line up on the same edges. */
-  #kefe-mobile-sidebar-root .kefe-ms-host :is(
-    .kefe-lyric-mode-box,
-    .kefe-style-disclosure,
-    .kefe-visualiser-control-group,
-    #kefeDisplayGroup,
-    #kefeStyleGroup,
-    .kefe-case-control,
-    .kefe-font-selector-control
-  ) {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-visualiser-field,
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-seg,
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-dd,
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-select {
-    width: 100%;
-    max-width: 100%;
-    grid-column: 1 / -1;
-  }
-
-  /* Lyric effects: two compact cards per row. */
-  #kefe-mobile-sidebar-root .kefe-ms-host #lyricEffectOptions {
-    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)) !important;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
-    padding: 5px 5px 6px;
-    gap: 5px;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-name {
-    font-size: 11.5px;
-  }
-
-  /* Background: two compact cards per row. */
-  #kefe-mobile-sidebar-root .kefe-ms-host .kefe-background-effect-card .kefe-background-effect-preview {
-    height: 52px !important;
-  }
-
-  /* Visualisers: two per row, the last orphan stretches to fill the row. */
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-gallery {
-    gap: 8px;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-gallery > .kv-card {
-    flex: 1 1 calc(50% - 4px);
-    min-width: 0;
-    border-radius: var(--sl-card-radius);
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-card .kv-tab {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-card .kv-preview {
-    flex: none;
-    width: 100%;
-    aspect-ratio: 16 / 7;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-card .kv-body {
-    padding: 7px 8px 4px;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-card .kv-label {
-    font-size: 12px;
-    line-height: 1.2;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-card .kv-desc {
-    display: none;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-card .kv-card-foot {
-    padding: 4px 8px 7px;
-    gap: 6px;
-  }
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-card .kv-card-status {
-    font-size: 10px;
-  }
-}
-
-@media (max-width: 380px) {
-  #kefe-mobile-sidebar-root .kefe-ms-host .kv-gallery > .kv-card {
-    flex-basis: 100%;
   }
 }
 
@@ -386,15 +296,15 @@
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field {
   grid-template-columns: minmax(0, 1fr) !important;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(span, .beui-range-host, .shad-slider-host) {
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(span, .shad-slider-host, .shad-slider-host) {
   grid-column: 1 / -1 !important;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.beui-range-host, .shad-slider-host) {
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.shad-slider-host, .shad-slider-host) {
   width: 100% !important;
   min-width: 0;
 }
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span { order: 0 !important; }
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.beui-range-host, .shad-slider-host) { order: 1 !important; }
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.shad-slider-host, .shad-slider-host) { order: 1 !important; }
 /* Stacked slider rows: label and value on one line, full-width track beneath. */
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span {
   display: flex !important;
@@ -406,7 +316,7 @@
   white-space: normal !important;
   overflow: visible !important;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.beui-range-host, .shad-slider-host) {
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.shad-slider-host, .shad-slider-host) {
   grid-row: 2 !important;
 }
 
@@ -701,7 +611,7 @@
   gap: 10px !important;
 }
 :is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap {
   display: block !important;
   width: 100% !important;
   height: auto !important;
@@ -734,7 +644,7 @@
   height: 100% !important;
   padding: 5px 4px !important;
 }
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .beui-upload-wrap > .beui-upload-file:not([hidden]) {
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap > .shad-upload-file:not([hidden]) {
   margin-top: 8px;
 }
 @media (max-width: 359px) {

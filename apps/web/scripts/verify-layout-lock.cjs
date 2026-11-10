@@ -34,7 +34,7 @@ const VIEWPORTS = [[1440, 900], [1024, 768], [768, 1024], [390, 844], [320, 640]
 const SECTIONS = [
   ["content", "media"], ["content", "lyric-sync"],
   ["design", "lyric-effects"], ["design", "background"],
-  ["audio-visuals", "visualisers"], ["audio-visuals", "export"],
+  ["audio-visuals", "visualisers"], ["export", "export"],
 ];
 const shotDir = process.env.KEFE_LOCK_SHOTS;
 
@@ -51,6 +51,8 @@ async function measure(page) {
     const problem = msg => out.problems.push(msg);
 
     out.docOverflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+    out.docVOverflow = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    if (out.docVOverflow > 2) problem(`document overflows viewport vertically by ${out.docVOverflow}px`);
 
     /* Top-level stacked blocks, in reading order. */
     const toolbar = document.querySelector("#kefeFloatingToolbar");
@@ -89,11 +91,12 @@ async function measure(page) {
       out.header = rect(header);
     }
 
-    /* Content inside the active section: same gap, same edges. */
+    /* Content inside the active section: same gap, same edges (unwrapping display:contents mounts). */
     const ws = stack.find(([k]) => k === "workspace")?.[1];
     if (ws) {
       const wr = ws.getBoundingClientRect();
-      const kids = [...ws.children].filter(vis);
+      const unwrap = el => getComputedStyle(el).display === "contents" ? [...el.children].flatMap(unwrap) : [el];
+      const kids = [...ws.children].flatMap(unwrap).filter(vis);
       kids.forEach((k, i) => {
         const r = k.getBoundingClientRect();
         if (Math.abs(r.left - wr.left) > 1 || Math.abs(r.right - wr.right) > 1) problem(`section child ${name(k)} edges ${Math.round(r.left)}..${Math.round(r.right)} != ${Math.round(wr.left)}..${Math.round(wr.right)}`);
@@ -114,7 +117,7 @@ async function measure(page) {
       const cs = getComputedStyle(n);
       if (["absolute", "fixed"].includes(cs.position) || /^(svg|path|circle|rect|line|polygon|canvas|g|use)$/i.test(n.tagName)) continue;
       const p = n.parentElement;
-      if (!p || n.closest("[hidden], [aria-hidden='true'], .beui-range-host, .kefe-carousel, [data-kefe-carousel], .kefe-ms-host, .kft-bar")) continue;
+      if (!p || n.closest("[hidden], [aria-hidden='true'], :is(.shad-slider-host, .beui-range-host), .kefe-carousel, [data-kefe-carousel], .kefe-ms-host, .kft-bar")) continue;
       const pcs = getComputedStyle(p);
       if (/(auto|scroll|hidden|clip)/.test(pcs.overflowX)) continue;
       const r = n.getBoundingClientRect(), pr = p.getBoundingClientRect();
@@ -145,6 +148,12 @@ async function measure(page) {
       timeline: heights(".kefe-timeline"),
     };
     for (const [k, v] of Object.entries(out.sizes)) if (v.length > 1) problem(`${k} controls have mixed heights: ${v.join(", ")}`);
+
+    /* Single-row invariants for workspace tabs, subtabs and header links. */
+    for (const [label, sel] of [["workspaceTab", ".kefe-workspace-tab"], ["subtab", ".kefe-subtab"], ["headerLink", ".kefe-sidebar-link"]]) {
+      const tops = [...document.querySelectorAll(sel)].filter(vis).map(n => Math.round(n.getBoundingClientRect().top));
+      if (tops.length > 1 && Math.max(...tops) - Math.min(...tops) > 2) problem(`${label} wrapped onto multiple rows (tops: ${tops.join(",")})`);
+    }
 
     /* Sticky bars must sit below the sticky header, never under it. */
     const sticky = q(".kefe-workspace-tabs");
