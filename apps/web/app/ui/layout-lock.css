@@ -252,12 +252,12 @@ html:root .kefe-editor .kefe-workspace > .kefe-workspace-stack {
 }
 html:root .kefe-editor .kefe-workspace-stack > * { margin: 0 !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
 
-/* Sub-tabs: full width, two equal cells, no negative margins or transforms. */
+/* Sub-tabs: match the section content inset and use the actual tab count in each workspace. */
 html:root .kefe-editor .kefe-workspace-stack > .kefe-subtabs {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(var(--kefe-subtab-count, 2), minmax(0, 1fr)) !important;
   gap: var(--lk-gap-s) !important;
-  padding: var(--lk-gap-s) !important;
+  padding: var(--lk-gap-s) var(--lk-pad) !important;
   width: 100% !important;
   transform: none !important;
   left: auto !important; right: auto !important;
