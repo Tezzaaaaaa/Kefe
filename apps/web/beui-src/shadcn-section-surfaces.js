@@ -37,6 +37,10 @@ const sections = {
     asCard(root.querySelector("#kefeResultCard"));
     root.querySelectorAll("#kefeCarPrev, #kefeCarNext").forEach(button => asButton(button, "ghost", "icon"));
   },
+  lyrics(root) {
+    asCard(root);
+    root.querySelectorAll(".kefe-label").forEach(asLabel);
+  },
 };
 
 function run() {

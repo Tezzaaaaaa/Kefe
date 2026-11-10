@@ -499,3 +499,10 @@ html:root .kefe-editor #kefe-workspace-content-panel .kefe-download-row > * {
   min-width: 0 !important;
   white-space: nowrap !important;
 }
+
+/* shadcn Label on section captions: keep the caption's original block box (full width, original
+   line height) so marking it as a Label does not shift anything. */
+html:root .kefe-editor .kefe-panel[data-panel-view] .kefe-label[data-slot="label"] {
+  display: block !important;
+  line-height: 1.5 !important;
+}
