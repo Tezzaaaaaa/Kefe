@@ -81,26 +81,15 @@ function syncKefeVolume() {
   if (kefeVolumeValue) kefeVolumeValue.textContent = value + '%';
   if (kefeMuteToggle) {
     const muted = kefeAudioElement.muted || value === 0;
-    kefeMuteToggle.innerHTML = muted
-      ? '<span data-kefe-icon="mute" aria-hidden="true"></span>'
-      : '<span data-kefe-icon="volume" aria-hidden="true"></span>';
-    kefeMuteToggle.setAttribute('aria-label', muted ? 'Unmute audio' : 'Mute audio');
-    kefeMuteToggle.title = muted ? 'Unmute audio' : 'Mute audio';
-    kefeMuteToggle.setAttribute('aria-pressed', String(muted));
+    const nextIcon = muted ? 'mute' : 'volume';
+    if (kefeMuteToggle.dataset.kefeVolumeIcon !== nextIcon) {
+      kefeMuteToggle.dataset.kefeVolumeIcon = nextIcon;
+      kefeMuteToggle.innerHTML = `<span data-kefe-icon="${nextIcon}" aria-hidden="true"></span>`;
+      window.kefeHydrateIcons?.(kefeMuteToggle);
+    }
   }
 }
 kefeVolumeSlider?.addEventListener('input', () => { if (kefeAudioElement) kefeAudioElement.muted = false; syncKefeVolume(); });
-kefeMuteToggle?.addEventListener('click', () => {
-  if (!kefeAudioElement) return;
-  kefeAudioElement.muted = !kefeAudioElement.muted;
-  if (kefeAudioElement.muted && kefeVolumeSlider && Number(kefeVolumeSlider.value) > 0) {
-    kefeAudioElement.dataset.kefePreviousVolume = kefeVolumeSlider.value;
-  } else if (!kefeAudioElement.muted && kefeVolumeSlider && Number(kefeVolumeSlider.value) === 0) {
-    kefeVolumeSlider.value = kefeAudioElement.dataset.kefePreviousVolume || '80';
-    kefeAudioElement.volume = Number(kefeVolumeSlider.value) / 100;
-  }
-  syncKefeVolume();
-});
 
 
 

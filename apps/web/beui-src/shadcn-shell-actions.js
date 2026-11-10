@@ -177,40 +177,21 @@ function mountDock() {
 function mountTopNavControls() {
   const editorLink = document.querySelector('.kefe-sidebar-group-editor > a[data-editor-tab]');
   if (editorLink && !editorLink.dataset.shadcnHydrated) {
-    const className = editorLink.className;
-    editorLink.className = `shad-btn shad-btn--ghost ${className}`.replace(/\s+/g, ' ').trim();
+    // Keep .kefe-sidebar-group > .kefe-sidebar-link intact without inserting a wrapper span.
+    editorLink.className = `shad-btn shad-btn--ghost ${editorLink.className}`.replace(/\s+/g, ' ').trim();
     editorLink.dataset.slot = 'button';
     editorLink.dataset.variant = 'ghost';
     editorLink.dataset.size = 'default';
-    const props = readAttrs(editorLink, ['class', 'data-slot', 'data-variant', 'data-size']);
-    wrapSingleControl(
-      editorLink,
-      h(
-        Button,
-        { asChild: true, variant: 'ghost', size: 'default', className },
-        h('a', { ...props, dangerouslySetInnerHTML: { __html: editorLink.innerHTML } })
-      )
-    );
+    editorLink.dataset.shadcnHydrated = 'true';
   }
 
   const settingsBtn = document.querySelector('.kefe-sidebar-group-editor > button.kefe-header-settings');
   if (settingsBtn && !settingsBtn.dataset.shadcnHydrated) {
-    const className = settingsBtn.className;
-    settingsBtn.className = `shad-btn shad-btn--ghost ${className}`.replace(/\s+/g, ' ').trim();
+    settingsBtn.className = `shad-btn shad-btn--ghost ${settingsBtn.className}`.replace(/\s+/g, ' ').trim();
     settingsBtn.dataset.slot = 'button';
     settingsBtn.dataset.variant = 'ghost';
     settingsBtn.dataset.size = 'default';
-    const props = readAttrs(settingsBtn, ['class', 'data-slot', 'data-variant', 'data-size']);
-    wrapSingleControl(
-      settingsBtn,
-      h(Button, {
-        variant: 'ghost',
-        size: 'default',
-        className,
-        ...props,
-        dangerouslySetInnerHTML: { __html: settingsBtn.innerHTML },
-      })
-    );
+    settingsBtn.dataset.shadcnHydrated = 'true';
   }
 }
 

@@ -93,6 +93,10 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
       label: 'Editor workspace', dataset: { 'data-workspace-tablist': '' },
       onValueChange: name => activateWorkspace(name, false),
     });
+    function resetWorkspaceScroll() {
+      const columns = root.querySelector(':scope > .kefe-settings-columns');
+      if (columns) columns.scrollTop = 0;
+    }
     function activateWorkspace(name, moveFocus) {
       const selected = workspaceItems.find(item => item.value === name);
       if (!selected) return;
@@ -103,6 +107,7 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
         workspace.setAttribute('aria-hidden', String(!active));
       });
       root.dataset.activeWorkspace = name;
+      resetWorkspaceScroll();
       if (moveFocus) root.querySelector('#' + selected.id)?.focus();
     }
     /* Subtabs: each workspace lists its features as a second row of tabs and shows one at a time. */
@@ -143,6 +148,7 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
         subtabList.setValue(target.id);
         items.forEach(item => { item.section.hidden = item !== target; });
         workspace.dataset.activeSection = target.id;
+        resetWorkspaceScroll();
         try { localStorage.setItem('kefe.subtab.' + workspace.dataset.group, target.id); } catch (e) { /* storage unavailable */ }
         if (moveFocus) workspace.querySelector('#' + target.tabId)?.focus();
       }

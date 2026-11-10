@@ -90,6 +90,9 @@
   function clearTimingRowKeys() {
     $$('#kefeTimingEditor .kefe-line-list [data-kefe-autosave-key]').forEach(el => delete el.dataset.kefeAutosaveKey);
   }
+  const cssEscape = value => (globalThis.CSS && typeof globalThis.CSS.escape === 'function')
+    ? globalThis.CSS.escape(String(value))
+    : String(value).replace(/[^a-zA-Z0-9_-]/g, ch => '\\' + ch);
   function controlSnapshot() {
     // Legacy restores may have assigned keys to temporary rows. Don't let a
     // stale key shadow an unrelated control in a new-format snapshot.
@@ -98,7 +101,7 @@
     const fields = projectFields().filter(el => el.type !== 'file');
     fields.forEach((el, index) => {
       if (!el.id && !el.name) el.dataset.kefeAutosaveKey = 'field-' + index;
-      const key = el.id ? '#' + el.id : (el.name ? '[name="' + CSS.escape(el.name) + '"]' : '[data-kefe-autosave-key="' + CSS.escape(el.dataset.kefeAutosaveKey) + '"]');
+      const key = el.id ? '#' + el.id : (el.name ? '[name="' + cssEscape(el.name) + '"]' : '[data-kefe-autosave-key="' + cssEscape(el.dataset.kefeAutosaveKey) + '"]');
       values[key] = el.type === 'checkbox' || el.type === 'radio' ? { checked: !!el.checked, value: el.value } : { value: el.value };
     });
     const effect = $('[data-effect].active', $('#lyricEffectOptions') || document);
@@ -188,12 +191,12 @@
         const toggle = $('#lyricsEnabledToggle');
         if (toggle && (toggle.getAttribute('aria-checked') !== 'false') !== selected.lyricsEnabled) toggle.click();
       }
-      if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + CSS.escape(selected.lyricEffect) + '"]')?.click();
+      if (selected.lyricEffect) $('#lyricEffectOptions [data-effect="' + cssEscape(selected.lyricEffect) + '"]')?.click();
       if (selected.visualiser) {
-        const selector = 'button[role="tab"][data-visualiser="' + CSS.escape(selected.visualiser) + '"]';
+        const selector = 'button[role="tab"][data-visualiser="' + cssEscape(selected.visualiser) + '"]';
         ($('.shad-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector))?.click();
       }
-      if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + CSS.escape(selected.background) + '"]')?.click();
+      if (selected.background) $('#kefeBackgroundEffectOptions [data-background-mode="' + cssEscape(selected.background) + '"]')?.click();
       if (typeof selected.backgroundEnabled === 'boolean') {
         const toggle = $('#kefeBackgroundEffectToggle');
         if (toggle && (toggle.getAttribute('aria-checked') === 'true') !== selected.backgroundEnabled) toggle.click();
@@ -215,7 +218,7 @@
         });
       }
       if (typeof selected.visualiserPower === 'boolean' && selected.visualiser) {
-        const selector = 'button[role="tab"][data-visualiser="' + CSS.escape(selected.visualiser) + '"]';
+        const selector = 'button[role="tab"][data-visualiser="' + cssEscape(selected.visualiser) + '"]';
         const visualiserTab = $('.shad-vis-backing-controls ' + selector) || $('.kefe-vis-tabs ' + selector);
         const power = visualiserTab?.closest('.kefe-vis-option')?.querySelector('button[role="switch"]');
         if (power && (power.getAttribute('aria-checked') === 'true') !== selected.visualiserPower) power.click();

@@ -22,7 +22,7 @@ try {
   assert.match(trigger.textContent, /Effect font/);
   native.focus();
   assert.equal(document.activeElement, trigger, "label or programmatic focus reaches the visible trigger");
-  Object.getOwnPropertyDescriptor(native, "value").set.call(native, "serif"); await tick();
+  native.value = "serif"; await tick();
   assert.match(trigger.textContent, /Serif/);
   native.options[1].textContent = "New Serif"; await tick();
   assert.match(trigger.textContent, /New Serif/);

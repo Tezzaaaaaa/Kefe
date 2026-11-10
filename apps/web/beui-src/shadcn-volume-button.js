@@ -54,52 +54,85 @@ function mount() {
   function VolumePopover() {
     const [open, setOpen] = React.useState(initiallyOpen);
     const slotRef = React.useRef(null);
+    const parkRef = React.useRef(null);
+    const closedByOutsideRef = React.useRef(false);
+    const wasOpenRef = React.useRef(initiallyOpen);
 
     React.useLayoutEffect(() => {
-      if (slotRef.current && popover.parentNode !== slotRef.current) {
-        slotRef.current.appendChild(popover);
+      const container = open ? slotRef.current : parkRef.current;
+      if (container && popover.parentNode !== container) {
+        container.appendChild(popover);
       }
-    }, []);
-
-    React.useLayoutEffect(() => {
       popover.hidden = !open;
       button.setAttribute('aria-expanded', String(open));
+      if (wasOpenRef.current && !open && !closedByOutsideRef.current) {
+        button.focus({ preventScroll: true });
+      }
+      wasOpenRef.current = open;
+      if (!open) closedByOutsideRef.current = false;
+      return () => {
+        if (open && parkRef.current && popover.parentNode !== parkRef.current) {
+          popover.hidden = true;
+          parkRef.current.appendChild(popover);
+        }
+      };
     }, [open]);
 
     React.useEffect(() => {
-      const onClick = () => flushSync(() => setOpen(prev => !prev));
+      const onClick = () => flushSync(() => {
+        closedByOutsideRef.current = false;
+        setOpen(prev => !prev);
+      });
       button.addEventListener('click', onClick);
       return () => button.removeEventListener('click', onClick);
     }, []);
 
     return h(
-      Popover,
-      { open, onOpenChange: setOpen },
-      h(PopoverAnchor, { virtualRef: anchorRef }),
+      React.Fragment,
+      null,
+      h('span', { ref: parkRef, hidden: true, style: { display: 'none' } }),
       h(
-        PopoverContent,
-        {
-          portal: false,
-          forceMount: true,
-          side: 'top',
-          align: 'end',
-          sideOffset: 10,
-          className: 'shad-volume-popover-content',
-          onOpenAutoFocus: event => {
-            event.preventDefault();
-            slider?.focus({ preventScroll: true });
-          },
-          onCloseAutoFocus: event => {
-            event.preventDefault();
-            button.focus({ preventScroll: true });
-          },
-          onPointerDownOutside: event => {
-            if (event.target === button || button.contains(event.target)) {
+        Popover,
+        { open, onOpenChange: setOpen },
+        h(PopoverAnchor, { virtualRef: anchorRef }),
+        h(
+          PopoverContent,
+          {
+            portal: false,
+            side: 'top',
+            align: 'end',
+            sideOffset: 10,
+            className: 'shad-volume-popover-content',
+            onOpenAutoFocus: event => {
               event.preventDefault();
-            }
+              const target = popover.querySelector('[role="slider"]:not([aria-hidden="true"])') || slider;
+              target?.focus({ preventScroll: true });
+            },
+            onCloseAutoFocus: event => {
+              event.preventDefault();
+              if (!closedByOutsideRef.current) {
+                button.focus({ preventScroll: true });
+              }
+              closedByOutsideRef.current = false;
+            },
+            onEscapeKeyDown: () => {
+              closedByOutsideRef.current = false;
+            },
+            onFocusOutside: event => {
+              if (popover.contains(event.target) || event.target === button || button.contains(event.target)) {
+                event.preventDefault();
+              }
+            },
+            onPointerDownOutside: event => {
+              if (popover.contains(event.target) || event.target === button || button.contains(event.target)) {
+                event.preventDefault();
+              } else {
+                closedByOutsideRef.current = true;
+              }
+            },
           },
-        },
-        h('div', { ref: slotRef, style: { display: 'contents' } })
+          h('div', { ref: slotRef, style: { display: 'contents' } })
+        )
       )
     );
   }

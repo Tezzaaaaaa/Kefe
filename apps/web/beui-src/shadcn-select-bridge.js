@@ -7,6 +7,26 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from ".
 
 const h = React.createElement;
 const mounted = new Map();
+const mountedSync = new WeakMap();
+let prototypeInstalled = false;
+
+function installPrototypeBridge() {
+  if (prototypeInstalled || typeof HTMLSelectElement === "undefined") return;
+  prototypeInstalled = true;
+  for (const property of ["value", "selectedIndex"]) {
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, property);
+    if (!descriptor?.get || !descriptor?.set) continue;
+    Object.defineProperty(HTMLSelectElement.prototype, property, {
+      configurable: true,
+      enumerable: descriptor.enumerable,
+      get() { return descriptor.get.call(this); },
+      set(value) {
+        descriptor.set.call(this, value);
+        mountedSync.get(this)?.();
+      },
+    });
+  }
+}
 
 function labelFor(select) {
   const labelledBy = select.getAttribute("aria-labelledby");
@@ -60,18 +80,9 @@ function mount(select) {
         options.map(option => h(SelectItem, { value: `option-${option.index}`, key: option.index, disabled: option.disabled }, option.label || " ")))), wrap));
   }
   flushSync(render);
+  installPrototypeBridge();
   const sync = () => { if (!writing) render(); };
-  const overrides = [];
-  for (const property of ["value", "selectedIndex"]) {
-    const descriptor = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, property);
-    if (descriptor?.get && descriptor?.set && !Object.prototype.hasOwnProperty.call(select, property)) {
-      Object.defineProperty(select, property, { configurable: true, enumerable: descriptor.enumerable,
-        get() { return descriptor.get.call(this); },
-        set(value) { descriptor.set.call(this, value); sync(); },
-      });
-      overrides.push(property);
-    }
-  }
+  mountedSync.set(select, sync);
   const focusTrigger = () => select.nextElementSibling?.focus({ preventScroll: true });
   select.addEventListener("focus", focusTrigger);
   select.addEventListener("input", sync);
@@ -83,7 +94,7 @@ function mount(select) {
     select.removeEventListener("focus", focusTrigger);
     select.removeEventListener("input", sync);
     select.removeEventListener("change", sync);
-    overrides.forEach(property => delete select[property]);
+    mountedSync.delete(select);
     reactRoot.unmount();
     select.classList.remove("kefe-dd-native");
     if (originalTabindex === null) select.removeAttribute("tabindex"); else select.setAttribute("tabindex", originalTabindex);

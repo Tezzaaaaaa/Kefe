@@ -99,15 +99,13 @@ html:root .kefe-editor:has(.kefe-stage.kefe-pseudo-fullscreen, .kefe-stage:fulls
   overflow: visible !important;
 }
 html:root .kefe-editor .kefe-settings-mount {
+  display: flex !important;
+  flex-direction: column !important;
   flex: 1 1 auto !important;
   min-width: 0 !important;
   min-height: 0 !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  overscroll-behavior: contain !important;
-  scrollbar-width: none !important;
+  overflow: hidden !important;
 }
-html:root .kefe-editor .kefe-settings-mount::-webkit-scrollbar { display: none; }
 
 /* ── Header ─────────────────────────────────────────────────────────────────────── */
 html:root .kefe-editor .kefe-sidebar {
@@ -262,20 +260,24 @@ html:root .kefe-editor #kefe-settings-panel {
 }
 html:root .kefe-editor #kefe-settings-panel {
   display: flex !important;
+  flex: 1 1 auto !important;
   flex-direction: column !important;
   gap: var(--lk-gap) !important;
+  height: 100% !important;
   min-height: 0 !important;
+  overflow: hidden !important;
 }
 html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs-mount,
 html:root .kefe-editor #kefe-settings-panel .kefe-subtabs-mount {
   display: contents !important;
 }
 
-/* Workspace tabs: four equal single-line cells, sticky at top of the scrolling workspace. */
+/* Workspace tabs: four equal single-line cells pinned cleanly above the scrolling workspace. */
 html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 30 !important;
+  position: relative !important;
+  top: auto !important;
+  flex: 0 0 auto !important;
+  z-index: 1 !important;
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: var(--lk-gap-s) !important;
@@ -303,8 +305,14 @@ html:root .kefe-editor .kefe-workspace-tabs > .kefe-workspace-tab {
 
 html:root .kefe-editor #kefe-settings-panel > .kefe-settings-columns {
   display: block !important;
+  flex: 1 1 auto !important;
   margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important; min-height: 0 !important; gap: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: none !important;
 }
+html:root .kefe-editor #kefe-settings-panel > .kefe-settings-columns::-webkit-scrollbar { display: none; }
 html:root .kefe-editor .kefe-settings-columns > .kefe-workspace:not([hidden]) {
   display: flex !important;
   flex-direction: column !important;
@@ -367,6 +375,7 @@ html:root .kefe-editor #kefe-settings-panel :is(.section, .section-content, .con
 
 /* Footer (GitHub + reset) sits on the same frame and gap. */
 html:root .kefe-editor #kefe-settings-panel > .kefe-reset-footer {
+  flex: 0 0 auto !important;
   margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important;
   gap: var(--lk-gap) !important;
 }

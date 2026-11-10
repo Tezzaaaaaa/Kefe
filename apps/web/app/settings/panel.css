@@ -420,26 +420,25 @@
     overflow: hidden;
   }
   html:root .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount {
-    display: block;
+    display: flex;
+    flex-direction: column;
     flex: 1 1 auto;
     width: 100%;
     min-height: 0;
     max-width: none;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    overflow: hidden;
   }
   html:root .kefe-editor .kefe-editing.kefe-settings-layout > .kefe-settings-mount > .kefe-settings-panel {
     display: flex;
-    flex: 0 0 auto;
+    flex: 1 1 auto;
     flex-direction: column;
     width: 100%;
-    height: auto;
+    height: 100%;
     min-height: 0;
     max-width: none;
-    overflow: visible;
+    overflow: hidden;
   }
   html:root #kefe-settings-panel > .kefe-settings-columns[data-accordion="multi"]:not(.kefe-workspaces) {
     display: grid;
@@ -785,11 +784,11 @@
   overflow: hidden;
 }
 .kefe-editor .kefe-settings-layout > .kefe-settings-mount {
-  display: block;
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 .kefe-editor #kefe-settings-panel .kefe-topbar {
   justify-content: flex-end;
@@ -838,11 +837,12 @@
 }
 
 
-/* Persistent workspace tabs: all four destinations remain visible and switch in place. */
+/* Persistent workspace tabs: all four destinations remain visible above the scrolling workspace. */
 .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
-  position: sticky;
-  top: 0;
-  z-index: 30;
+  position: relative;
+  top: auto;
+  flex: 0 0 auto;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;

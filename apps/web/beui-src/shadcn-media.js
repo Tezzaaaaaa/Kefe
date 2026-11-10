@@ -13,7 +13,7 @@ import { Dropzone } from '../components/ui/dropzone.js';
 import { Alert, AlertDescription } from '../components/ui/alert.js';
 
 const h = React.createElement;
-const ATTR_MAP = { class: 'className', for: 'htmlFor', tabindex: 'tabIndex', spellcheck: 'spellCheck' };
+const ATTR_MAP = { class: 'className', for: 'htmlFor', tabindex: 'tabIndex', spellcheck: 'spellCheck', readonly: 'readOnly' };
 const BOOL_ATTRS = new Set(['disabled', 'hidden', 'readOnly', 'required']);
 
 function stripWhitespace(el) {
