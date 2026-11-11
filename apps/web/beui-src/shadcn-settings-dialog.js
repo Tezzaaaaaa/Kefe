@@ -104,10 +104,11 @@ function SettingsDialog({ api, host }) {
           h(AccordionTrigger, { id: `kefe-settings-${group.id}-trigger`, "aria-controls": `kefe-settings-${group.id}-content` },
             h("span", { className: "shad-accordion-title-wrap" }, icon(GROUP_ICONS[group.id] || "sliders", "shad-accordion-icon"), group.title)),
           h(AccordionContent, { id: `kefe-settings-${group.id}-content`, "aria-labelledby": `kefe-settings-${group.id}-trigger` },
-            group.items.map(item => h(SettingsRow, { key: item.key, item, api, container }))))))),
-    h("div", { className: "shad-dialog-footer" },
-      h(Button, { type: "button", variant: "outline", onClick: () => api.reset() }, "Reset to defaults"),
-      h(DialogClose, { asChild: true }, h(Button, { type: "button" }, "Done")))));
+            group.items.map(item => h(SettingsRow, { key: item.key, item, api, container })))))),
+      h("div", { className: "shad-settings-actions", style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", paddingTop: "12px" } },
+        h("a", { className: "shad-btn shad-btn--ghost", href: "https://github.com/Tezzaaaaaa/Kefe", target: "_blank", rel: "noopener noreferrer", "aria-label": "KEFE on GitHub" },
+          icon("github", "shad-settings-github-icon"), "GitHub"),
+        h(Button, { type: "button", variant: "outline", onClick: () => api.reset() }, "Reset all settings")))));
 }
 
 function mountSettingsDialog() {
