@@ -7,6 +7,7 @@ const editor = readFileSync(resolve(root, "editor.source.html"), "utf8");
 const adapter = readFileSync(resolve(root, "app/settings/panel-adapter.js"), "utf8");
 const panelHtml = readFileSync(resolve(root, "app/settings/panel.html"), "utf8");
 const panelStyles = readFileSync(resolve(root, "app/settings/panel.css"), "utf8");
+const settingsDialog = readFileSync(resolve(root, "beui-src/shadcn-settings-dialog.js"), "utf8");
 const failures = [];
 const bg = readFileSync(resolve(root, "app/visualiser/background.js"), "utf8");
 
@@ -25,9 +26,17 @@ if (!panelHtml.includes("Visualiser") || (panelHtml.match(/>Effects</g) || []).l
 if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includes("Background Effects")) {
   failures.push("Background and Background Effects must have distinct visible group structure.");
 }
-if (!(panelHtml.includes("kefe-settings-github") || adapter.includes("kefe-settings-github")) ||
-    !(panelHtml.includes("https://github.com/Tezzaaaaaa/Kefe") || adapter.includes("https://github.com/Tezzaaaaaa/Kefe"))) {
-  failures.push("The KEFE repository link must be available inside Settings.");
+if (!settingsDialog.includes("https://github.com/Tezzaaaaaa/Kefe") ||
+    !settingsDialog.includes("Reset all settings") ||
+    !settingsDialog.includes("shad-settings-actions")) {
+  failures.push("GitHub and Reset all settings must be available inside the Settings dialog.");
+}
+if (panelHtml.includes("kefe-reset-footer") || adapter.includes("kefe-reset-footer") ||
+    panelStyles.includes("kefe-reset-footer")) {
+  failures.push("The editor workspace footer must be removed completely.");
+}
+if (settingsDialog.includes("shad-dialog-footer")) {
+  failures.push("The Settings dialog must not render a footer.");
 }
 if (panelHtml.includes("expand-button") || panelHtml.includes("data-expanded=\"false\"")) {
   failures.push("Workspace controls must not be hidden behind accordions.");
@@ -60,4 +69,4 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log("PASS: four persistent workspace tabs, Export is separate, tidy section grouping and six native panels are present.");
+console.log("PASS: four persistent workspace tabs, six native panels, and Settings dialog actions without an editor or dialog footer.");

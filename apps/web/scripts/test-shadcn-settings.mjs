@@ -25,6 +25,9 @@ try {
   opener.focus(); opener.click(); await tick();
   const dialog = document.querySelector('[role="dialog"]');
   assert.ok(dialog, "settings dialog opens");
+  assert.ok(dialog.querySelector('a[href="https://github.com/Tezzaaaaaa/Kefe"]'), "GitHub link is inside Settings");
+  assert.ok(dialog.querySelector(".shad-settings-actions"), "settings actions are inside the dialog body");
+  assert.equal(dialog.querySelector(".shad-dialog-footer"), null, "settings dialog has no footer");
   assert.equal(dialog.getAttribute("data-slot"), "dialog-content");
   assert.equal(document.querySelector('.shad-settings-root').hidden, false);
   assert.equal(dialog.querySelectorAll('[data-slot="accordion-trigger"]').length, 3);
@@ -50,11 +53,11 @@ try {
   assert.ok(options.length >= 3, "select opens options inside the dialog");
   options[1].click(); await tick();
   assert.equal(window.kefeSettings.get("aspect"), "9:16");
-  [...dialog.querySelectorAll('button')].find(b => b.textContent === "Reset to defaults").click(); await tick();
+  [...dialog.querySelectorAll('button')].find(b => b.textContent === "Reset all settings").click(); await tick();
   assert.equal(window.kefeSettings.get("titleCard"), true);
   assert.equal(window.kefeSettings.get("fpsTarget"), 60);
   assert.equal(window.kefeSettings.get("aspect"), "16:9");
-  [...dialog.querySelectorAll('button')].find(b => b.textContent === "Done").click(); await tick();
+  dialog.querySelector('button[aria-label="Close settings"]').click(); await tick();
   assert.equal(document.querySelector('[role="dialog"]'), null);
   assert.equal(document.querySelector('.shad-settings-root').hidden, true);
   await waitForFocus(opener);
