@@ -372,13 +372,6 @@ html:root .kefe-editor #kefe-settings-panel :is(.section, .section-content, .con
   max-width: 100% !important;
 }
 
-/* Footer (GitHub + reset) sits on the same frame and gap. */
-html:root .kefe-editor #kefe-settings-panel > .kefe-reset-footer {
-  flex: 0 0 auto !important;
-  margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 0 !important;
-  gap: var(--lk-gap) !important;
-}
-
 /* Card grids: equal inner space left and right, with or without a scrollbar. */
 html:root .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions.kefe-lyric-effect-grid {
   padding: 4px !important;
