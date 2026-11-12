@@ -53,6 +53,10 @@ const sections = {
     asCard(root);
     root.querySelectorAll(".kefe-label").forEach(asLabel);
   },
+  export(root) {
+    asCard(root);
+    root.querySelectorAll(".kefe-label").forEach(asLabel);
+  },
 };
 
 function run() {
