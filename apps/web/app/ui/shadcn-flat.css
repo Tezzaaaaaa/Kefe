@@ -1,0 +1,110 @@
+/* Flat shadcn surfaces. Loaded after layout-lock.css so it is the final word on how buttons and
+   section surfaces look: shadcn/ui tokens only (border, card, accent, primary, shadow-xs, ring),
+   no inset or dual neumorphic shadows, no gradient faces, no coloured glows.
+
+   Buttons follow shadcn's size scale: default 36px (icon 36x36), sm 32px (panel actions), xs 28px
+   (compact controls inside cards). One radius (--shad-radius-md), one type size per size step. */
+
+/* ── Buttons: variants ─────────────────────────────────────────────────────────────── */
+html:root .kefe-editor :is(.shad-btn, .kefe-btn, .kefe-panel-action) {
+  background-image: none !important;
+  text-shadow: none !important;
+  border-radius: var(--shad-radius-md) !important;
+  transform: none !important;
+}
+html:root .kefe-editor .shad-btn--primary {
+  background: var(--shad-primary) !important;
+  border-color: transparent !important;
+  color: var(--shad-primary-foreground) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+}
+html:root .kefe-editor .shad-btn--primary:hover:not(:disabled) { background: var(--shad-primary-hover) !important; }
+html:root .kefe-editor .shad-btn--primary:active:not(:disabled) { background: var(--shad-primary-pressed) !important; }
+
+html:root .kefe-editor .shad-btn--outline {
+  background: transparent !important;
+  border: 1px solid var(--shad-border-strong) !important;
+  color: var(--shad-foreground) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+}
+html:root .kefe-editor .shad-btn--outline:hover:not(:disabled) { background: var(--shad-accent) !important; color: var(--shad-accent-foreground) !important; }
+
+html:root .kefe-editor .shad-btn--ghost {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html:root .kefe-editor .shad-btn--ghost:hover:not(:disabled) { background: var(--shad-accent) !important; color: var(--shad-accent-foreground) !important; }
+
+/* Pressed/selected states are a ring, never an inset well or a glow. */
+html:root .kefe-editor .shad-btn:is(.active, [aria-pressed="true"], [data-state="on"], [aria-checked="true"]):not(.shad-btn--primary) {
+  box-shadow: 0 0 0 1px var(--shad-primary) !important;
+  border-color: var(--shad-primary) !important;
+}
+
+/* ── Buttons: sizes ────────────────────────────────────────────────────────────────── */
+/* sm: every labelled panel action. */
+html:root .kefe-editor :is(.kefe-panel-action, .shad-lyric-action-host > .shad-btn, .kefe-btn):not(.shad-btn--icon):not(.kefe-car-nav) {
+  box-sizing: border-box !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+/* xs: compact controls that live inside a card (Browse files). */
+html:root .kefe-editor .kefe-panel[data-panel-view] .kefe-media-upload-row .shad-upload-browse,
+html:root .kefe-editor .kefe-panel[data-panel-view] .shad-upload-browse {
+  box-sizing: border-box !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  border-radius: var(--shad-radius-md) !important;
+  background: transparent !important;
+  border: 1px solid var(--shad-border-strong) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+}
+/* icon: 36x36 everywhere except the floating toolbar, which stays compact at 32. */
+html:root .kefe-editor .shad-btn--icon:not(.kft-btn):not(.kft-grip):not(.kft-launch):not(.kefe-sidebar-link) {
+  box-sizing: border-box !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+}
+
+/* ── Neomorphic leftovers → flat shadcn ────────────────────────────────────────────── */
+/* Pressed-in wells (inset + highlight pairs) become a plain bordered card. */
+html:root .kefe-editor :is(.kefe-result-card, .kefe-empty-panel) {
+  background: var(--shad-card) !important;
+  border: 1px solid var(--shad-border) !important;
+  box-shadow: none !important;
+}
+/* Empty-state icon chip: no raised dual shadow. */
+html:root .kefe-editor .kefe-car-empty-icon {
+  background: var(--shad-muted) !important;
+  border: 1px solid var(--shad-border) !important;
+  box-shadow: none !important;
+}
+/* Carousel shelf: flat card surface instead of a radial spotlight. */
+html:root .kefe-editor .kefe-carousel.ks-shelf {
+  background: var(--shad-card) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+/* Effect option cards: one resting shadow, selected = ring (no glow, no inset). */
+html:root .kefe-editor .kefe-lyric-effect-option {
+  box-shadow: var(--shad-shadow-xs) !important;
+}
+html:root .kefe-editor .kefe-lyric-effect-option.active {
+  border-color: var(--shad-primary) !important;
+  box-shadow: 0 0 0 1px var(--shad-primary) !important;
+}
+/* Slider tracks: flat. */
+html:root .kefe-editor .shad-slider-track { box-shadow: none !important; }
