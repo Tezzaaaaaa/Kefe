@@ -51,6 +51,7 @@ for (const requiredModule of [
   "beui-src/shadcn-shell-actions.js",
   "beui-src/shadcn-media.js",
   "beui-src/shadcn-section-surfaces.js",
+  "beui-src/shadcn-export-aspect.js",
   "beui-src/shadcn-lyric-disclosures.js",
   "beui-src/shadcn-visualiser-controls.js",
   "beui-src/shadcn-volume-button.js",

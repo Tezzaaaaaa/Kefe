@@ -145,3 +145,25 @@ html:root .kefe-editor .kefe-timeline {
   border: 1px solid var(--shad-border) !important;
 }
 html:root .kefe-editor .kefe-workspace-title { border-bottom-color: var(--shad-border) !important; box-shadow: none !important; }
+
+/* ── Export: aspect-ratio picker (shadcn toggle-group look) ───────────────────────── */
+html:root .kefe-editor .kefe-export-aspect { display: grid !important; gap: var(--lk-gap-s, 8px) !important; }
+html:root .kefe-editor .kefe-export-aspect-options {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: var(--lk-gap-s, 8px) !important;
+}
+html:root .kefe-editor .kefe-export-aspect-option {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  height: auto !important;
+  min-height: 48px !important;
+  padding: 6px 8px !important;
+  line-height: 1.2 !important;
+}
+html:root .kefe-editor .kefe-export-aspect-ratio { font-size: 13px; font-weight: 600; }
+html:root .kefe-editor .kefe-export-aspect-name { font-size: 11px; font-weight: 400; color: var(--shad-muted-foreground); }
+html:root .kefe-editor .kefe-export-summary { margin: 0 !important; line-height: 1.5 !important; overflow-wrap: anywhere; }
