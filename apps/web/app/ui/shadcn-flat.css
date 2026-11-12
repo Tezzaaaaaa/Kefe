@@ -108,3 +108,40 @@ html:root .kefe-editor .kefe-lyric-effect-option.active {
 }
 /* Slider tracks: flat. */
 html:root .kefe-editor .shad-slider-track { box-shadow: none !important; }
+
+/* ── Tabs: shadcn Tabs (muted list, raised-by-contrast active trigger) ─────────────── */
+html:root .kefe-editor :is(.kefe-workspace-tabs, .kefe-subtabs) {
+  background: var(--shad-muted) !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: var(--shad-radius-lg, 10px) !important;
+  box-shadow: none !important;
+  padding: 3px !important;
+}
+html:root .kefe-editor :is(.kefe-workspace-tab, .kefe-subtab) {
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--shad-radius-md) !important;
+  box-shadow: none !important;
+  color: var(--shad-muted-foreground) !important;
+}
+html:root .kefe-editor :is(.kefe-workspace-tab, .kefe-subtab):is(.active, [aria-selected="true"]) {
+  background: var(--shad-background) !important;
+  border-color: var(--shad-border) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+  color: var(--shad-foreground) !important;
+}
+/* Section accent rules and headings: neutral, no per-section colour wash. */
+html:root .kefe-editor .kefe-panel[data-panel-view] :is(.kefe-section-head, .kefe-panel-head, .kefe-workspace-heading) {
+  border-color: var(--shad-border) !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+/* Timeline well → flat muted track. */
+html:root .kefe-editor .kefe-timeline {
+  background: var(--shad-muted) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--shad-border) !important;
+}
+html:root .kefe-editor .kefe-workspace-title { border-bottom-color: var(--shad-border) !important; box-shadow: none !important; }
