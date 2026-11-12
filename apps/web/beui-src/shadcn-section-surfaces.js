@@ -45,6 +45,10 @@ const sections = {
     asCard(root);
     root.querySelectorAll(".kefe-label").forEach(asLabel);
   },
+  "background-effects"(root) {
+    asCard(root);
+    root.querySelectorAll(".kefe-label").forEach(asLabel);
+  },
 };
 
 function run() {
