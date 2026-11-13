@@ -178,12 +178,14 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
   const syncVolume = () => {
     const volume = Math.max(0, Math.min(100, Number(slider.value) || 0));
     audio.volume = volume / 100;
+    audio.muted = volume === 0;
     if (volume > 0) lastVolume = volume / 100;
     output.value = volume + '%';
     output.textContent = volume + '%';
-    button.innerHTML = window.kefeIcon ? window.kefeIcon(volume === 0 ? 'mute' : 'volume') : '<span data-kefe-icon="' + (volume === 0 ? 'mute' : 'volume') + '" aria-hidden="true"></span>';
-    button.setAttribute('aria-label', volume === 0 ? 'Volume muted; open volume options' : 'Open volume options');
-    button.title = volume === 0 ? 'Muted — open volume options' : 'Volume options';
+    const muted = audio.muted || volume === 0;
+    button.innerHTML = window.kefeIcon ? window.kefeIcon(muted ? 'mute' : 'volume') : '<span data-kefe-icon="' + (muted ? 'mute' : 'volume') + '" aria-hidden="true"></span>';
+    button.setAttribute('aria-label', muted ? 'Volume muted; open volume options' : 'Open volume options');
+    button.title = muted ? 'Muted — open volume options' : 'Volume options';
   };
   button.addEventListener('click', () => { if (button.dataset.shadcnPopover === 'true') return; setOpen(popover.hidden); });
   slider.addEventListener('input', syncVolume);
@@ -196,8 +198,13 @@ html.kefe-ready body > .kefe-floating-toolbar { animation: kefeReveal 200ms cubi
     if (event.key === 'Escape' && !popover.hidden) { setOpen(false); button.focus({ preventScroll: true }); }
   });
   audio.addEventListener('volumechange', () => {
-    if (!audio.muted) slider.value = String(Math.round(audio.volume * 100));
-    syncVolume();
+    slider.value = audio.muted ? '0' : String(Math.round(audio.volume * 100));
+    output.value = slider.value + '%';
+    output.textContent = slider.value + '%';
+    const muted = audio.muted || Number(slider.value) === 0;
+    button.innerHTML = window.kefeIcon ? window.kefeIcon(muted ? 'mute' : 'volume') : '<span data-kefe-icon="' + (muted ? 'mute' : 'volume') + '" aria-hidden="true"></span>';
+    button.setAttribute('aria-label', muted ? 'Volume muted; open volume options' : 'Open volume options');
+    button.title = muted ? 'Muted — open volume options' : 'Volume options';
   });
   syncVolume();
 })();
