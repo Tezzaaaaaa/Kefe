@@ -130,6 +130,10 @@ const server = http.createServer((req, res) => {
       assert.ok((await effectMenu.getAttribute('aria-label')).includes(secondEffect));
       assert.equal(await page.locator('#lyricEffectOptions > button.active').count(), 1);
       const mode = lyricPanel.getByRole('radiogroup', { name: 'Lyric display mode' });
+      assert.equal(await page.evaluate(() => window.kefeLyricStudio.settings().mode), 'line',
+        'every newly selected lyric effect must start in Line display mode');
+      assert.equal(await mode.getByRole('radio', { name: 'Line' }).getAttribute('aria-checked'), 'true',
+        'the Line option must be selected when an effect is first activated');
       assert.equal(await mode.getAttribute('data-slot'), 'radio-group');
       const line = mode.getByRole('radio', { name: 'Line' });
       await line.focus(); await page.keyboard.press('ArrowRight');
