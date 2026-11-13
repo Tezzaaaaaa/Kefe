@@ -130,6 +130,9 @@
 
   const effectDefinitions=Array.isArray(window.KEFE_EFFECTS)?window.KEFE_EFFECTS.map(e=>[e.key,e.label]):[];
 
+  const effectFontOverridesKey='kefe.lyric-font-overrides.v1';
+  function readEffectFontOverrides(){try{const saved=JSON.parse(localStorage.getItem(effectFontOverridesKey)||'{}');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
+  function saveEffectFontOverride(id,value){const saved=readEffectFontOverrides();saved[id]=value||'';try{localStorage.setItem(effectFontOverridesKey,JSON.stringify(saved));}catch(_){}}
   let state={effect:'apple',fontOverride:'',lines:[],appleLines:[],time:0};
   const canvas=document.getElementById('kefeCanvas'),ctx=canvas?.getContext?.('2d')||null;
   if(!canvas||!ctx){
@@ -744,6 +747,12 @@
   }
   function setEffect(id){
     state.effect=id;
+    window.kefeCurrentLyricEffect=id;
+    if(window.kefeStyle?.activateEffect)window.kefeStyle.activateEffect(id);
+    const fontOverrides=readEffectFontOverrides();
+    state.fontOverride=typeof fontOverrides[id]==='string'?fontOverrides[id]:'';
+    fontSelect.value=state.fontOverride;
+    syncFontOptions();
     applyEffectDefault(id);
     /* Each lyric effect starts in conventional whole-line display, regardless
        of a different mode saved with that effect's previous style settings. */
@@ -1787,6 +1796,7 @@
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{
     state.fontOverride=fontSelect.value;
+    saveEffectFontOverride(state.effect,state.fontOverride);
     const effectFont=window.KEFE_TYPE?.effects?.[state.effect]?.family||'System UI';
     document.getElementById('fontMeta').textContent=fontSelect.value?'Selected font · '+fontSelect.value:'Effect font · '+effectFont;
     draw();syncFontOptions();
