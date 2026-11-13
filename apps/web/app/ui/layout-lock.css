@@ -31,6 +31,12 @@
   --lk-radius: 12px;
 }
 
+/* Mobile preview + timeline should occupy approximately the upper half of the viewport. */
+@media (max-width: 760px) {
+  :root { --lk-preview-h: clamp(180px, 42dvh, 440px); }
+}
+
+
 /* ── Global box-sizing & editor viewport lock ──────────────────────────────────── */
 *,
 *::before,
