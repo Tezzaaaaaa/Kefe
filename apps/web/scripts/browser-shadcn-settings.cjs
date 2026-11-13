@@ -110,7 +110,7 @@ const server = http.createServer((req, res) => {
       const bgBacking = page.locator('#kefeBackgroundEffectToggle');
       const bgSwitch = page.locator('#kefeBackgroundEffectToggle + .kefe-switch-host [role="switch"]');
       const bgBefore = await bgBacking.getAttribute('aria-checked');
-      await bgSwitch.click();
+      await bgSwitch.evaluate(node => node.click());
       assert.notEqual(await bgBacking.getAttribute('aria-checked'), bgBefore);
       await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext('background'));
       const contextTrigger = page.locator('#kefeFloatingToolbar button[aria-label="Lyric effect and text style"]');
