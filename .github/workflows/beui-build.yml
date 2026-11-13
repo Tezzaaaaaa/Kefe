@@ -86,12 +86,12 @@ jobs:
         env:
           NODE_PATH: /tmp/kefe-browser/node_modules
         run: |
+          node apps/web/scripts/browser-shadcn-effects.cjs
           node apps/web/scripts/browser-shadcn-settings.cjs
           node apps/web/scripts/browser-shadcn-timeline.cjs
           node apps/web/scripts/browser-shadcn-volume.cjs
           node apps/web/scripts/browser-shadcn-tabs.cjs
           node apps/web/scripts/browser-shadcn-gallery.cjs
-          node apps/web/scripts/browser-shadcn-effects.cjs
           node apps/web/scripts/browser-shadcn-style.cjs
           node apps/web/scripts/browser-shadcn-legal.cjs
           node apps/web/scripts/browser-shadcn-standalone.cjs
