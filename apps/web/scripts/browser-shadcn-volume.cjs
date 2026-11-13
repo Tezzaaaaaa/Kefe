@@ -40,6 +40,7 @@ const server = http.createServer((req, res) => {
       assert.ok(box && box.x >= 0 && box.x + box.width <= width + 1, 'volume button fits viewport');
       await trigger.click();
       assert.equal(await trigger.getAttribute('aria-expanded'), 'true');
+      await popover.waitFor({ state: 'visible' });
       assert.equal(await popover.isVisible(), true);
       assert.equal(await popover.evaluate(el => Boolean(el.closest('.kefe-volume-control'))), false, 'volume popover must escape the clipping control container');
       const popoverBox = await popover.boundingBox();
