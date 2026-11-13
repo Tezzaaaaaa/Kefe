@@ -64,6 +64,29 @@ if (!existsSync(manifestPath)) {
   }
 }
 
+// Verify the auto-sync worker is copied into the production build and handles both operations.
+{
+  const workerPath = resolve(root, "app/lyrics/auto-sync-worker.js");
+  if (!existsSync(workerPath)) {
+    failures.push("Built lyric auto-sync worker is missing from dist-beui.");
+  } else {
+    let response = null;
+    const scope = {
+      kefeAutoSync: {
+        async transcribeAudio(audio, model, status) { status("recognising"); return [{ word: "test", start: 1 }]; },
+        align(asr, text, meta) { return { lrc: "[00:01.00] test\\n", matched: 1, words: 1 }; },
+      },
+      postMessage(message) { response = message; },
+    };
+    scope.self = scope;
+    runInNewContext(readFileSync(workerPath, "utf8"), scope);
+    await scope.onmessage({ data: { type: "align", asr: [{ word: "test" }], text: "test", meta: {} } });
+    if (!response || !response.result || response.result.matched !== 1) failures.push("Auto-sync worker did not return lyric alignment results.");
+    response = null;
+    await scope.onmessage({ data: { type: "transcribe", audio: new Float32Array([0, 0]).buffer, model: "tiny.en" } });
+    if (!response || !response.result || response.result[0].word !== "test") failures.push("Auto-sync worker did not return speech recognition results.");
+  }
+}
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
