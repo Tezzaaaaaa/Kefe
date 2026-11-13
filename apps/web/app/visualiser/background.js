@@ -256,10 +256,46 @@
     }
     syncBackgroundOptionsUI=syncBackgroundOptions;
     select.addEventListener('change',function(){setMode(select.value==='video'&&!vid?'off':select.value);});
+    var backgroundNav=document.createElement('div');
+    backgroundNav.className='kefe-lyric-effect-preview-nav kefe-background-effect-preview-nav';
+    backgroundNav.setAttribute('role','group');
+    backgroundNav.setAttribute('aria-label','Browse background effects');
+    var backgroundPrevious=document.createElement('button');
+    backgroundPrevious.type='button';
+    backgroundPrevious.className='kefe-lyric-effect-preview-button';
+    backgroundPrevious.setAttribute('aria-label','Previous background effect');
+    backgroundPrevious.title='Previous background effect';
+    backgroundPrevious.textContent='‹';
+    var backgroundStatus=document.createElement('span');
+    backgroundStatus.className='kefe-lyric-effect-preview-count';
+    backgroundStatus.setAttribute('aria-live','polite');
+    var backgroundNext=document.createElement('button');
+    backgroundNext.type='button';
+    backgroundNext.className='kefe-lyric-effect-preview-button';
+    backgroundNext.setAttribute('aria-label','Next background effect');
+    backgroundNext.title='Next background effect';
+    backgroundNext.textContent='›';
+    function changeBackgroundMode(direction){
+      var available=Array.prototype.filter.call(choiceWrap.querySelectorAll('[data-background-mode]'),function(button){return !button.disabled;});
+      if(available.length<2)return;
+      var index=available.findIndex(function(button){return button.dataset.backgroundMode===lastMode;});
+      var next=available[(Math.max(0,index)+direction+available.length)%available.length];
+      setMode(next.dataset.backgroundMode);
+      next.scrollIntoView({block:'nearest',inline:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    }
+    backgroundPrevious.addEventListener('click',function(){changeBackgroundMode(-1);});
+    backgroundNext.addEventListener('click',function(){changeBackgroundMode(1);});
+    backgroundNav.append(backgroundPrevious,backgroundStatus,backgroundNext);
+    heading.appendChild(backgroundNav);
     syncBackgroundToggleUI=function(){
       toggleState.textContent=enabled?'On':'Off';
       toggle.setAttribute('aria-checked',String(enabled));
       toggle.classList.toggle('is-on',enabled);
+      var available=Array.prototype.filter.call(choiceWrap.querySelectorAll('[data-background-mode]'),function(button){return !button.disabled;});
+      var index=available.findIndex(function(button){return button.dataset.backgroundMode===lastMode;});
+      backgroundStatus.textContent=index>=0?(index+1)+' / '+available.length:'';
+      backgroundPrevious.disabled=available.length<2;
+      backgroundNext.disabled=available.length<2;
     };
     syncBackgroundOptions();
     syncBackgroundToggleUI();
