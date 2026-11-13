@@ -17,11 +17,11 @@ for (const group of ["content", "design", "audio-visuals", "export"]) {
 for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visualisers", "export"]) {
   if (!panelHtml.includes('data-kefe-slot="' + slot + '"')) failures.push("Missing live control slot: " + slot);
 }
-if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 6) {
-  failures.push("All six native control panels must retain their expanded content state.");
+if ((panelHtml.match(/data-expanded="true"/g) || []).length !== 5) {
+  failures.push("All five native control sections must retain their expanded content state.");
 }
-if (!panelHtml.includes("Visualiser") || (panelHtml.match(/>Effects</g) || []).length !== 2 || panelHtml.includes("kefe-advanced-controls") || !adapter.includes("kefe-subtabs")) {
-  failures.push("Effects and Visualiser must be clearly named, and every workspace must list its features as subtabs (no Advanced wrapper).");
+if (!panelHtml.includes(">Background<") || (panelHtml.match(/>Effects</g) || []).length !== 2 || panelHtml.includes("kefe-advanced-controls") || !adapter.includes("kefe-subtabs")) {
+  failures.push("Effects and Background (background effects + visualisers) must be clearly named, and every workspace must list its features as subtabs (no Advanced wrapper).");
 }
 if (!bg.includes("effectsGroup.dataset.backgroundGroup='effects'") || !bg.includes("Background Effects")) {
   failures.push("Background and Background Effects must have distinct visible group structure.");

@@ -3,7 +3,7 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
 (() => {
   'use strict';
 
-  const MARKUP_URL = new URL('./app/settings/panel.html?v=export-workspace-shadcn-20261109-1', document.baseURI);
+  const MARKUP_URL = new URL('./app/settings/panel.html?v=bg-visualiser-merge-20261113-1', document.baseURI);
   const SLOT_TO_PANEL = Object.freeze({
     media: 'media',
     'lyric-sync': 'lyrics',

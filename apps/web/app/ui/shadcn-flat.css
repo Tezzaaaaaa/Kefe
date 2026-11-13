@@ -192,7 +192,7 @@ html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tab[aria-selected="t
 /* Single-section workspaces (Visualiser, Export): no one-tab strip. */
 html:root .kefe-editor #kefe-settings-panel .kefe-workspace.is-single-section .kefe-subtabs-mount { display: none !important; }
 /* The section's own H2 repeats the tab/title above it; keep the one-line description. */
-html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] > .kefe-panel-head h2,
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view]:not([data-panel-view="visualiser"]) > .kefe-panel-head h2,
 html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] .kefe-effects-heading > h2 { display: none !important; }
 
 /* ── Switches: one shadcn Switch (36x20, 14px thumb) and one label style everywhere ───── */
@@ -405,3 +405,17 @@ html:root .kefe-editor .kefe-stage.is-empty::after {
 }
 /* [hidden] must keep winning over the display rules above (only the selected engine's view shows). */
 html:root .kefe-editor #kefe-settings-panel .kefe-visualiser-form :is(.kefe-vis-view, .kefe-visualiser-control-group)[hidden] { display: none !important; }
+
+/* ═══ Background workspace: Background Effects, then Visualisers, then the Album Art studio ═══ */
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] { margin-top: var(--lk-gap, 16px) !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] > .kefe-panel-head {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; gap: 8px 12px !important;
+  margin: 0 0 var(--lk-gap-s, 8px) !important; padding: 0 0 8px !important; border: 0 !important; border-bottom: 1px solid var(--shad-border) !important; background: none !important; min-height: 0 !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] > .kefe-panel-head > h2 {
+  display: block !important; margin: 0 !important; font-size: 13px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--shad-foreground) !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] > .kefe-panel-head > .kefe-meta { grid-column: 1 / -1 !important; margin: 0 !important; }
+/* The section title is fixed ("Visualisers"); the selected engine is named by its own settings heading. */
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] > .kefe-panel-head > h2 { font-size: 0 !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] > .kefe-panel-head > h2::before { content: "Visualisers"; font-size: 13px; font-weight: 600; }
