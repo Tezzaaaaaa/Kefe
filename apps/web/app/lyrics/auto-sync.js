@@ -11,16 +11,23 @@
   var CHARSU_ASSET_BASE = 'https://cdn.jsdelivr.net/npm/charsiu-js@0.2.0/assets/';
   var EN_ALIGN_MODEL = 'https://huggingface.co/mnaoizyyy/charsiu-js-models/resolve/main/en_w2v2_fc_10ms/model_quantized.onnx';
   function norm(s) { return String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}']/gu, ''); }
+  var similarityCache = new Map();
   function similarity(a, b) {
     a = norm(a); b = norm(b);
     if (!a || !b) return 0;
-    var prev = new Array(b.length + 1).fill(0), cur;
+    var left = a < b ? a : b, right = a < b ? b : a;
+    var key = left + '\u0000' + right;
+    if (similarityCache.has(key)) return similarityCache.get(key);
+    var prev = new Uint16Array(b.length + 1), cur;
     for (var i = 1; i <= a.length; i++) {
-      cur = new Array(b.length + 1).fill(0);
+      cur = new Uint16Array(b.length + 1);
       for (var j = 1; j <= b.length; j++) cur[j] = a[i - 1] === b[j - 1] ? prev[j - 1] + 1 : Math.max(prev[j], cur[j - 1]);
       prev = cur;
     }
-    return 2 * prev[b.length] / (a.length + b.length);
+    var score = 2 * prev[b.length] / (a.length + b.length);
+    if (similarityCache.size > 50000) similarityCache.clear();
+    similarityCache.set(key, score);
+    return score;
   }
   function parseLyrics(text) {
     return String(text || '').replace(/^\uFEFF/, '').split(/\r?\n/)
