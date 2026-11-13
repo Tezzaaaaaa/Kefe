@@ -92,10 +92,9 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.locator('select[aria-label="Speech recognition model"]').inputValue(), 'base.en');
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
-      await page.locator('#lyricEffectOptions [data-effect="textswap"]').evaluate(node => node.click());
-      await page.getByRole('combobox', { name: 'Text Swap transition' }).click();
-      await page.getByRole('option', { name: 'Crossfade' }).click();
-      assert.equal(await page.evaluate(() => window.kefeTextSwapPreset), 'crossfade');
+      const replacementEffect = page.locator('#lyricEffectOptions [data-effect="bubblegum"]');
+      await replacementEffect.click();
+      assert.equal(await replacementEffect.getAttribute('aria-pressed'), 'true', 'a supplied effect can be selected');
       const lyricsBacking = page.locator('#lyricsEnabledToggle');
       const lyricsSwitch = page.locator('#lyricsEnabledToggle + .kefe-switch-host [role="switch"]');
       const lyricsBefore = await lyricsBacking.getAttribute('aria-checked');
