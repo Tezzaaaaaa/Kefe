@@ -11500,3 +11500,13 @@ html, body {
     scroll-behavior: auto;
   }
 }
+
+
+/* Preview cleanup: keep the actual canvas as the only visible preview layer.
+   The former decorative pseudo-element and outer lift read as a second panel behind it. */
+.kefe-stage::before {
+  background: none !important;
+}
+.kefe-stage {
+  box-shadow: none !important;
+}
