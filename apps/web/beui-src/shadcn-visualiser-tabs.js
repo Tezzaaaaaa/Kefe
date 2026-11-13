@@ -181,7 +181,7 @@ function mountVisualiserTabs() {
           }, h('span', { className: 'kv-preview', 'data-art': entry.art, 'aria-hidden': 'true' }, h('span', { className: 'kv-preview-icon' }, entry.icon)),
           h('span', { className: 'kv-body' }, h('span', { className: 'kv-label' }, entry.label), h('span', { className: 'kv-desc' }, entry.description))),
           h(CardFooter, { className: 'kv-card-foot' },
-            h('span', { className: 'kv-card-status' }, selected ? 'Selected' : 'Preview'),
+            h('span', { className: 'kv-card-status' }, enabled ? 'On' : 'Off'),
             h(Switch, { checked: enabled, disabled: !power || power.disabled || entry.backing.disabled, 'aria-label': action, title: action, onCheckedChange: () => togglePower(value) })));
       }))));
   }

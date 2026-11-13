@@ -194,3 +194,41 @@ html:root .kefe-editor #kefe-settings-panel .kefe-workspace.is-single-section .k
 /* The section's own H2 repeats the tab/title above it; keep the one-line description. */
 html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] > .kefe-panel-head h2,
 html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] .kefe-effects-heading > h2 { display: none !important; }
+
+/* ── Switches: one shadcn Switch (36x20, 14px thumb) and one label style everywhere ───── */
+html:root .kefe-editor .shad-switch {
+  box-sizing: border-box !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  flex: 0 0 36px !important;
+  padding: 2px !important;
+  border: 1px solid transparent !important;
+  border-radius: 9999px !important;
+  box-shadow: none !important;
+  background: var(--shad-input) !important;
+}
+html:root .kefe-editor .shad-switch:is([data-state="checked"], [aria-checked="true"]) { background: var(--shad-primary) !important; }
+html:root .kefe-editor .shad-switch:focus-visible { box-shadow: 0 0 0 3px var(--shad-ring) !important; }
+html:root .kefe-editor .shad-switch .shad-switch-thumb { width: 14px !important; height: 14px !important; }
+html:root .kefe-editor .kefe-switch-host { display: inline-flex !important; align-items: center !important; width: auto !important; height: auto !important; }
+/* Labels that sit beside a switch. */
+html:root .kefe-editor :is(.kefe-lyrics-power > span:first-child, .kv-card-status, .kefe-background-effects-heading > h3, .kefe-switch-row > :is(span, label):first-child) {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+  color: var(--shad-foreground) !important;
+}
+html:root .kefe-editor .kv-card-status { color: var(--shad-muted-foreground) !important; }
+html:root .kefe-editor .kefe-lyrics-power,
+html:root .kefe-editor .kefe-background-effects-heading,
+html:root .kefe-editor .kv-card-foot {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+html:root .kefe-editor .kefe-background-effects-heading,
+html:root .kefe-editor .kv-card-foot { justify-content: space-between !important; }
