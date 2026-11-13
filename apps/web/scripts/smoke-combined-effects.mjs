@@ -30,7 +30,7 @@ function context(){
  save(){},restore(){},translate(){},scale(){},rotate(){},transform(){},setTransform(){},resetTransform(){},beginPath(){},closePath(){},moveTo(){},lineTo(){},arc(){},arcTo(){},ellipse(){},bezierCurveTo(){},quadraticCurveTo(){},rect(){},roundRect(){},clip(){},fill(){},stroke(){},fillRect(){},strokeRect(){},clearRect(){},fillText(){this.paints=(this.paints||0)+1;},strokeText(){this.paints=(this.paints||0)+1;},
  measureText(t){const size=Number((/(\\d+(?:\\.\\d+)?)px/.exec(String(this.font))||[])[1]||20);return {width:Array.from(String(t)).length*size*.52};},createLinearGradient(){return gradient;},createRadialGradient(){return gradient;},createConicGradient(){return gradient;},createPattern(){return null;},drawImage(){},setLineDash(){},getLineDash(){return [];}};
 }
-const runtime={console,Math,Number,String,Array,Object,Date,Map,Set,Intl,CustomEvent:class{constructor(type){this.type=type;}},dispatchEvent(){}};
+const runtime={console,Math,Number,String,Array,Object,Date,Map,Set,Intl,Event:class{constructor(type){this.type=type;}},CustomEvent:class{constructor(type){this.type=type;}},dispatchEvent(){}};
 runtime.window=runtime;runtime.globalThis=runtime;vm.createContext(runtime);
 vm.runInContext(read("app/effects/core.js"),runtime);
 vm.runInContext(read("app/effects/lyric-combined-pack.js"),runtime);
