@@ -34,7 +34,7 @@ const runtime={console,Math,Number,String,Array,Object,Date,Map,Set,Intl,CustomE
 runtime.window=runtime;runtime.globalThis=runtime;vm.createContext(runtime);
 vm.runInContext(read("app/effects/core.js"),runtime);
 vm.runInContext(read("app/effects/lyric-combined-pack.js"),runtime);
-assert.deepEqual(Object.keys(runtime.kefeEffects).sort(),keys.slice().sort(),"renderer registry exactly matches the supplied roster");
+assert.equal(JSON.stringify(Object.keys(runtime.kefeEffects).sort()),JSON.stringify(Array.from(keys).sort()),"renderer registry exactly matches the supplied roster");
 const timed=[{text:"BURN IT DOWN",time:1,endTime:3,words:[{text:"BURN",time:1,endTime:1.5},{text:"IT",time:1.5,endTime:2},{text:"DOWN",time:2,endTime:3}]}];
 const untimed=[{text:"NO WORD TIMINGS",time:0,endTime:3},{text:"SECOND LINE",time:3,endTime:5}];
 for(const key of keys){
