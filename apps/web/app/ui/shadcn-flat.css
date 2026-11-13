@@ -291,6 +291,7 @@ html:root .kefe-editor .shad-checkbox {
   border-radius: 4px !important;
 }
 html:root .kefe-editor .kefe-checkbox-host { display: inline-flex !important; align-items: center !important; width: auto !important; height: auto !important; flex: none !important; }
+html:root .kefe-editor .kefe-checkbox-host[hidden] { display: none !important; }
 
 /* ═══ Effects: Lyric Effects and Background share ONE layout ════════════════════════════
    [ title ........................ ‹ n/N ›  (switch) ]
