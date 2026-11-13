@@ -107,6 +107,8 @@ import { mountWorkspaceTabs } from '../../beui-src/shadcn-workspace-tabs.js';
       let saved = null;
       try { saved = localStorage.getItem('kefe.subtab.' + workspace.dataset.group); } catch (e) { /* ignore */ }
       const initial = items.find(item => item.id === saved) || items[0];
+      /* A workspace with one section needs no section tab strip; the workspace tab already names it. */
+      workspace.classList.toggle('is-single-section', items.length === 1);
       const mount = document.createElement('div');
       mount.className = 'kefe-subtabs-mount';
       stack.insertBefore(mount, stack.firstChild);

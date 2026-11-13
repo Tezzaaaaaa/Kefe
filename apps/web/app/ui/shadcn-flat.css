@@ -167,3 +167,30 @@ html:root .kefe-editor .kefe-export-aspect-option {
 html:root .kefe-editor .kefe-export-aspect-ratio { font-size: 13px; font-weight: 600; }
 html:root .kefe-editor .kefe-export-aspect-name { font-size: 11px; font-weight: 400; color: var(--shad-muted-foreground); }
 html:root .kefe-editor .kefe-export-summary { margin: 0 !important; line-height: 1.5 !important; overflow-wrap: anywhere; }
+
+/* ── Workspace tabs & headings: one neutral shadcn treatment (no per-workspace colours) ── */
+html:root .kefe-editor #kefe-settings-panel {
+  --kefe-workspace-accent: var(--shad-foreground);
+  --kefe-tab-accent: var(--shad-foreground);
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace:not([hidden]) .kefe-workspace-title {
+  color: var(--shad-foreground) !important;
+  border-bottom-color: var(--shad-border) !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtabs {
+  border-bottom: 0 !important;
+  background: var(--shad-muted) !important;
+  border-radius: var(--shad-radius-lg, 10px) !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-subtab[aria-selected="true"],
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tab[aria-selected="true"] {
+  color: var(--shad-foreground) !important;
+  background: var(--shad-background) !important;
+  border: 1px solid var(--shad-border) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+}
+/* Single-section workspaces (Visualiser, Export): no one-tab strip. */
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace.is-single-section .kefe-subtabs-mount { display: none !important; }
+/* The section's own H2 repeats the tab/title above it; keep the one-line description. */
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] > .kefe-panel-head h2,
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] .kefe-effects-heading > h2 { display: none !important; }
