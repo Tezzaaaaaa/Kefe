@@ -104,7 +104,7 @@ pnpm --filter @kefe/web test:settings
 pnpm --filter @kefe/web test:select
 pnpm --filter @kefe/web test:checkbox
 pnpm --filter @kefe/web test:switch
-node apps/web/scripts/smoke-signature-effects.mjs
+node apps/web/scripts/smoke-combined-effects.mjs
 node apps/web/scripts/smoke-native-controls.mjs
 node apps/web/scripts/smoke-native-upload.mjs
 node apps/web/scripts/smoke-mobile-sidebar.mjs
