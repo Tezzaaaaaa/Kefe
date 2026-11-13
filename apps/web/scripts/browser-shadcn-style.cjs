@@ -98,6 +98,7 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => window.kefeStyle && document.querySelectorAll('#kefeStyleGroup .kefe-style-color-row[data-shadcn-hydrated="true"]').length === 5);
       await page.evaluate(() => window.kefeProjectAutosave.ready);
       assert.equal(await page.evaluate(() => window.kefeStyle.state().textColor), '#234567', 'toolbar colour persisted');
+      assert.equal(await page.locator('#fontOverride').inputValue(), 'Arial', 'effect font override persisted independently');
       assert.equal(await page.evaluate(() => window.kefeStyle.state().outline.color), '#f0a35e', 'outline persisted');
       assert.equal(await rows.nth(4).locator('input').inputValue(), '#a88be8', 'API state persisted');
       assert.deepEqual(errors, [], `no page or hydration errors at ${width}px`);
