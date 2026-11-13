@@ -652,3 +652,53 @@
     grid-template-columns: minmax(0, 1fr) !important;
   }
 }
+
+
+/* Background controls mirror the Lyric Effects power row: label, switch and
+   previous/current/next navigation share one aligned control line. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > .kefe-background-effect-toggle {
+  flex: 0 0 auto;
+  order: 2;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > .kefe-background-effect-preview-nav {
+  flex: 0 0 auto;
+  order: 3;
+  margin: 0 2px 0 0;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--inner);
+  font: inherit;
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+@media (max-width: 700px) {
+  :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button {
+    width: 26px;
+    height: 26px;
+  }
+}
