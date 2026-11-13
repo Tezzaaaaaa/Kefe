@@ -76,6 +76,7 @@ if (!existsSync(manifestPath)) {
         async transcribeAudio(audio, model, status) { status("recognising"); return [{ word: "test", start: 1 }]; },
         align(asr, text, meta) { return { lrc: "[00:01.00] test\\n", matched: 1, words: 1 }; },
       },
+      importScripts(path) { if (path !== "./auto-sync.js") throw new Error("Unexpected worker import: " + path); },
       postMessage(message) { response = message; },
     };
     scope.self = scope;
