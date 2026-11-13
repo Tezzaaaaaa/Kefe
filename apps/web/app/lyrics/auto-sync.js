@@ -601,13 +601,17 @@
           ? await runWorkerRequest({ type: 'align', asr: cached.words, text: sourceLyrics, meta: options }, [], function (message) { status.textContent = message; }, signal)
           : align(cached.words, sourceLyrics, options);
         var pct = Math.round(100 * result.matched / result.words);
+        var review = validateReport(result);
+        var minimumAnchors = Math.min(result.lines, Math.max(2, Math.ceil(result.lines * 0.2)));
+        if (review.coverage < 0.4 || review.matchedLineAnchors < minimumAnchors) {
+          throw new Error('Only ' + pct + '% of lyric words were matched to recognised vocals across ' + review.matchedLineAnchors + '/' + review.totalLines + ' lines. No timings were applied because the remaining timestamps would be estimates. Try the multilingual Balanced or More accurate model and check that the lyrics match this recording.');
+        }
         var nextLines = model.parseLrc(result.lrc);
         if (!nextLines.length) throw new Error('The timing result could not be applied to the lyric editor.');
         if (box.value !== sourceLyrics || (audio && (audio.currentSrc || audio.src) !== src)) throw new Error('The lyrics or loaded audio changed during syncing. Run auto-time again for the current track.');
         previous = { lines: model.cloneLines(api.lines()), text: box.value };
         api.set(nextLines, 'autosync');
         status.textContent = (select.value === 'ctc.en' ? 'Forced alignment' : 'Auto-sync') + ' complete: ' + result.matched + '/' + result.words + ' word timings measured (' + pct + '%).' + (forcedCoverage == null ? '' : ' Whisper lyric overlap: ' + Math.round(forcedCoverage * 100) + '%');
-        var review = validateReport(result);
         note.textContent = 'Measured word timings: ' + review.measuredWords + '/' + review.totalWords + '; estimated: ' + review.estimatedWords + '. ' + review.warnings.join(' ') + (forcedCoverage != null && forcedCoverage < 0.55 ? ' Whisper found limited lyric overlap, so forced timings may be unreliable.' : '') + ' Review line and word timings in the Timing editor before exporting.';
         undo.disabled = false;
       } catch (e) {
