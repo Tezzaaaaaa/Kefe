@@ -552,7 +552,7 @@
     var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'If you pasted plain lyrics, KEFE can listen to your song and add the timing. This can take a few minutes the first time.';
     var controls = document.createElement('div'); controls.className = 'kefe-download-row'; controls.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0;';
     var select = document.createElement('select'); select.className = 'kefe-select'; select.setAttribute('aria-label', 'Speech recognition model');
-    [['tiny.en','English · Fast (default)'],['base.en','English · More accurate'],['ctc.en','English · Precise alignment'],['tiny','Other languages · Fast'],['base','Other languages · Balanced'],['small','Other languages · Most accurate']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
+    [['tiny','Multilingual · Fast (default)'],['base','Multilingual · Balanced'],['small','Multilingual · More accurate'],['tiny.en','English · Fast'],['base.en','English · More accurate'],['ctc.en','English · Precise alignment']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
     var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-btn primary'; go.textContent = 'Auto-sync to audio';
     var cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'kefe-btn'; cancelBtn.textContent = 'Cancel auto-time'; cancelBtn.hidden = true;
     var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-btn'; undo.textContent = 'Undo auto-time'; undo.disabled = true;
@@ -561,7 +561,7 @@
     var previous = null, activeAbort = null;
     var more = document.createElement('details'); more.className = 'kefe-more';
     var moreSummary = document.createElement('summary'); moreSummary.textContent = 'Language and advanced options';
-    var moreHelp = document.createElement('div'); moreHelp.className = 'kefe-meta'; moreHelp.textContent = 'KEFE uses English · Fast by default. Choose an Other languages option for non-English songs. The precise English alignment option downloads a larger model and uses more memory.';
+    var moreHelp = document.createElement('div'); moreHelp.className = 'kefe-meta'; moreHelp.textContent = 'KEFE uses the multilingual model by default. English-only models can improve English recognition; precise English alignment downloads a larger model and uses more memory.';
     more.append(moreSummary, select, moreHelp);
     controls.append(go, undo, cancelBtn); card.append(title, help, controls, more, status, note);
     host.insertBefore(card, host.firstChild);
