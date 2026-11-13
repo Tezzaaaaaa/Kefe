@@ -24,9 +24,9 @@ vm.runInContext(read("app/effects/manifest.js"),sandbox,{filename:"manifest.js"}
 const manifest=sandbox.window.KEFE_EFFECTS;
 assert.equal(manifest.length,73,"Apple plus the 72 supplied effects must be listed");
 assert.equal(manifest[0].key,"apple","Apple must remain first and unchanged");
-const manifestKeys=manifest.map(item=>item.key);
+const manifestKeys=Array.from(manifest,item=>item.key);
 assert.equal(new Set(manifestKeys).size,manifestKeys.length,"effect keys must be unique");
-assert.equal(new Set(manifest.map(item=>item.label)).size,manifest.length,"effect labels must be unique");
+assert.equal(new Set(Array.from(manifest,item=>item.label)).size,manifest.length,"effect labels must be unique");
 assert.deepEqual(manifestKeys.slice(1),expected,"manifest must contain the complete supplied collection in order");
 
 const editor=read("editor.source.html");
