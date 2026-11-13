@@ -107,10 +107,12 @@ const server = http.createServer((req, res) => {
       assert.equal(await lyricsSwitch.isVisible(), false, 'hidden backing switch hides its shadcn control');
       await page.evaluate(() => { document.getElementById('lyricsEnabledToggle').hidden = false; });
       await page.locator('#kefe-subtab-background').evaluate(node => node.click());
+      await page.waitForFunction(() => document.querySelector('#kefe-subtab-background')?.getAttribute('aria-selected') === 'true');
       const bgBacking = page.locator('#kefeBackgroundEffectToggle');
       const bgSwitch = page.locator('#kefeBackgroundEffectToggle + .kefe-switch-host [role="switch"]');
+      await bgSwitch.waitFor({ state: 'visible' });
       const bgBefore = await bgBacking.getAttribute('aria-checked');
-      await bgSwitch.evaluate(node => node.click());
+      await bgSwitch.click();
       assert.notEqual(await bgBacking.getAttribute('aria-checked'), bgBefore);
       await page.evaluate(() => window.kefeProjectAutosave.setToolbarContext('background'));
       const contextTrigger = page.locator('#kefeFloatingToolbar button[aria-label="Lyric effect and text style"]');
