@@ -98,7 +98,7 @@ function mount() {
         h(
           PopoverContent,
           {
-            portal: false,
+            portal: true,
             side: 'top',
             align: 'end',
             sideOffset: 10,
