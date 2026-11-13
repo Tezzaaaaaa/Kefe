@@ -262,7 +262,7 @@
     backgroundNav.setAttribute('aria-label','Browse background effects');
     var backgroundPrevious=document.createElement('button');
     backgroundPrevious.type='button';
-    backgroundPrevious.className='kefe-lyric-effect-preview-button';
+    backgroundPrevious.className='kefe-lyric-effect-preview-button kefe-background-effect-preview-button';
     backgroundPrevious.setAttribute('aria-label','Previous background effect');
     backgroundPrevious.title='Previous background effect';
     backgroundPrevious.textContent='‹';
@@ -271,7 +271,7 @@
     backgroundStatus.setAttribute('aria-live','polite');
     var backgroundNext=document.createElement('button');
     backgroundNext.type='button';
-    backgroundNext.className='kefe-lyric-effect-preview-button';
+    backgroundNext.className='kefe-lyric-effect-preview-button kefe-background-effect-preview-button';
     backgroundNext.setAttribute('aria-label','Next background effect');
     backgroundNext.title='Next background effect';
     backgroundNext.textContent='›';
