@@ -41,6 +41,9 @@ const server = http.createServer((req, res) => {
       await trigger.click();
       assert.equal(await trigger.getAttribute('aria-expanded'), 'true');
       assert.equal(await popover.isVisible(), true);
+      assert.equal(await popover.evaluate(el => Boolean(el.closest('.kefe-volume-control'))), false, 'volume popover must escape the clipping control container');
+      const popoverBox = await popover.boundingBox();
+      assert.ok(popoverBox && popoverBox.x >= 0 && popoverBox.y >= 0 && popoverBox.x + popoverBox.width <= width + 1 && popoverBox.y + popoverBox.height <= 844 + 1, 'volume popover must remain fully visible in the viewport');
       const slider = popover.getByRole('slider', { name: 'Audio volume' });
       assert.equal(await slider.getAttribute('data-slot'), 'slider-thumb');
       await slider.focus(); await page.keyboard.press('Home');
