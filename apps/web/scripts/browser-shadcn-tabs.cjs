@@ -44,11 +44,12 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => document.querySelector('[data-workspace-tab="content"]')?.getAttribute('aria-selected') === 'true');
       await page.keyboard.press('ArrowRight');
       await page.waitForFunction(() => document.querySelector('[data-workspace-tab="design"]')?.getAttribute('aria-selected') === 'true');
-      const sublist = page.locator('#kefe-workspace-appearance-panel [data-slot="tabs-list"]');
-      const subtabs = sublist.getByRole('tab');
-      assert.equal(await subtabs.count(), 2);
-      assert.equal(await sublist.locator('[data-slot="tabs-trigger"]').count(), 2);
-      await subtabs.first().focus(); await page.keyboard.press('End');
+      const designPanel = page.locator('#kefe-workspace-appearance-panel');
+      const designSubtabs = designPanel.locator('[data-slot="tabs-list"]');
+      assert.equal(await designSubtabs.locator('[data-slot="tabs-trigger"]').count(), 1, 'Effects workspace has one Lyric Effects section');
+      assert.equal(await designSubtabs.isVisible(), false, 'single-section Effects workspace hides its redundant subtab strip');
+      assert.equal(await page.locator('#kefe-subpanel-lyric-effects').isVisible(), true, 'Lyric Effects is the active Effects section');
+      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       await page.waitForFunction(() => document.querySelector('#kefe-subtab-background')?.getAttribute('aria-selected') === 'true');
       const backgroundRelation = await page.locator('#kefe-subtab-background').evaluate(node => {
         const panel = document.getElementById(node.getAttribute('aria-controls'));
@@ -59,7 +60,7 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => document.querySelector('#kefe-subtab-export')?.getAttribute('aria-selected') === 'true' && document.querySelector('[data-workspace-tab="export"]')?.getAttribute('aria-selected') === 'true');
       assert.equal(await page.locator('#kefe-subpanel-export').isVisible(), true);
       // Programmatic clicks were part of the editor's public navigation contract.
-      await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
+      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-background').evaluate(node => node.click());
       await page.reload();
       await page.waitForFunction(() => window.kefeSettingsPanelAdapter && document.querySelector('#kefe-subtab-background'));

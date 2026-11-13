@@ -42,7 +42,7 @@ function audioFixture() {
       await page.locator('#mediaInput').setInputFiles({ name: 'export-test.wav', mimeType: 'audio/wav', buffer: audioFixture() });
       await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 1);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-visualisers').evaluate(node => node.click());
+      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
       await page.locator('.kv-tab[data-visualiser="gradient"]').click();
       await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());

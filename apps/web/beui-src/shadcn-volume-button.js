@@ -57,6 +57,13 @@ function mount() {
     const parkRef = React.useRef(null);
     const closedByOutsideRef = React.useRef(false);
     const wasOpenRef = React.useRef(initiallyOpen);
+    const attachSlot = React.useCallback(node => {
+      slotRef.current = node;
+      if (node && open) {
+        if (popover.parentNode !== node) node.appendChild(popover);
+        popover.hidden = false;
+      }
+    }, [open]);
 
     React.useLayoutEffect(() => {
       const container = open ? slotRef.current : parkRef.current;
@@ -131,7 +138,7 @@ function mount() {
               }
             },
           },
-          h('div', { ref: slotRef, style: { display: 'contents' } })
+          h('div', { ref: attachSlot, style: { display: 'contents' } })
         )
       )
     );

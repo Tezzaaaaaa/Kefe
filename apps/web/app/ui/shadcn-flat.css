@@ -213,6 +213,7 @@ html:root .kefe-editor .shad-switch:is([data-state="checked"], [aria-checked="tr
 html:root .kefe-editor .shad-switch:focus-visible { box-shadow: 0 0 0 3px var(--shad-ring) !important; }
 html:root .kefe-editor .shad-switch .shad-switch-thumb { width: 14px !important; height: 14px !important; }
 html:root .kefe-editor .kefe-switch-host { display: inline-flex !important; align-items: center !important; width: auto !important; height: auto !important; }
+html:root .kefe-editor .kefe-switch-host[hidden] { display: none !important; }
 /* Labels that sit beside a switch. */
 html:root .kefe-editor :is(.kefe-lyrics-power > span:first-child, .kv-card-status, .kefe-background-effects-heading > h3, .kefe-switch-row > :is(span, label):first-child) {
   font-size: 12px !important;
@@ -291,6 +292,7 @@ html:root .kefe-editor .shad-checkbox {
   border-radius: 4px !important;
 }
 html:root .kefe-editor .kefe-checkbox-host { display: inline-flex !important; align-items: center !important; width: auto !important; height: auto !important; flex: none !important; }
+html:root .kefe-editor .kefe-checkbox-host[hidden] { display: none !important; }
 
 /* ═══ Effects: Lyric Effects and Background share ONE layout ════════════════════════════
    [ title ........................ ‹ n/N ›  (switch) ]

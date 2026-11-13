@@ -22,7 +22,7 @@ const server = http.createServer((req, res) => {
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/editor.html`);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-visualisers').evaluate(node => node.click());
+      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
       const gallery = page.locator('.shad-vis-tabs-host');
       await gallery.locator('[data-slot="tabs-list"]').waitFor();
       assert.equal(await gallery.locator('[data-slot="card"]').count(), 7);
@@ -57,7 +57,7 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => window.kefeProjectAutosave && window.kefeSettingsPanelAdapter);
       await page.evaluate(() => window.kefeProjectAutosave.ready);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-visualisers').evaluate(node => node.click());
+      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
       await page.waitForFunction(id => document.querySelector(`.shad-vis-tabs-host [data-visualiser="${id}"][role="tab"]`)?.getAttribute('aria-selected') === 'true', firstId);
       assert.equal(await gallery.locator(`.kv-card[data-visualiser="${firstId}"] [data-slot="switch"]`).getAttribute('aria-checked'), 'false', 'saved engine power is restored');
       await page.evaluate(() => {
