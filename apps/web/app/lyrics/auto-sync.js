@@ -556,6 +556,8 @@
           forcedCoverage = forced.asrCoverage;
         }
         if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+        status.textContent = 'Matching recognised words to your lyrics and building timestamps…';
+        await new Promise(function (resolve) { setTimeout(resolve, 0); });
         var result = align(cached.words, sourceLyrics, options);
         var pct = Math.round(100 * result.matched / result.words);
         var nextLines = model.parseLrc(result.lrc);
