@@ -43,7 +43,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.locator('.kefe-lyric-effect-preview-nav > button[data-slot="button"]').count(), 2);
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
-      const nav = page.locator('.kefe-lyric-effect-preview-nav');
+      const nav = page.locator('.kefe-lyric-effect-preview-nav').first();
       const prevEffect = nav.locator('button').first(), nextEffect = nav.locator('button').last();
       const initialCount = await nav.locator('.kefe-lyric-effect-preview-count').textContent();
       await nextEffect.click();
