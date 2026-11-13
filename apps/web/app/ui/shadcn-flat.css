@@ -291,3 +291,74 @@ html:root .kefe-editor .shad-checkbox {
   border-radius: 4px !important;
 }
 html:root .kefe-editor .kefe-checkbox-host { display: inline-flex !important; align-items: center !important; width: auto !important; height: auto !important; flex: none !important; }
+
+/* ═══ Effects: Lyric Effects and Background share ONE layout ════════════════════════════
+   [ title ........................ ‹ n/N ›  (switch) ]
+   [ gallery of effect cards (same grid, same card) ]
+   [ settings ]                                                                           */
+html:root .kefe-editor #kefe-settings-panel :is(.kefe-effects-panel-head, .kefe-background-effects-heading) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  grid-auto-flow: row !important;
+  align-items: center !important;
+  gap: 8px 12px !important;
+  margin: 0 0 var(--lk-gap-s, 8px) !important;
+  padding: 0 0 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--shad-border) !important;
+  background: none !important;
+  min-height: 0 !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-effects-panel-head .kefe-effects-heading,
+html:root .kefe-editor #kefe-settings-panel .kefe-effects-panel-head .kefe-lyrics-power > button.kefe-switch,
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-heading > button.kefe-switch { display: none !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-effects-panel-head .kefe-lyrics-power { display: contents !important; }
+/* column 1: title */
+html:root .kefe-editor #kefe-settings-panel .kefe-lyrics-power > span:first-child,
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-heading > h3 {
+  grid-column: 1 !important; grid-row: 1 !important;
+  margin: 0 !important; font-size: 13px !important; font-weight: 600 !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+/* column 2: pager, column 3: switch */
+html:root .kefe-editor #kefe-settings-panel :is(.kefe-effects-panel-head, .kefe-background-effects-heading) .kefe-lyric-effect-preview-nav {
+  grid-column: 2 !important; grid-row: 1 !important;
+  position: static !important; display: inline-flex !important; flex-direction: row !important;
+  align-items: center !important; justify-content: center !important; gap: 4px !important;
+  width: auto !important; height: auto !important; margin: 0 !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important;
+}
+html:root .kefe-editor #kefe-settings-panel :is(.kefe-effects-panel-head, .kefe-background-effects-heading) .kefe-lyric-effect-preview-button {
+  position: static !important; box-sizing: border-box !important;
+  width: 28px !important; height: 28px !important; min-width: 28px !important; min-height: 28px !important; padding: 0 !important;
+  display: inline-flex !important; align-items: center !important; justify-content: center !important;
+  font-size: 16px !important; line-height: 1 !important;
+  background: transparent !important; border: 1px solid var(--shad-border-strong) !important; border-radius: var(--shad-radius-md) !important; box-shadow: var(--shad-shadow-xs) !important;
+  color: var(--shad-foreground) !important; transform: none !important;
+}
+html:root .kefe-editor #kefe-settings-panel :is(.kefe-effects-panel-head, .kefe-background-effects-heading) .kefe-lyric-effect-preview-button:hover:not(:disabled) { background: var(--shad-accent) !important; }
+html:root .kefe-editor #kefe-settings-panel :is(.kefe-effects-panel-head, .kefe-background-effects-heading) .kefe-lyric-effect-preview-count {
+  min-width: 44px !important; text-align: center !important; font-size: 12px !important; font-weight: 500 !important; font-variant-numeric: tabular-nums; color: var(--shad-muted-foreground) !important;
+}
+html:root .kefe-editor #kefe-settings-panel :is(.kefe-effects-panel-head, .kefe-background-effects-heading) .kefe-switch-host { grid-column: 3 !important; grid-row: 1 !important; justify-self: end !important; }
+
+/* No redundant sub-label / driver select above the gallery. */
+html:root .kefe-editor #kefe-settings-panel .kefe-lyric-effects-control > .kefe-label,
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group > .kefe-background-effect-control:has(#visualiserBackground) { display: none !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-lyric-effects-control { padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+
+/* Same gallery + card for Background as for Lyric Effects. */
+html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  gap: var(--lk-gap-s, 8px) !important;
+  padding: 2px !important;
+}
+html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions .kefe-background-effect-card {
+  display: flex !important; flex-direction: column !important; height: auto !important; min-height: 0 !important; padding: 6px !important; gap: 6px !important;
+}
+html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions .kefe-background-effect-preview {
+  display: block !important; width: 100% !important; height: auto !important; aspect-ratio: 2 / 1 !important; overflow: hidden !important;
+  border-radius: calc(var(--shad-radius-md) - 2px) !important;
+}
+html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions .kefe-background-effect-name { font-size: 12px !important; font-weight: 500 !important; text-align: center !important; line-height: 1.2 !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="background-effects"] > .kefe-panel-head { display: none !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group { padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
