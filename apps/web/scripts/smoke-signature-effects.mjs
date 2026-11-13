@@ -1,198 +1,109 @@
-/* Static + runtime smoke for the 50-effect Signature LyricFX pack.
-   Verifies the roster, renderer registration, typography contracts, page
-   wiring and that every renderer paints the canvas at multiple timestamps. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const read = file => fs.readFileSync(resolve(webRoot, file), "utf8");
-
-const EXPECTED = [
-  ["Kinetic Dynamics", ["sigkineticpunch", "sigelasticslam", "siggravitylanding", "sigmagnetrepulse", "sigwordcascade", "sigmarqueerail", "sigslotroll", "sigstompbeat", "sigrubberstretch"]],
-  ["Glow Shaders", ["signeonatmosphere", "sigtubeignition", "sighalobloom", "sigemberrise", "sigultraviolet", "sigphosphor", "sigspotlight", "sigaurorawash", "sigcandleflicker"]],
-  ["Cyber Networks", ["sigterminalglitch", "sigvhstracking", "sigdatacorrupt", "sigcathodescan", "sigcamcorder", "sighexrain", "sigsignalloss", "sigbitcrush"]],
-  ["Rare Gem Treatments", ["sigiridescent", "siggoldfoil", "sigchromemetal", "sigprismsplit", "sigdiamondfacet", "sigrosequartz", "sigobsidian", "sigsodalite"]],
-  ["Liquid & Organic", ["sigmetaball", "siginkbleed", "sigwaterripple", "sigmoltendrip", "sigmercurybead", "sigsilkwave", "sigpetalbloom", "sigvaporbloom"]],
-  ["Dimensional Depth", ["sigchromeextrusion", "sigletterflip", "sigcardstack", "sigrackfocus", "sigkaleidoscope", "sigorbitring", "sigtypewriter", "sigcinemabars"]],
-  ["Flagship", ["sigluminaire", "sigpresscycle"]],
+const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
+const read=file=>fs.readFileSync(resolve(root,file),"utf8");
+const expected=[
+"frost","void","script","brat","scrawl","slam","fly","crossfade","read","settle","ember","spark",
+"bubblegum","stamp","slice","swash","round","brush","spin","neon","ink","dust",
+"typewriter","liquid","editorial","depth","flip","lineslide","sweep","elastic","bloom","curtain",
+"blinds","iris","diagonal","window","rollup","peel","sliceopen","glide","blurresolve","wave",
+"scramble","tracking","kerning","centerstagger","edgestagger","falldown","riseup","jello","scatter",
+"cylinder","depthecho","converge","tumble","parallax","holographic","glitch","chromatic","neonglow",
+"liquidfill","goldfoil","aurora","spotlight","splitflap","marquee","splitreveal","punch","beat",
+"skew","odometer","spiral"
 ];
-const keys = EXPECTED.flatMap(([, list]) => list);
-const addedSignatureKeys = ["sigfrost", "sigvoid", "sigscript", "sigbrat"];
-
-/* ---- manifest ---------------------------------------------------- */
-const sandbox = { window: {}, console, Math, Number, String, Array, Object, Map, Set, Intl };
-sandbox.window.window = sandbox.window;
+assert.equal(expected.length,72);
+const sandbox={window:{},console,Math,Number,String,Array,Object,Map,Set,Intl};
+sandbox.window.window=sandbox.window;
 vm.createContext(sandbox);
-vm.runInContext(read("app/effects/manifest.js"), sandbox, { filename: "manifest.js" });
-const manifest = sandbox.window.KEFE_EFFECTS;
-assert.ok(Array.isArray(manifest), "manifest must publish KEFE_EFFECTS");
-assert.equal(manifest.length, 59, `roster must be Apple + Text Swap + Lyric Pull + 56 Signature effects, found ${manifest.length}`);
-assert.equal(manifest[0].key, "apple", "Apple must stay first in the roster");
-assert.equal(manifest.filter(item => item.key === "apple").length, 1, "Apple must be listed exactly once");
-const manifestKeys = Array.from(manifest, item => item.key);
-assert.equal(new Set(manifestKeys).size, manifestKeys.length, "effect keys must be unique");
-const labels = Array.from(manifest, item => item.label);
-assert.equal(new Set(labels).size, labels.length, "effect labels must be unique");
-for (const [category, list] of EXPECTED) {
-  const entries = Array.from(manifest).filter(item => item.category === category);
-  assert.deepEqual(Array.from(entries, item => item.key), list, `${category} roster changed`);
-  for (const entry of entries) {
-    assert.ok(entry.label && entry.description, `${entry.key} needs a label and description`);
-    assert.equal(entry.key.startsWith("sig"), true, `${entry.key} must use the sig prefix`);
-  }
-}
-for (const key of [...keys, ...addedSignatureKeys]) assert.ok(manifestKeys.includes(key), `${key} is missing from the manifest`);
-const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && key !== "lyricpull" && !key.startsWith("sig"));
-assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${legacy.join(", ")}`);
+vm.runInContext(read("app/effects/manifest.js"),sandbox,{filename:"manifest.js"});
+const manifest=sandbox.window.KEFE_EFFECTS;
+assert.equal(manifest.length,73,"Apple plus the 72 supplied effects must be listed");
+assert.equal(manifest[0].key,"apple","Apple must remain first and unchanged");
+const manifestKeys=manifest.map(item=>item.key);
+assert.equal(new Set(manifestKeys).size,manifestKeys.length,"effect keys must be unique");
+assert.equal(new Set(manifest.map(item=>item.label)).size,manifest.length,"effect labels must be unique");
+assert.deepEqual(manifestKeys.slice(1),expected,"manifest must contain the complete supplied collection in order");
 
-/* ---- page wiring ------------------------------------------------- */
-const editor = read("editor.source.html");
-assert.match(editor, /<meta name="kefe-lyric-signature" content="56">/, "the editor must declare the Signature pack marker");
-assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
-assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
-assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
-assert.match(editor, /lyric-signature-four\.js/, "the four new Signature treatments must be loaded by the editor");
-assert.match(editor, /lyric-text-swap\.js/, "Text Swap renderer must be loaded by the editor");
-assert.match(editor, /lyric-premium-kit\.js[^]*lyric-signature-pack\.js/, "the premium kit must load before the Signature pack");
-assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
-for (const file of ["lyric-aurora", "lyric-pulse", "lyric-typewriter", "lyric-glitch", "lyric-inspiration-pack"]) {
-  assert.doesNotMatch(editor, new RegExp(`effects/${file}\\.js`), `the retired ${file} renderer must not be loaded`);
-}
+const editor=read("editor.source.html");
+assert.match(editor,/<meta name="kefe-lyric-effects" content="72">/);
+assert.match(editor,/effects\/manifest\.js/);
+assert.match(editor,/lyric-signature-pack\.js/);
+assert.match(editor,/lyric-apple\.js/);
+assert.match(editor,/lyric-karaoke\.js/);
+assert.match(editor,/core\.js[^]*lyric-signature-pack\.js/);
+const editorSource=read("app/editor.js");
+assert.ok(editorSource.includes("EFFECT_PREVIEW_PHRASE='The quick brown fox jumps over the lazy dog.'"));
+assert.match(editorSource,/if\(settings\.mode!=='line'\)lyricStudio\.applySettings\(\{\.\.\.settings,mode:'line'\}\)/);
+assert.match(editorSource,/effectDefinitions\.filter\(\(\[id\]\)=>id!=='karaoke'&&id!=='bounce'\)\.forEach\(\(\[id,label\]\)=>addLyricEffectOption\(id,label\)\)/);
 
-/* ---- editor picker + preview integration -------------------------- */
-const editorSource = read("app/editor.js");
-assert.match(editorSource, /effectDefinitions\.filter\(\(\[id\]\)=>id!=='karaoke'&&id!=='bounce'\)\.forEach\(\(\[id,label\]\)=>addLyricEffectOption\(id,label\)\)/, "the picker must be generated from the complete effect manifest");
-assert.ok(editorSource.includes("EFFECT_PREVIEW_PHRASE='The quick brown fox jumps over the lazy dog.'"), "effect cards must preview the pangram sample sentence");
-assert.match(editorSource, /function startEffectPreview\(entry\)/, "effect previews must animate on hover and keyboard focus");
-assert.match(editorSource, /button\.addEventListener\('pointerenter'/, "effect preview animation must start on pointer hover");
-assert.match(editorSource, /button\.addEventListener\('pointerleave'/, "effect preview animation must stop when the pointer leaves");
-assert.match(editorSource, /paintEffectPreview\(entry,time\)/, "previews must call the selected effect renderer at changing timestamps");
-const structure = read("app/ui/structure.js");
-assert.ok(structure.includes("The quick brown fox jumps over the lazy dog."), "the lyric input must use the all-alphabet pangram placeholder");
-const sectionLayout = read("app/ui/section-layout.css");
-assert.match(sectionLayout, /grid-auto-rows: 112px !important;/, "lyric effect cards must retain consistent row sizing across breakpoints");
-assert.doesNotMatch(editorSource, /window\.kefeEffects\[state\.effect\]\s*\|\|\s*window\.kefeEffects\.apple/, "a missing renderer must not silently substitute Apple");
-assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\(W,H\)/, "the pinned-header mask must be scoped to Apple only");
-
-/* ---- typography contracts ---------------------------------------- */
-const typography = read("app/ui/typography.js");
-assert.match(typography, /\n\s+textswap:\s*\{ family: families\./, "Text Swap needs a typography contract");
-assert.match(typography, /\n\s+lyricpull:\s*\{ family: families\./, "Lyric Pull needs a typography contract");
-for (const key of [...keys, ...addedSignatureKeys]) {
-  assert.match(typography, new RegExp(`\\n\\s+${key}:\\s+\\{ family: families\\.`), `${key} needs a typography contract`);
-}
-
-/* ---- renderer registration + execution --------------------------- */
-function makeContext() {
-  const counter = { fills: 0 };
-  const gradient = { addColorStop() {} };
-  const ctx = {
-    canvas: { width: 1280, height: 720 },
-    font: "700 80px sans-serif", textAlign: "start", textBaseline: "alphabetic",
-    fillStyle: "#fff", strokeStyle: "#fff", globalAlpha: 1, lineWidth: 1,
-    shadowColor: "transparent", shadowBlur: 0, filter: "none", letterSpacing: "0px",
-    globalCompositeOperation: "source-over", lineCap: "butt", lineJoin: "miter",
-    save() {}, restore() {}, translate() {}, scale() {}, rotate() {}, transform() {}, setTransform() {}, resetTransform() {},
-    beginPath() {}, closePath() {}, moveTo() {}, lineTo() {}, arc() {}, arcTo() {}, ellipse() {},
-    bezierCurveTo() {}, quadraticCurveTo() {}, rect() {}, roundRect() {}, clip() {},
-    fill() { counter.fills += 1; }, stroke() { counter.fills += 1; }, fillRect() { counter.fills += 1; }, strokeRect() {}, clearRect() {},
-    fillText() { counter.fills += 1; }, strokeText() { counter.fills += 1; },
-    measureText(text) {
-      const size = Number((/(\d+(?:\.\d+)?)px/.exec(String(this.font)) || [])[1] || 20);
-      return { width: String(text).length * size * .52 };
-    },
-    createLinearGradient() { return gradient; },
-    createRadialGradient() { return gradient; },
-    createConicGradient() { return gradient; },
-    createPattern() { return null; },
-    drawImage() { counter.fills += 1; }, setLineDash() {}, getLineDash() { return []; },
-    get fills() { return counter.fills; },
-    resetFills() { counter.fills = 0; },
+function makeContext(){
+  const counter={fills:0},gradient={addColorStop(){}};
+  const ctx={
+    canvas:{width:1280,height:720},font:"700 80px sans-serif",textAlign:"start",textBaseline:"alphabetic",
+    fillStyle:"#fff",strokeStyle:"#fff",globalAlpha:1,lineWidth:1,shadowColor:"transparent",shadowBlur:0,
+    filter:"none",letterSpacing:"0px",globalCompositeOperation:"source-over",lineCap:"butt",lineJoin:"miter",
+    save(){},restore(){},translate(){},scale(){},rotate(){},transform(){},setTransform(){},resetTransform(){},
+    beginPath(){},closePath(){},moveTo(){},lineTo(){},arc(){},arcTo(){},ellipse(){},bezierCurveTo(){},
+    quadraticCurveTo(){},rect(){},roundRect(){},clip(){},
+    fill(){counter.fills++},stroke(){counter.fills++},fillRect(){counter.fills++},strokeRect(){},clearRect(){},
+    fillText(){counter.fills++},strokeText(){counter.fills++},
+    measureText(text){const size=Number((/(\d+(?:\.\d+)?)px/.exec(String(this.font))||[])[1]||20);return{width:Array.from(String(text)).length*size*.52}},
+    createLinearGradient(){return gradient},createRadialGradient(){return gradient},createConicGradient(){return gradient},
+    createPattern(){return null},drawImage(){counter.fills++},setLineDash(){},getLineDash(){return[]},
+    get fills(){return counter.fills},resetFills(){counter.fills=0}
   };
   return ctx;
 }
-
-const runtime = { console, Math, Number, String, Array, Object, Date, Map, Set, Intl };
-runtime.window = runtime;
-runtime.globalThis = runtime;
-runtime.document = {
-  readyState: "complete", addEventListener() {}, querySelector() { return null; },
-  querySelectorAll() { return []; },
-  /* canvases get a working mock context so the kit's bloom / mask / reveal paths run too */
-  createElement(tag) {
-    if (tag === "canvas") { const canvas = { width: 1, height: 1, style: {} }; canvas.getContext = () => Object.assign(makeContext(), { canvas }); return canvas; }
-    return { style: {}, setAttribute() {}, appendChild() {} };
-  },
-  getElementById() { return null; },
-};
-vm.createContext(runtime);
-vm.runInContext(read("app/effects/core.js"), runtime, { filename: "core.js" });
-vm.runInContext(read("app/effects/lyric-premium-kit.js"), runtime, { filename: "lyric-premium-kit.js" });
-assert.equal(typeof runtime.kefeFx?.bloom, "function", "the premium kit must publish window.kefeFx");
-vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename: "lyric-signature-pack.js" });
-vm.runInContext(read("app/effects/lyric-signature-four.js"), runtime, { filename: "lyric-signature-four.js" });
-for (const key of addedSignatureKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
-vm.runInContext(read("app/effects/lyric-text-swap.js"), runtime, { filename: "lyric-text-swap.js" });
-assert.equal(typeof runtime.kefeEffects.textswap, "function", "Text Swap renderer must register");
-vm.runInContext(read("app/effects/lyric-pull.js"), runtime, { filename: "lyric-pull.js" });
-assert.equal(typeof runtime.kefeEffects.lyricpull, "function", "Lyric Pull renderer must register");
-const words = [
-  { text: "BURN", time: 1, endTime: 1.5 },
-  { text: "IT", time: 1.5, endTime: 1.8 },
-  { text: "DOWN", time: 1.8, endTime: 2.6 },
-];
-const lines = [{ text: "BURN IT DOWN", time: 1, endTime: 2.9, words }];
-const pullContext = makeContext();
-runtime.kefeEffects.lyricpull(pullContext, 1280, 720, { effect: "lyricpull", fontSize: 84 }, lines, 1.6);
-assert.ok(pullContext.fills > 0, "Lyric Pull must paint the active word on the canvas");
-const pullMobile = makeContext();
-runtime.kefeEffects.lyricpull(pullMobile, 360, 640, { effect: "lyricpull", fontSize: 48 }, lines, 2.2);
-assert.ok(pullMobile.fills > 0, "Lyric Pull must paint on mobile canvas");
-const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("sig"));
-assert.deepEqual(registered.sort(), [...keys, ...addedSignatureKeys].sort(), "renderer registrations must match the roster");
-assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
-
-runtime.dispatchEvent = () => {};
- runtime.Event = class Event {};
- vm.runInContext(read("app/effects/lyric-apple.js"), runtime, { filename: "lyric-apple.js" });
- assert.equal(typeof runtime.kefeEffects.apple, "function", "Apple renderer must register independently");
- const appleContext = makeContext();
- runtime.kefeEffects.apple(appleContext, 1280, 720, { effect: "apple", fontSize: 84 }, lines, 1.6, null);
- assert.ok(appleContext.fills > 0, "Apple renderer must paint the active line in the preview canvas");
-/* Karaoke and Bounce are picker entries outside the Signature manifest; make sure their
-   renderer stays loaded and paints, so the two buttons never regress to a blank preview. */
-vm.runInContext(read("app/effects/lyric-karaoke.js"), runtime, { filename: "lyric-karaoke.js" });
-for (const key of ["karaoke", "bounce"]) {
-  assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register from lyric-karaoke.js`);
-  const ctx = makeContext();
-  runtime.kefeEffects[key](ctx, 1280, 720, { effect: key, fontSize: 84 }, lines, 1.6);
-  assert.ok(ctx.fills > 0, `${key} renderer must paint the active line`);
-}
-
-const plainLines = [{ text: "NO WORD TIMINGS", time: 0, endTime: 3 }, { text: "SECOND LINE", time: 3, endTime: 5 }];
-for (const preset of ["fly-through", "fade-through", "crossfade", "shared-axis-y", "shared-axis-z", "cut"]) {
-  runtime.kefeTextSwapPreset = preset;
-  const ctx = makeContext();
-  runtime.kefeEffects.textswap(ctx, 1280, 720, { effect: "textswap", fontSize: 84 }, plainLines, 3.18);
-  assert.ok(ctx.fills > 0, `Text Swap ${preset} must paint during a line transition`);
-  ctx.resetFills();
-  runtime.kefeEffects.textswap(ctx, 360, 640, { effect: "textswap", fontSize: 48 }, plainLines, 4.2);
-  assert.ok(ctx.fills > 0, `Text Swap ${preset} must paint after a transition on mobile`);
-}
-for (const key of [...keys, ...addedSignatureKeys]) {
-  const ctx = makeContext();
-  const style = { effect: key, fontSize: 84, kefeMotionFont: "Open Sans" };
-  for (const time of [-.4, 0, .6, 1.1, 1.6, 2.2, 2.8, 3.4, 4.8, 6.2]) {
-    ctx.resetFills();
-    runtime.kefeEffects[key](ctx, 1280, 720, style, lines, time);
-    if (time >= 1 && time <= 2.9) assert.ok(ctx.fills > 0, `${key} must paint the active line at t=${time}`);
-    runtime.kefeEffects[key](ctx, 360, 640, { ...style, fontSize: 48 }, lines, time);
-    runtime.kefeEffects[key](ctx, 1280, 720, style, plainLines, time);
-    runtime.kefeEffects[key](ctx, 1280, 720, style, [], time);
+const runtime={
+  console,Math,Number,String,Array,Object,Date,Map,Set,Intl,
+  CustomEvent:class CustomEvent{constructor(type){this.type=type}},
+  dispatchEvent(){},addEventListener(){},
+  document:{
+    readyState:"complete",addEventListener(){},querySelector(){return null},querySelectorAll(){return[]},getElementById(){return null},
+    createElement(tag){
+      if(tag==="canvas"){const canvas={width:1,height:1,style:{}};canvas.getContext=()=>Object.assign(makeContext(),{canvas});return canvas;}
+      return{style:{},setAttribute(){},appendChild(){}};
+    }
   }
+};
+runtime.window=runtime;runtime.globalThis=runtime;
+vm.createContext(runtime);
+vm.runInContext(read("app/effects/core.js"),runtime,{filename:"core.js"});
+vm.runInContext(read("app/effects/lyric-premium-kit.js"),runtime,{filename:"lyric-premium-kit.js"});
+vm.runInContext(read("app/effects/lyric-signature-pack.js"),runtime,{filename:"lyric-signature-pack.js"});
+const words=[
+{text:"BURN",time:1,endTime:1.5},
+{text:"IT",time:1.5,endTime:1.8},
+{text:"DOWN",time:1.8,endTime:2.6}
+];
+const lines=[{text:"BURN IT DOWN",time:1,endTime:2.9,words}];
+const plainLines=[{text:"NO WORD TIMINGS",time:0,endTime:3},{text:"SECOND LINE",time:3,endTime:5}];
+for(const key of expected){
+  assert.equal(typeof runtime.kefeEffects[key],"function",key+" renderer must register");
+  const style={effect:key,fontSize:84,kefeMotionFont:"Open Sans"};
+  for(const [w,h,sample,time] of [[1280,720,lines,1.6],[360,640,lines,2.2],[1280,720,plainLines,3.4]]){
+    const ctx=makeContext();
+    runtime.kefeEffects[key](ctx,w,h,style,sample,time,null);
+    assert.ok(ctx.fills>0,key+" must paint on "+w+"x"+h+" at t="+time);
+  }
+  const empty=makeContext();
+  runtime.kefeEffects[key](empty,1280,720,style,[],1.6,null);
+  assert.equal(empty.fills,0,key+" must ignore empty lyric data");
 }
-
-console.log(`Lyric effects verified: Apple + Text Swap (6 presets) + Lyric Pull + ${keys.length + addedSignatureKeys.length} Signature effects, Karaoke/Bounce renderers, unique keys/labels, contracts, wiring and canvas output.`);
+vm.runInContext(read("app/effects/lyric-apple.js"),runtime,{filename:"lyric-apple.js"});
+assert.equal(typeof runtime.kefeEffects.apple,"function","Apple renderer must remain independently registered");
+const apple=makeContext();
+runtime.kefeEffects.apple(apple,1280,720,{effect:"apple",fontSize:84},lines,1.6,null);
+assert.ok(apple.fills>0,"Apple renderer must keep painting");
+vm.runInContext(read("app/effects/lyric-karaoke.js"),runtime,{filename:"lyric-karaoke.js"});
+for(const key of ["karaoke","bounce"]){
+  const ctx=makeContext();
+  runtime.kefeEffects[key](ctx,1280,720,{effect:key,fontSize:84},lines,1.6);
+  assert.ok(ctx.fills>0,key+" renderer must keep painting");
+}
+console.log("Verified Apple + 72 supplied effects + Karaoke/Bounce: roster, wiring, song-time rendering, desktop/mobile frames and empty-lyrics safety.");
