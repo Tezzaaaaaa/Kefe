@@ -45,7 +45,9 @@ const server = http.createServer((req, res) => {
       await page.keyboard.press('ArrowRight');
       await page.waitForFunction(() => document.querySelector('[data-workspace-tab="design"]')?.getAttribute('aria-selected') === 'true');
       const designPanel = page.locator('#kefe-workspace-appearance-panel');
-      assert.equal(await designPanel.locator('[data-slot="tabs-list"]').count(), 0, 'single-section Effects workspace does not render a redundant subtab strip');
+      const designSubtabs = designPanel.locator('[data-slot="tabs-list"]');
+      assert.equal(await designSubtabs.getByRole('tab').count(), 1, 'Effects workspace has one Lyric Effects section');
+      assert.equal(await designSubtabs.isVisible(), false, 'single-section Effects workspace hides its redundant subtab strip');
       assert.equal(await page.locator('#kefe-subpanel-lyric-effects').isVisible(), true, 'Lyric Effects is the active Effects section');
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       await page.waitForFunction(() => document.querySelector('#kefe-subtab-background')?.getAttribute('aria-selected') === 'true');
