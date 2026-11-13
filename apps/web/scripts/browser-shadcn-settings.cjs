@@ -43,9 +43,9 @@ const server = http.createServer((req, res) => {
       const option = dialog.getByRole('option', { name: '9:16' });
       await option.click();
       assert.equal(await page.evaluate(() => window.kefeSettings.get('aspect')), '9:16');
-      await dialog.getByRole('button', { name: 'Reset to defaults' }).click();
+      await dialog.getByRole('button', { name: 'Reset all settings' }).click();
       assert.deepEqual(await page.evaluate(() => [window.kefeSettings.get('titleCard'), window.kefeSettings.get('fpsTarget'), window.kefeSettings.get('aspect')]), [true, 60, '16:9']);
-      await dialog.getByRole('button', { name: 'Done' }).click();
+      await dialog.getByRole('button', { name: 'Close settings' }).click();
       await dialog.waitFor({ state: 'hidden' });
       await page.waitForFunction(() => document.activeElement?.matches('[data-top-panel="settings"]'));
       await opener.click(); await dialog.waitFor({ state: 'visible' });
@@ -88,8 +88,8 @@ const server = http.createServer((req, res) => {
         await page.locator('#kefeAutoSync details').evaluate(node => { node.open = true; });
       }
       await page.getByRole('combobox', { name: 'Speech recognition model' }).click();
-      await page.getByRole('option', { name: 'English · Balanced' }).click();
-      assert.equal(await page.locator('select[aria-label="Speech recognition model"]').inputValue(), 'base.en');
+      await page.getByRole('option', { name: 'Multilingual · Balanced' }).click();
+      assert.equal(await page.locator('select[aria-label="Speech recognition model"]').inputValue(), 'base');
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
       await page.locator('#lyricEffectOptions [data-effect="textswap"]').evaluate(node => node.click());
