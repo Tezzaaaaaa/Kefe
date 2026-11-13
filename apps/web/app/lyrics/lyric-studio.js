@@ -162,15 +162,16 @@
 
   /* ---------- Lyric Sync: plain-language "what to do next" guide ---------- */
   function buildGuide() {
-    var host = document.querySelector('[data-panel-view="lyrics"] .kefe-form');
-    if (!host || document.getElementById('kefeSyncGuide')) return;
+    var host = document.querySelector('[data-panel-view="media"] .kefe-form');
+    var upload = document.getElementById('kefeUploadZone');
+    if (!host || !upload || document.getElementById('kefeSyncGuide')) return;
     var card = el('section', 'kefe-sync-guide'); card.id = 'kefeSyncGuide'; card.setAttribute('aria-live', 'polite');
     var title = el('div', 'kefe-sync-guide-title'), body = el('div', 'kefe-meta kefe-sync-guide-body'), actions = el('div', 'kefe-sync-guide-actions');
     var play = btn('Play song', 'Play or pause the preview', 'kefe-btn primary');
     play.addEventListener('click', function () { var a = audio(); if (!a || !a.src) return; if (a.paused) a.play().catch(function () { /* blocked */ }); else a.pause(); });
     actions.appendChild(play);
     card.append(title, body, actions);
-    host.insertBefore(card, host.firstChild);
+    upload.insertAdjacentElement('afterend', card);
     function update() {
       var n = lines().length, a = audio(), hasSong = !!(a && a.src);
       play.hidden = !(n && hasSong); play.textContent = a && !a.paused ? 'Pause song' : 'Play song';
