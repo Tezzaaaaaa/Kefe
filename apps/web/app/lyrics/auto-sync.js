@@ -507,7 +507,7 @@
     var controls = document.createElement('div'); controls.className = 'kefe-download-row'; controls.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0;';
     var select = document.createElement('select'); select.className = 'kefe-select'; select.setAttribute('aria-label', 'Speech recognition model');
     [['tiny.en','English · Fast (default)'],['base.en','English · More accurate'],['ctc.en','English · Precise alignment'],['tiny','Other languages · Fast'],['base','Other languages · Balanced'],['small','Other languages · Most accurate']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
-    var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-btn primary'; go.textContent = 'Sync lyrics';
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-btn primary'; go.textContent = 'Auto-sync to audio';
     var cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'kefe-btn'; cancelBtn.textContent = 'Cancel auto-time'; cancelBtn.hidden = true;
     var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-btn'; undo.textContent = 'Undo auto-time'; undo.disabled = true;
     var status = document.createElement('div'); status.className = 'kefe-meta'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
@@ -518,7 +518,7 @@
     var moreHelp = document.createElement('div'); moreHelp.className = 'kefe-meta'; moreHelp.textContent = 'KEFE uses English · Fast by default. Choose an Other languages option for non-English songs. The precise English alignment option downloads a larger model and uses more memory.';
     more.append(moreSummary, select, moreHelp);
     controls.append(go, undo, cancelBtn); card.append(title, help, controls, more, status, note);
-    var timing = document.getElementById('kefeTimingEditor'); host.insertBefore(card, timing || null);
+    host.insertBefore(card, host.firstChild);
     cancelBtn.addEventListener('click', function () {
       if (activeAbort) activeAbort.abort();
       cancelBtn.disabled = true;
