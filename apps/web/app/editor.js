@@ -1751,11 +1751,12 @@
     const find=document.createElement('button');
     find.type='button';find.id='kefeFindLyrics';find.textContent='Find lyrics';find.className='kefe-btn shad-btn shad-btn--outline';find.dataset.slot='button';find.dataset.variant='outline';find.dataset.size='default';
     const upload=document.createElement('button');
-    upload.type='button';upload.id='kefeUploadLrc';upload.textContent='Upload .lrc';upload.className='kefe-btn shad-btn shad-btn--outline';upload.dataset.slot='button';upload.dataset.variant='outline';upload.dataset.size='default';
+    upload.type='button';upload.id='kefeUploadLrc';upload.textContent='Upload lyrics';upload.className='kefe-btn shad-btn shad-btn--outline';upload.dataset.slot='button';upload.dataset.variant='outline';upload.dataset.size='default';
     const input=document.createElement('input');
     input.type='file';input.id='kefeLrcInput';input.accept='.lrc,.ttml,.xml,.txt,text/plain';input.hidden=true;
     const step=document.createElement('div');step.className='kefe-label kefe-step-label';step.textContent='1 · Get lyrics';
-    bar.append(step,find,upload,input);
+    const hint=document.createElement('div');hint.className='kefe-meta';hint.textContent='Find lyrics automatically, upload a timed lyrics file, or paste your words in the box below.';
+    bar.append(step,hint,find,upload,input);
     if(!document.getElementById('kefeLyricsStatus')){
       const st=document.createElement('span');
       st.id='kefeLyricsStatus';st.className='kefe-meta';
