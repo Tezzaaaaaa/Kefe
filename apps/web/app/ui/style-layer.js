@@ -4,6 +4,9 @@
 (function () {
   'use strict';
   var KEY = 'kefe.style.v1';
+  var EFFECT_KEY = 'kefe.style.effects.v1';
+  var currentEffect = window.kefeCurrentLyricEffect || null;
+  function readEffectProfiles() { try { var saved = JSON.parse(localStorage.getItem(EFFECT_KEY) || '{}'); return saved && typeof saved === 'object' ? saved : {}; } catch (e) { return {}; } }
   var DEFAULT = {
     textColor: '', accentColor: '', inactiveColor: '',
     scale: 100, offsetX: 0, offsetY: 0,
@@ -23,8 +26,39 @@
     return out;
   }
   var S = clone(DEFAULT);
-  try { S = merge(DEFAULT, JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (e) { /* storage unavailable */ }
-  function persist() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
+  try {
+    var profiles = readEffectProfiles();
+    S = merge(DEFAULT, currentEffect && profiles[currentEffect] ? profiles[currentEffect] : JSON.parse(localStorage.getItem(KEY) || 'null'));
+  } catch (e) { /* storage unavailable */ }
+  function persist() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(S));
+      if (currentEffect) {
+        var profiles = readEffectProfiles();
+        profiles[currentEffect] = clone(S);
+        localStorage.setItem(EFFECT_KEY, JSON.stringify(profiles));
+      }
+    } catch (e) { /* ignore */ }
+  }
+  function activateEffect(id) {
+    id = String(id || 'apple');
+    if (currentEffect === id) return clone(S);
+    if (currentEffect) persist();
+    else {
+      var initialProfiles = readEffectProfiles();
+      if (!initialProfiles[id]) {
+        initialProfiles[id] = clone(S); /* migrate the existing shared style to the first selected effect */
+        try { localStorage.setItem(EFFECT_KEY, JSON.stringify(initialProfiles)); } catch (e) { /* ignore */ }
+      }
+    }
+    currentEffect = id;
+    var profiles = readEffectProfiles();
+    S = merge(DEFAULT, profiles[id] || DEFAULT);
+    syncers.forEach(function (fn) { fn(); });
+    persist();
+    redraw();
+    return clone(S);
+  }
   function redraw() { try { if (window.kefeLyrics) window.kefeLyrics.redraw(); } catch (e) { /* ignore */ } }
 
   function validColor(v) { return /^#[0-9a-f]{6}$/i.test(String(v || '')); }
@@ -195,7 +229,7 @@
   }
 
   window.kefeStyle = {
-    style: style, post: post,
+    style: style, post: post, activateEffect: activateEffect,
     state: function () { return clone(S); },
     applyState: function (value) { S = merge(DEFAULT, value); syncers.forEach(function (fn) { fn(); }); persist(); redraw(); return clone(S); },
     isActive: function () { return active(); }
