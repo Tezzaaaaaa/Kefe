@@ -2451,7 +2451,7 @@
       const next=model?model.finalize(lines,{duration:Number.isFinite(dur)&&dur>0?dur:undefined}):lines;
       state.lines=next;
       state.appleLines=next.map(line=>({...line,end:Number.isFinite(line.endTime)?line.endTime:line.time+3}));
-      lyricsInput.value=model?model.toLrc(next):next.map(line=>fmtLrc(line.time)+' '+line.text).join('\n');
+      lyricsInput.value=model?model.toLrc(next,{words:true}):next.map(line=>fmtLrc(line.time)+' '+line.text).join('\n');
       previewStage.classList.toggle('is-empty',!(audio.currentSrc||audio.src||video.currentSrc||video.src)&&next.length===0);
        window.dispatchEvent(new CustomEvent('kefe-lyrics-changed',{detail:{source:source||'api'}}));
       draw();
