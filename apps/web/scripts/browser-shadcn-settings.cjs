@@ -130,7 +130,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.locator('#backgroundTransparency').inputValue(), '2', 'toolbar slider keeps focus and updates its source');
       await contextTrigger.click();
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-visualisers').evaluate(node => node.click());
+      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
       const cards = page.locator('.kv-card');
       assert.equal(await cards.count(), 7);
       for (let index = 0; index < await cards.count(); index++) {
