@@ -38,12 +38,12 @@ const server = http.createServer((req, res) => {
       await page.waitForSelector('#kefeBackgroundEffectOptions[data-shadcn-hydrated="true"]', { state: 'attached' });
       assert.equal(await page.evaluate(() => window.__effectNodes.every(([button, canvas]) => button.isConnected && button.querySelector('canvas') === canvas)), true, 'original lyric buttons and canvases remain connected');
       assert.equal(await page.evaluate(() => window.__backgroundNodes.every(button => button.isConnected)), true, 'background native buttons retained');
-      await page.waitForSelector('.kefe-lyric-effect-preview-nav[data-shadcn-hydrated="true"]', { state: 'attached' });
+      await page.waitForSelector('.kefe-lyric-effect-preview-nav[aria-label="Browse lyric effects"][data-shadcn-hydrated="true"]', { state: 'attached' });
       assert.equal(await page.evaluate(() => window.__effectNavNodes.every(node => node.isConnected)), true, 'effect navigation nodes retained');
-      assert.equal(await page.locator('.kefe-lyric-effect-preview-nav > button[data-slot="button"]').count(), 2);
+      assert.equal(await page.locator('.kefe-lyric-effect-preview-nav[aria-label="Browse lyric effects"] > button[data-slot="button"]').count(), 2);
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
-      const nav = page.locator('.kefe-lyric-effect-preview-nav');
+      const nav = page.locator('.kefe-lyric-effect-preview-nav[aria-label="Browse lyric effects"]');
       const prevEffect = nav.locator('button').first(), nextEffect = nav.locator('button').last();
       const initialCount = await nav.locator('.kefe-lyric-effect-preview-count').first().textContent();
       await nextEffect.click();
