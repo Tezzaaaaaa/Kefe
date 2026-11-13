@@ -745,6 +745,13 @@
   function setEffect(id){
     state.effect=id;
     applyEffectDefault(id);
+    /* Each lyric effect starts in conventional whole-line display, regardless
+       of a different mode saved with that effect's previous style settings. */
+    const lyricStudio=window.kefeLyricStudio;
+    if(lyricStudio?.settings&&lyricStudio?.applySettings){
+      const settings=lyricStudio.settings();
+      if(settings.mode!=='line')lyricStudio.applySettings({...settings,mode:'line'});
+    }
     document.querySelectorAll('#lyricEffectOptions .kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
