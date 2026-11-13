@@ -31,6 +31,41 @@ function asButton(el, variant = "ghost", size = "icon") {
   el.dataset.size = size;
 }
 
+
+/* Lyric effect gallery: a search box above the grid so 60+ effects are findable without
+   scrolling. It only toggles `hidden` on the existing option buttons, so selection, preview and
+   the effect engine keep their exact nodes; the filter is re-applied after the grid rebuilds. */
+let effectQuery = "";
+function applyEffectFilter(grid) {
+  const q = effectQuery.trim().toLowerCase();
+  let shown = 0;
+  grid.querySelectorAll(".kefe-lyric-effect-option").forEach(option => {
+    const name = (option.querySelector(".kefe-lyric-effect-name")?.textContent || option.textContent || "").toLowerCase();
+    const match = !q || name.includes(q);
+    option.hidden = !match;
+    if (match) shown += 1;
+  });
+  const status = grid.parentElement?.querySelector(".kefe-effect-search-status");
+  /* Only write when the text changes: a same-value textContent still replaces the text node,
+     which the panel's MutationObserver sees, which would re-run this and loop forever. */
+  const text = q ? `${shown} effect${shown === 1 ? "" : "s"} match` : "";
+  if (status && status.textContent !== text) status.textContent = text;
+}
+function effectSearch(root) {
+  const grid = root.querySelector("#lyricEffectOptions");
+  if (!grid) return;
+  if (!grid.parentElement.querySelector("#kefeEffectSearch")) {
+    const wrap = document.createElement("div");
+    wrap.className = "kefe-effect-search";
+    wrap.innerHTML =
+      '<input id="kefeEffectSearch" class="kefe-input shad-input" data-slot="input" type="search" autocomplete="off" placeholder="Search effects" aria-label="Search lyric effects">' +
+      '<span class="kefe-effect-search-status kefe-meta" role="status" aria-live="polite"></span>';
+    grid.parentElement.insertBefore(wrap, grid);
+    wrap.querySelector("input").addEventListener("input", event => { effectQuery = event.target.value; applyEffectFilter(grid); });
+  }
+  applyEffectFilter(grid);
+}
+
 const sections = {
   media(root) {
     asCard(root);
@@ -44,6 +79,7 @@ const sections = {
   effects(root) {
     asCard(root);
     root.querySelectorAll(".kefe-label").forEach(asLabel);
+    effectSearch(root);
   },
   "background-effects"(root) {
     asCard(root);
