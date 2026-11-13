@@ -18,7 +18,7 @@ for (const group of ["content", "design", "audio-visuals", "export"]) {
 for (const slot of ["media", "lyric-sync", "lyric-effects", "background", "visualisers", "export"]) {
   expect(panel.includes('data-kefe-slot="' + slot + '"'), "missing live control slot " + slot);
 }
-expect((panel.match(/data-expanded="true"/g) || []).length === 6, "all six native control panels must retain their content state");
+expect((panel.match(/data-expanded="true"/g) || []).length === 5, "all five native section wrappers must retain their content state");
 expect((panel.match(/data-workspace-tab="/g) || []).length === 4, "all four workspace tabs must remain present");
 expect((panel.match(/class="kefe-panel kefe-workspace/g) || []).length === 4, "all four workspace panels must remain present");
 expect(panel.includes('role="tablist"') && panel.includes('aria-selected="true"'),
