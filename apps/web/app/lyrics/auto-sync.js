@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
   var CDN = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+  var AUTO_SYNC_SCRIPT_URL = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : '';
   var cached = null;
   var forcedAlignerPromise = null;
   var forcedAligner = null;
@@ -356,23 +357,61 @@
       if (ctx && typeof ctx.close === 'function') { try { await ctx.close(); } catch (_) {} }
     }
   }
-  async function transcribe(model, status, signal) {
-    status('Decoding and resampling audio to 16 kHz…');
-    var decoded = await decodeAudio(signal);
-    if (signal && signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+  async function transcribeAudio(audio, model, status) {
     status('Loading speech model; first use downloads it for browser caching…');
     var tf = await import(CDN);
-    if (signal && signal.aborted) throw new DOMException('Cancelled', 'AbortError');
     tf.env.allowLocalModels = false;
     var pipe = await tf.pipeline('automatic-speech-recognition', 'Xenova/whisper-' + model, {
       progress_callback: function (p) { if (p && p.status === 'progress') status('Downloading speech model… ' + Math.round(p.progress || 0) + '%'); }
     });
-    if (signal && signal.aborted) throw new DOMException('Cancelled', 'AbortError');
     status('Recognising vocals and word timestamps…');
-    var result = await pipe(decoded.audio, { return_timestamps: 'word', chunk_length_s: 30, stride_length_s: 5 });
+    var result = await pipe(audio, { return_timestamps: 'word', chunk_length_s: 30, stride_length_s: 5 });
     return (result.chunks || []).map(function (chunk) {
       return [String(chunk.text || '').trim(), chunk.timestamp[0], chunk.timestamp[1] == null ? chunk.timestamp[0] : chunk.timestamp[1]];
     }).filter(function (w) { return w[0] && Number.isFinite(w[1]); });
+  }
+  function runWorkerRequest(data, transfer, status, signal) {
+    if (typeof root.Worker !== 'function' || !AUTO_SYNC_SCRIPT_URL) return Promise.reject(new Error('Background audio processing is unavailable in this browser.'));
+    var worker;
+    try { worker = new root.Worker(new URL('auto-sync-worker.js', AUTO_SYNC_SCRIPT_URL)); }
+    catch (error) { return Promise.reject(new Error('Could not start background audio processing: ' + (error && error.message ? error.message : String(error)))); }
+    return new Promise(function (resolve, reject) {
+      var settled = false;
+      function finish(error, result) {
+        if (settled) return;
+        settled = true;
+        if (signal) signal.removeEventListener('abort', onAbort);
+        worker.terminate();
+        if (error) reject(error); else resolve(result);
+      }
+      function onAbort() { finish(new DOMException('Cancelled', 'AbortError')); }
+      worker.onmessage = function (event) {
+        var message = event.data || {};
+        if (message.status) { status(message.status); return; }
+        if (message.error) { finish(new Error(message.error)); return; }
+        if (Object.prototype.hasOwnProperty.call(message, 'result')) { finish(null, message.result); return; }
+        finish(new Error('Background audio processing returned an invalid response.'));
+      };
+      worker.onerror = function (event) {
+        if (event && typeof event.preventDefault === 'function') event.preventDefault();
+        finish(new Error('Background audio processing stopped unexpectedly. Please retry.'));
+      };
+      if (signal) {
+        if (signal.aborted) { onAbort(); return; }
+        signal.addEventListener('abort', onAbort, { once: true });
+      }
+      try { worker.postMessage(data, transfer || []); }
+      catch (error) { finish(error); }
+    });
+  }
+  async function transcribe(model, status, signal) {
+    status('Decoding and resampling audio to 16 kHz…');
+    var decoded = await decodeAudio(signal);
+    if (signal && signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+    if (typeof root.Worker === 'function' && AUTO_SYNC_SCRIPT_URL) {
+      return runWorkerRequest({ type: 'transcribe', model: model, audio: decoded.audio.buffer }, [decoded.audio.buffer], status, signal);
+    }
+    return transcribeAudio(decoded.audio, model, status);
   }
   function loadScript(src) {
     return new Promise(function (resolve, reject) {
@@ -558,7 +597,9 @@
         if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
         status.textContent = 'Matching recognised words to your lyrics and building timestamps…';
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
-        var result = align(cached.words, sourceLyrics, options);
+        var result = typeof root.Worker === 'function' && AUTO_SYNC_SCRIPT_URL
+          ? await runWorkerRequest({ type: 'align', asr: cached.words, text: sourceLyrics, meta: options }, [], function (message) { status.textContent = message; }, signal)
+          : align(cached.words, sourceLyrics, options);
         var pct = Math.round(100 * result.matched / result.words);
         var nextLines = model.parseLrc(result.lrc);
         if (!nextLines.length) throw new Error('The timing result could not be applied to the lyric editor.');
@@ -588,6 +629,7 @@
   }
   root.kefeAutoSync = {
     align: align,
+    transcribeAudio: transcribeAudio,
     autoWindows: autoWindows,
     parseLyrics: parseLyrics,
     validateReport: validateReport
