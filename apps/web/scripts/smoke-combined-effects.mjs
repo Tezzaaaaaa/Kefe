@@ -55,6 +55,7 @@ function makeContext() {
 }
 const runtime = {
   console, Math, Number, String, Array, Object, Date, Map, Set, Intl,
+  document: { fonts: { load: () => Promise.resolve() } },
   Event: class Event { constructor(type) { this.type = type; } },
   CustomEvent: class CustomEvent { constructor(type) { this.type = type; } },
   dispatchEvent() {},
