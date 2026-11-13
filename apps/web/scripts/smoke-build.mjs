@@ -134,4 +134,28 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
+// Verify the dedicated auto-sync worker is shipped and forwards alignment results.
+{
+  const workerPath = resolve(dirname(fileURLToPath(import.meta.url)), "../app/lyrics/auto-sync-worker.js");
+  if (!existsSync(workerPath)) {
+    failures.push("Dedicated lyric auto-sync worker is missing from the source app.");
+  } else {
+    let response = null;
+    const scope = {
+      kefeAutoSync: { align(asr, text, meta) { return { lrc: "[00:01.00] test\\n", matched: 1, words: 1, input: [asr, text, meta] }; } },
+      importScripts(path) { if (path !== "./auto-sync.js") throw new Error("Unexpected worker import: " + path); },
+      postMessage(message) { response = message; },
+    };
+    scope.self = scope;
+    runInNewContext(readFileSync(workerPath, "utf8"), scope);
+    scope.onmessage({ data: { asr: [{ word: "test" }], text: "test", meta: {} } });
+    if (!response || !response.result || response.result.matched !== 1) {
+      failures.push("Dedicated lyric auto-sync worker did not return its alignment result.");
+    }
+  }
+}
+if (failures.length) {
+  console.error(failures.join("\\n"));
+  process.exit(1);
+}
 console.log("Production entry points, local assets, and PWA manifest are present and valid.");
