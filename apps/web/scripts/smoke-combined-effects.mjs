@@ -19,7 +19,7 @@ for(const page of ["editor.source.html","editor.html"]){
  const html=read(page);
  assert.match(html,/meta name="kefe-lyric-effects" content="72"/,page+" must declare the 72-effect roster");
  assert.match(html,/effects\/lyric-combined-pack\.js/,page+" must load the combined renderer");
- for(const retired of ["lyric-premium-kit.js","lyric-signature-pack.js","lyric-signature-four.js","lyric-text-swap.js","lyric-pull.js"])assert.doesNotMatch(html,new RegExp(retired.replace(/[.*+?^${}()|[\]\\]/g,"\\const html=read("editor.source.html");
+ for(const retired of ["lyric-premium-kit.js","lyric-signature-pack.js","lyric-signature-four.js","lyric-text-swap.js","lyric-pull.js"])assert.equal(html.includes(retired),false,page+" must not load "+retired);
 assert.match(html,/meta name="kefe-lyric-effects" content="72"/);
 assert.match(html,/effects\/lyric-combined-pack\.js/);
 for(const old of ["lyric-premium-kit.js","lyric-signature-pack.js","lyric-signature-four.js","lyric-text-swap.js","lyric-pull.js"])assert.doesNotMatch(html,new RegExp(old.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")));")),page+" must not load "+retired);
