@@ -702,3 +702,36 @@
     height: 26px;
   }
 }
+
+/* ── Identified track: reserve a dedicated artwork column ─────────────────────────
+   Keep the metadata copy in its own shrinkable column so long titles and artist names
+   wrap or truncate beside the cover instead of painting over it. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details > .kefe-song-details-track {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 10px;
+  min-width: 0;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details-track .kefe-media-track-art {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  display: block;
+  flex: none;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  object-fit: cover;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details-track > :not(.kefe-media-track-art) {
+  grid-column: 2;
+  min-width: 0;
+  max-width: 100%;
+}
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details-track :is(h3, h4, p, span, small, strong, b) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
