@@ -45,11 +45,11 @@ const server = http.createServer((req, res) => {
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
       const nav = page.locator('.kefe-lyric-effect-preview-nav');
       const prevEffect = nav.locator('button').first(), nextEffect = nav.locator('button').last();
-      const initialCount = await nav.locator('.kefe-lyric-effect-preview-count').textContent();
+      const initialCount = await nav.locator('.kefe-lyric-effect-preview-count').first().textContent();
       await nextEffect.click();
-      assert.notEqual(await nav.locator('.kefe-lyric-effect-preview-count').textContent(), initialCount, 'next effect updates the live count');
+      assert.notEqual(await nav.locator('.kefe-lyric-effect-preview-count').first().textContent(), initialCount, 'next effect updates the live count');
       await prevEffect.focus(); await page.keyboard.press('Enter');
-      assert.equal(await nav.locator('.kefe-lyric-effect-preview-count').textContent(), initialCount, 'previous effect returns to initial selection');
+      assert.equal(await nav.locator('.kefe-lyric-effect-preview-count').first().textContent(), initialCount, 'previous effect returns to initial selection');
       const gallery = page.locator('#lyricEffectOptions');
       const choices = gallery.locator(':scope > button');
       assert.ok(await choices.count() > 50, 'all lyric effects remain present');
