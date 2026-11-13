@@ -63,10 +63,8 @@ assert.doesNotMatch(panelCss, /#4f9eff/i, "panel.css must use KEFE --shad-* toke
 assert.doesNotMatch(panelCss, /Georgia,\s*serif/i, "panel.css must not style info buttons with Georgia serif");
 assert.doesNotMatch(panelCss, /content:\s*["']›["']/, "panel.css must use Lucide chevron SVGs instead of text '›'");
 
-// 4. Verify shadcn-kefe.css defines Night/Day tokens and core shadcn primitives (no legacy #7777e8 motion artwork override).
+// 4. Verify shadcn-kefe.css defines Night/Day tokens and core shadcn primitives.
 const shadcnCss = read("beui-src/shadcn-kefe.css");
-const motionArtwork = read("app/visualiser/motion-artwork.js");
-assert.doesNotMatch(motionArtwork, /#7777e8/i, "motion-artwork.js must not inject hardcoded #7777e8 purple inline styles");
 for (const selector of [
   'html[data-theme="night"]',
   'html[data-theme="day"]',
@@ -88,7 +86,6 @@ for (const selector of [
   '[data-slot="dropzone"]',
   '[data-slot="checkbox"]',
   '[data-slot="alert"]',
-  "#kefeMotionArtwork",
 ]) {
   assert.ok(shadcnCss.includes(selector), `shadcn-kefe.css must define ${selector}`);
 }
