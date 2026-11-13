@@ -572,24 +572,36 @@ async function captureEditorScreenState(page) {
     await effectPanel.getByRole("combobox", { name: /^Lyric effect:/ }).click();
     assert.ok(await page.locator('.kft-select-content [role="option"]').count() > 1,
       "effect menu must be populated from the existing lyric effect gallery");
-    // The Signature pack is declared in the current editor template, so the
-    // main-branch baseline (which predates it) can reuse this script.
-    const signaturePack = await page.evaluate(() =>
-      document.querySelector('meta[name="kefe-lyric-signature"]')?.content === "52");
-    if (!signaturePack) console.log("Baseline has no Signature LyricFX pack; skipping its gallery assertions.");
-    if (signaturePack) {
-      assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="sigkineticpunch"]').textContent(), /Kinetic Punch/,
-        "the Signature LyricFX pack must be listed in the effect gallery");
+    // The combined pack marker is absent from the main baseline until this change merges.
+    const combinedPack = await page.evaluate(() =>
+      document.querySelector('meta[name="kefe-lyric-effects"]')?.content === "72");
+    if (!combinedPack) console.log("Baseline has no combined lyric effects pack; skipping its gallery assertions.");
+    if (combinedPack) {
+      assert.match(await page.locator('#lyricEffectOptions .kefe-lyric-effect-option[data-effect="typewriter"]').textContent(), /Typewriter/,
+        "the supplied Typewriter effect must be listed in the gallery");
       await page.evaluate(() => {
+        const keys = [
+          "frost","void","script","brat","scrawl","slam","fly","crossfade","read","settle","ember","spark",
+          "bubblegum","stamp","slice","swash","round","brush","spin","neon","ink","dust",
+          "typewriter","liquid","editorial","depth","flip","lineslide","sweep","elastic","bloom","curtain",
+          "blinds","iris","diagonal","window","rollup","peel","sliceopen","glide","blurresolve","wave",
+          "scramble","tracking","kerning","centerstagger","edgestagger","falldown","riseup","jello","scatter",
+          "cylinder","depthecho","converge","tumble","parallax","holographic","glitch","chromatic","neonglow",
+          "liquidfill","goldfoil","aurora","spotlight","splitflap","marquee","splitreveal","punch","beat",
+          "skew","odometer","spiral"
+        ];
+        for (const key of keys) {
+          if (typeof window.kefeEffects?.[key] !== "function") throw new Error("Combined lyric effect renderer missing: " + key);
+        }
         const canvas = document.createElement("canvas");
         canvas.width = 320; canvas.height = 180;
         const ctx = canvas.getContext("2d");
-        if (typeof window.kefeEffects?.sigkineticpunch !== "function") throw new Error("Signature LyricFX renderer is not registered");
-        window.kefeEffects.sigkineticpunch(ctx, 320, 180, { effect: "sigkineticpunch", fontSize: 40 }, [{ text: "Signature smoke", time: 0, endTime: 3 }], 1);
+        const words = [{ text: "Typewriter", time: 0, endTime: 3 }];
+        window.kefeEffects.typewriter(ctx, 320, 180, { effect: "typewriter", fontSize: 40 }, [{ text: "Typewriter", time: 0, endTime: 3, words }], 1.3);
         const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         let painted = false;
         for (let i = 3; i < pixels.length; i += 4) { if (pixels[i] !== 0) { painted = true; break; } }
-        if (!painted) throw new Error("Signature LyricFX effect did not paint the canvas");
+        if (!painted) throw new Error("Combined Typewriter effect did not paint the canvas");
       });
     }
     await page.keyboard.press("Escape");
