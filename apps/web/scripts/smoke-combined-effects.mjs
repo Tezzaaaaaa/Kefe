@@ -15,10 +15,15 @@ assert.equal(manifest.length,73,"Apple plus 72 supplied effects");
 assert.equal(new Set(manifest.map(item=>item.key)).size,73,"unique effect keys");
 assert.equal(manifest[0].key,"apple");
 const keys=manifest.slice(1).map(item=>item.key);
-const html=read("editor.source.html");
+for(const page of ["editor.source.html","editor.html"]){
+ const html=read(page);
+ assert.match(html,/meta name="kefe-lyric-effects" content="72"/,page+" must declare the 72-effect roster");
+ assert.match(html,/effects\/lyric-combined-pack\.js/,page+" must load the combined renderer");
+ for(const retired of ["lyric-premium-kit.js","lyric-signature-pack.js","lyric-signature-four.js","lyric-text-swap.js","lyric-pull.js"])assert.doesNotMatch(html,new RegExp(retired.replace(/[.*+?^${}()|[\]\\]/g,"\\const html=read("editor.source.html");
 assert.match(html,/meta name="kefe-lyric-effects" content="72"/);
 assert.match(html,/effects\/lyric-combined-pack\.js/);
-for(const old of ["lyric-premium-kit.js","lyric-signature-pack.js","lyric-signature-four.js","lyric-text-swap.js","lyric-pull.js"])assert.doesNotMatch(html,new RegExp(old.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")));
+for(const old of ["lyric-premium-kit.js","lyric-signature-pack.js","lyric-signature-four.js","lyric-text-swap.js","lyric-pull.js"])assert.doesNotMatch(html,new RegExp(old.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")));")),page+" must not load "+retired);
+}
 const editor=read("app/editor.js");
 assert.match(editor,/effectDefinitions\.filter\(\(\[id\]\)=>id!=='karaoke'&&id!=='bounce'\)/);
 assert.match(editor,/addLyricEffectOption\('karaoke','Karaoke'\)/);
