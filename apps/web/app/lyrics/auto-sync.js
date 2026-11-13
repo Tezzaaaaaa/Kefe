@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
   var CDN = 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+  var AUTO_SYNC_SCRIPT_URL = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : '';
   var cached = null;
   var forcedAlignerPromise = null;
   var forcedAligner = null;
@@ -504,6 +505,42 @@
       return { wordTimings: wordTimings, asrCoverage: asrCoverage };
     } finally { decoded.audio = null; }
   }
+  function alignInWorker(asr, text, meta, signal) {
+    if (typeof root.Worker !== 'function' || !AUTO_SYNC_SCRIPT_URL) {
+      return Promise.reject(new Error('Background alignment is unavailable in this browser. Update your browser and try again.'));
+    }
+    var worker;
+    try {
+      worker = new root.Worker(new URL('auto-sync-worker.js', AUTO_SYNC_SCRIPT_URL));
+    } catch (error) {
+      return Promise.reject(new Error('Could not start background lyric alignment: ' + (error && error.message ? error.message : String(error))));
+    }
+    return new Promise(function (resolve, reject) {
+      var settled = false;
+      function finish(error, result) {
+        if (settled) return;
+        settled = true;
+        if (signal) signal.removeEventListener('abort', onAbort);
+        worker.terminate();
+        if (error) reject(error); else resolve(result);
+      }
+      function onAbort() { finish(new DOMException('Cancelled', 'AbortError')); }
+      worker.onmessage = function (event) {
+        var data = event.data || {};
+        if (data.error) finish(new Error(data.error));
+        else finish(null, data.result);
+      };
+      worker.onerror = function (event) {
+        event.preventDefault();
+        finish(new Error('Background lyric alignment stopped unexpectedly. Please retry.'));
+      };
+      if (signal) {
+        if (signal.aborted) { onAbort(); return; }
+        signal.addEventListener('abort', onAbort, { once: true });
+      }
+      worker.postMessage({ asr: asr, text: text, meta: meta });
+    });
+  }
   function init() {
     var host = document.querySelector('[data-panel-view="lyrics"] .kefe-form');
     if (!host || document.getElementById('kefeAutoSync')) return;
@@ -558,7 +595,8 @@
         if (signal.aborted) throw new DOMException('Cancelled', 'AbortError');
         status.textContent = 'Matching recognised words to your lyrics and building timestamps…';
         await new Promise(function (resolve) { setTimeout(resolve, 0); });
-        var result = align(cached.words, sourceLyrics, options);
+        status.textContent = 'Aligning recognised words in the background…';
+        var result = await alignInWorker(cached.words, sourceLyrics, options, signal);
         var pct = Math.round(100 * result.matched / result.words);
         var nextLines = model.parseLrc(result.lrc);
         if (!nextLines.length) throw new Error('The timing result could not be applied to the lyric editor.');
