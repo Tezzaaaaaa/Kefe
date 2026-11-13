@@ -88,7 +88,7 @@ const server = http.createServer((req, res) => {
         await page.locator('#kefeAutoSync details').evaluate(node => { node.open = true; });
       }
       await page.getByRole('combobox', { name: 'Speech recognition model' }).click();
-      await page.getByRole('option', { name: 'English · Balanced' }).click();
+      await page.getByRole('option', { name: 'English · More accurate' }).click();
       assert.equal(await page.locator('select[aria-label="Speech recognition model"]').inputValue(), 'base.en');
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
