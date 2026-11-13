@@ -238,10 +238,10 @@
     });
 
     if(uploadWrap)backgroundForm.appendChild(uploadWrap);
+    if(transparencyBlock)backgroundForm.appendChild(transparencyBlock);
     backgroundForm.appendChild(effectsGroup);
     if(backgroundBlock)effectsGroup.appendChild(backgroundBlock);
     effectsGroup.appendChild(choiceWrap);
-    if(transparencyBlock)effectsGroup.appendChild(transparencyBlock);
     select.hidden=true;
     select.setAttribute('aria-hidden','true');
     select.tabIndex=-1;

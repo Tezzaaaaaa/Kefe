@@ -30,7 +30,7 @@
     var panel=document.querySelector('[data-panel-view="media"]'),form=panel&&panel.querySelector('.kefe-form');
     if(!form||form.classList.contains('kefe-media-steps'))return false;
     var zone=$('kefeUploadZone'),track=$('kefeMediaTrack'),sugg=$('kefeSuggestions'),bg=$('kefeBgVideoZone');
-    var bgWrap=bg&&bg.parentNode,fields=['songTitle','songArtist','songAlbum','songYear'].map(function(id){return $(id)&&$(id).parentNode;}).filter(Boolean);
+    var bgWrap=bg&&panel.contains(bg)&&bg.parentNode,fields=['songTitle','songArtist','songAlbum','songYear'].map(function(id){return $(id)&&$(id).parentNode;}).filter(Boolean);
     var empty=form.querySelector('.kefe-empty-panel');
     form.classList.add('kefe-media-steps');
 
