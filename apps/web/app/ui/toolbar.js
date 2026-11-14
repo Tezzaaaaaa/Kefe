@@ -592,7 +592,7 @@
     onInput: v => { const t = bgDarkness(); if (!t) return; t.value = String(v); fire(t, 'input', 'change'); emit('background-darkness', v); }
   });
   const safeAreaToggle = h('input', '', { type: 'checkbox', 'aria-label': 'Show preview safe area' });
-  const previewBg = h('input', '', { type: 'color', value: '#171719', 'aria-label': 'Preview background colour' });
+  const previewBg = h('input', '', { type: 'color', value: '#24272e', 'aria-label': 'Preview background colour' });
   const previewBgLabel = h('label', 'kft-pref kft-pref--colour');
   const previewBgText = h('span'); previewBgText.textContent = 'Preview background';
   previewBgLabel.append(previewBgText, previewBg);
@@ -629,7 +629,7 @@
     safeOverlay.style.display = safeAreaToggle.checked ? 'block' : 'none';
     safeOverlay.style.inset = safeInset + '%';
     safeScrub.set(safeInset);
-    if (previewHost && previewBg.dataset.changed === 'true') previewHost.style.backgroundColor = previewBg.value;
+    if (previewHost) previewHost.style.backgroundColor = previewBg.value;
     try {
       localStorage.setItem(prefKey, JSON.stringify({
         safeArea: safeAreaToggle.checked,
