@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171719">
+<meta name="description" content="KEFE — a 26-second launch manifesto. Your music deserves to be seen.">
+<title>KEFE — Launch Manifesto</title>
+<style>
+:root{color-scheme:dark;--ink:#f4f4f1;--muted:#92939a;--bg:#111114;--accent:#a6d7ff;--accent-ink:#111820;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--sans:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans)}body{min-height:100svh;display:grid;grid-template-rows:auto 1fr auto;overflow-x:hidden}
+.top{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,56px);border-bottom:1px solid #ffffff14;letter-spacing:.12em;font-size:11px;font-weight:750}.brand{font-size:17px;letter-spacing:-.07em;font-weight:900;color:var(--ink);text-decoration:none}.top-meta{font:10px var(--mono);color:var(--muted)}
+main{width:min(100% - 32px,1120px);margin:auto;display:grid;gap:18px;padding:clamp(20px,5vh,54px) 0}
+.frame{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#171719;border:1px solid #ffffff18;border-radius:12px;isolation:isolate;box-shadow:0 30px 100px #0008;container-type:inline-size}
+.scene{position:absolute;inset:0;overflow:hidden;opacity:0;visibility:hidden;background:#171719;--p:0}
+.scene.active{visibility:visible}
+.grid{position:absolute;inset:-10%;background-image:linear-gradient(#ffffff0c 1px,transparent 1px),linear-gradient(90deg,#ffffff0c 1px,transparent 1px);background-size:5.5% 9%;transform:scale(calc(1 - var(--p)*.16));opacity:calc(1 - var(--p)*.72)}
+.eyebrow{position:absolute;top:8%;left:7%;font:clamp(8px,1cqw,12px) var(--mono);letter-spacing:.16em;color:#a6d7ff}
+.scene-one .hero{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%) scale(calc(2.8 - var(--p)*1.8));transform-origin:center;font-size:clamp(72px,18cqw,230px);font-weight:950;letter-spacing:-.105em;line-height:.8;white-space:nowrap}
+.scene-one .sub{position:absolute;left:7%;right:7%;bottom:12%;display:flex;justify-content:space-between;align-items:end;font-size:clamp(13px,2.2cqw,28px);font-weight:760;letter-spacing:-.04em}
+.scene-one .sub small{font:10px var(--mono);letter-spacing:.08em;color:var(--muted)}
+.scene-two{background:#e9e9e4;color:#171719}
+.scene-two .eyebrow{color:#5a6b79}
+.pile{position:absolute;left:50%;top:49%;width:46%;height:62%;transform:translate(-50%,-50%)}
+.card{position:absolute;width:76%;height:78%;left:12%;top:11%;border:1px solid #20212730;border-radius:9px;background:#f8f8f5;box-shadow:0 18px 45px #0003;padding:6%;display:flex;flex-direction:column;justify-content:space-between;transform-origin:50% 85%;overflow:hidden}
+.card .tiny{font:9px var(--mono);letter-spacing:.13em;color:#777}
+.card .fake-lines{display:grid;gap:8px}.fake-lines i{display:block;height:5px;border-radius:9px;background:#17171914}.fake-lines i:nth-child(2){width:68%}.fake-lines i:nth-child(3){width:84%}
+.card .fake-mark{font-size:clamp(24px,6cqw,76px);font-weight:950;letter-spacing:-.1em}
+.card:nth-child(1){transform:translate(-25%,-13%) rotate(-14deg)}.card:nth-child(2){transform:translate(19%,-12%) rotate(13deg)}.card:nth-child(3){transform:translate(-15%,13%) rotate(7deg)}.card:nth-child(4){transform:translate(18%,16%) rotate(-8deg)}
+.card.feature{background:#171719;color:#f4f4f1;border-color:#171719;transform:translate(0,0) rotate(0);z-index:3;box-shadow:0 26px 70px #0005}
+.feature .tiny{color:#a6d7ff}.feature .fake-lines i{background:#ffffff28}
+.scene-two .caption{position:absolute;left:7%;right:7%;bottom:10%;display:flex;justify-content:space-between;align-items:end;gap:20px}
+.caption strong{font-size:clamp(18px,4.2cqw,54px);line-height:.95;letter-spacing:-.065em;max-width:65%}.caption small{font:10px var(--mono);color:#68717a;text-align:right}
+.scene-three{background:#171719}
+.scene-three .wipe{position:absolute;inset:0;background:var(--accent);clip-path:inset(0 calc((1 - var(--p))*100%) 0 0)}
+.scene-three .proof{position:absolute;inset:0;padding:8% 7%;display:flex;flex-direction:column;justify-content:space-between;opacity:var(--p)}
+.scene-three .proof .headline{font-size:clamp(34px,8.3cqw,104px);line-height:.88;letter-spacing:-.085em;font-weight:900;max-width:78%;color:#12171d}
+.scene-three .proof .headline em{font-style:normal;color:#52758f}
+.proof-bottom{display:flex;justify-content:space-between;align-items:end;color:#12171d;gap:18px}.proof-bottom b{font-size:clamp(13px,2cqw,24px);letter-spacing:-.04em}.proof-bottom span{font:10px var(--mono);text-align:right}
+.wave{height:18%;width:36%;display:flex;align-items:center;gap:3px}.wave i{width:3px;border-radius:4px;background:#12171d;height:calc(12% + (var(--n)*1%));transform:scaleY(calc(.3 + var(--p)*.7));transform-origin:center}
+.scene-four{background:#111114}
+.disc{position:absolute;width:10%;aspect-ratio:1;border-radius:50%;background:var(--accent);left:50%;top:50%;transform:translate(-50%,-50%) scale(calc(.15 + var(--p)*13));}
+.lockup{position:absolute;inset:0;display:grid;place-content:center;text-align:center;clip-path:circle(calc(var(--p)*85%) at 50% 50%);color:#111820}
+.lockup .wordmark{font-size:clamp(64px,17cqw,210px);font-weight:950;letter-spacing:-.105em;line-height:.8}
+.lockup .tag{margin-top:3cqw;font:clamp(8px,1.1cqw,13px) var(--mono);letter-spacing:.2em}
+.scene-four .final-meta{position:absolute;left:7%;right:7%;bottom:7%;display:flex;justify-content:space-between;color:#f4f4f1;font:10px var(--mono);letter-spacing:.12em;opacity:var(--p)}
+.controls{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:center}
+.transport{display:flex;gap:8px}.control{height:38px;min-width:40px;padding:0 13px;border:1px solid #ffffff22;border-radius:8px;background:#1c1c20;color:var(--ink);font:11px var(--mono);cursor:pointer}.control:hover{background:#292a30}.control:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.scrub{width:100%;accent-color:var(--accent);cursor:pointer}.time{font:10px var(--mono);color:var(--muted);white-space:nowrap}
+.foot{display:flex;justify-content:space-between;gap:16px;padding:0 clamp(16px,4vw,56px) 22px;color:var(--muted);font:10px var(--mono);letter-spacing:.08em}.foot a{color:var(--ink);text-decoration:none}
+@media(max-width:600px){.top{height:54px}.controls{grid-template-columns:auto minmax(0,1fr);gap:10px}.time{grid-column:2;justify-self:end}.transport .control{padding:0 9px}.foot{font-size:9px}.scene-one .sub{align-items:start;flex-direction:column}.caption{align-items:start!important;flex-direction:column}.caption small{text-align:left!important}.pile{width:60%;height:56%}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><a class="brand" href="./editor.html" aria-label="KEFE editor">KEFE</a><span class="top-meta">A LAUNCH MANIFESTO / 2026</span></header>
+<main>
+<div class="frame" id="film" role="img" aria-label="KEFE launch film: problem, fix, proof and brand lockup">
+<section class="scene scene-one active" aria-hidden="true"><div class="grid"></div><div class="eyebrow">01 / THE PROBLEM</div><div class="hero" id="hero">LOST.</div><div class="sub"><span>YOUR MUSIC<br>DESERVES TO BE SEEN.</span><small>THE SOUND IS THERE.<br>THE VISUALS AREN'T.</small></div></section>
+<section class="scene scene-two" aria-hidden="true"><div class="eyebrow">02 / THE FIX</div><div class="pile" id="pile">
+<div class="card"><span class="tiny">GENERIC VISUAL 01</span><div class="fake-mark">PLAY</div><div class="fake-lines"><i></i><i></i><i></i></div></div>
+<div class="card"><span class="tiny">GENERIC VISUAL 02</span><div class="fake-mark">SOUND</div><div class="fake-lines"><i></i><i></i><i></i></div></div>
+<div class="card"><span class="tiny">GENERIC VISUAL 03</span><div class="fake-mark">MUSIC</div><div class="fake-lines"><i></i><i></i><i></i></div></div>
+<div class="card"><span class="tiny">GENERIC VISUAL 04</span><div class="fake-mark">WAVE</div><div class="fake-lines"><i></i><i></i><i></i></div></div>
+<div class="card feature"><span class="tiny">YOUR CREATIVE SPACE</span><div class="fake-mark">KEFE<span style="color:#a6d7ff">.</span></div><div class="fake-lines"><i></i><i></i><i></i></div></div>
+</div><div class="caption"><strong>NOT ANOTHER<br>COOKIE-CUTTER.</strong><small>ONE CANVAS.<br>YOUR SOUND. YOUR RULES.</small></div></section>
+<section class="scene scene-three" aria-hidden="true"><div class="wipe"></div><div class="proof"><div class="eyebrow" style="color:#52758f">03 / THE PROOF</div><div class="headline">EVERY WORD.<br><em>ON BEAT.</em></div><div class="proof-bottom"><div><b>SYNCED LYRICS. LIVE VISUALS.</b><div class="wave" id="wave"></div></div><span>YOUR TRACK<br>YOUR TIMING<br>YOUR FRAME</span></div></div></section>
+<section class="scene scene-four" aria-hidden="true"><div class="disc"></div><div class="lockup"><div class="wordmark">KEFE</div><div class="tag">MAKE YOUR MUSIC VISIBLE.</div></div><div class="final-meta"><span>KEFE / LYRIC VISUALISER</span><span>CREATE WHAT YOU HEAR.</span></div></section>
+</div>
+<div class="controls" aria-label="Film controls"><div class="transport"><button class="control" id="play" type="button" aria-label="Play film">PLAY</button><button class="control" id="restart" type="button" aria-label="Restart film">↺</button></div><input class="scrub" id="scrub" type="range" min="0" max="26.3" step=".01" value="0" aria-label="Film timeline"><output class="time" id="time">00:00.0 / 00:26.3</output></div>
+</main>
+<footer class="foot"><span>26.3 SECONDS · 30 FPS · 1280 × 720</span><a href="./editor.html">OPEN THE EDITOR ↗</a></footer>
+<script>
+(() => {
+  const DURATION=26.3, FPS=30, scenes=[...document.querySelectorAll('.scene')];
+  const scrub=document.getElementById('scrub'),time=document.getElementById('time'),play=document.getElementById('play');
+  const wave=document.getElementById('wave');let current=0,running=false,raf=0,last=0;
+  for(let i=0;i<36;i++){const bar=document.createElement('i');bar.style.setProperty('--n',String(12+Math.round((Math.sin(i*1.7)+1)*34)));wave.append(bar)}
+  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+  const ease=v=>{v=clamp(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2};
+  function render(t){
+    current=clamp(t,0,DURATION);scrub.value=current;
+    const labels=['00:00.0','00:05.8','00:12.5','00:19.4','00:26.3'];
+    time.value=time.textContent= '00:'+String(Math.floor(current/60)).padStart(2,'0')+':'+String((current%60).toFixed(1)).padStart(4,'0')+' / 00:26.3';
+    const spans=[[0,5.8],[5.8,12.5],[12.5,19.4],[19.4,26.3]];
+    scenes.forEach((scene,i)=>{
+      const [start,end]=spans[i],p=clamp((current-start)/(end-start));
+      const active=current>=start&&current<end || (i===3&&current===DURATION);
+      scene.classList.toggle('active',active);scene.style.opacity=active?'1':'0';scene.style.setProperty('--p',String(ease(p)));
+    });
+    const p1=clamp(current/5.8);document.getElementById('hero').style.letterSpacing=(-.105+p1*.015)+'em';
+    const p2=ease((current-5.8)/6.7),cards=[...document.querySelectorAll('.scene-two .card')];
+    cards.forEach((card,i)=>{const spread=[[-25,-13,-14],[19,-12,13],[-15,13,7],[18,16,-8],[0,0,0]][i];const collapse=1-p2;card.style.transform='translate('+spread[0]*collapse+'%,'+spread[1]*collapse+'%) rotate('+spread[2]*collapse+'deg) scale('+(0.82+p2*.18)+')'});
+    const p3=ease((current-12.5)/6.9);document.querySelector('.scene-three .proof').style.opacity=String(clamp((current-13.5)/1.1));
+    document.querySelector('.scene-three .wipe').style.clipPath='inset(0 '+(100-p3*100)+'% 0 0)';
+    const p4=ease((current-19.4)/6.9);document.querySelector('.scene-four .disc').style.transform='translate(-50%,-50%) scale('+(0.15+p4*13)+')';
+    document.querySelector('.scene-four .lockup').style.clipPath='circle('+(p4*85)+'% at 50% 50%)';
+    document.querySelector('.scene-four .final-meta').style.opacity=String(clamp((p4-.55)/.3));
+  }
+  function tick(now){if(!running)return;if(!last)last=now;const dt=(now-last)/1000;last=now;current+=dt; if(current>=DURATION){current=DURATION;render(current);pause();return}render(current);raf=requestAnimationFrame(tick)}
+  function pause(){running=false;last=0;cancelAnimationFrame(raf);play.textContent='PLAY';play.setAttribute('aria-label','Play film')}
+  function start(){if(current>=DURATION)current=0;running=true;play.textContent='PAUSE';play.setAttribute('aria-label','Pause film');last=0;raf=requestAnimationFrame(tick)}
+  play.addEventListener('click',()=>running?pause():start());
+  document.getElementById('restart').addEventListener('click',()=>{pause();render(0)});
+  scrub.addEventListener('input',()=>{pause();render(Number(scrub.value))});
+  document.addEventListener('keydown',e=>{if(e.target===scrub)return;if(e.code==='Space'){e.preventDefault();running?pause():start()}if(e.key==='ArrowLeft'){pause();render(current-.5)}if(e.key==='ArrowRight'){pause();render(current+.5)}});
+  render(0);
+})();
+</script>
+</body>
+</html>
