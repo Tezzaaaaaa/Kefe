@@ -80,8 +80,8 @@ main{width:min(100% - 32px,1120px);margin:auto;display:grid;gap:18px;padding:cla
   const ease=v=>{v=clamp(v);return v<.5?4*v*v*v:1-Math.pow(-2*v+2,3)/2};
   function render(t){
     current=clamp(t,0,DURATION);scrub.value=current;
-    const labels=['00:00.0','00:05.8','00:12.5','00:19.4','00:26.3'];
-    time.value=time.textContent= '00:'+String(Math.floor(current/60)).padStart(2,'0')+':'+String((current%60).toFixed(1)).padStart(4,'0')+' / 00:26.3';
+    
+    const seconds=Math.floor(current),tenths=Math.floor((current-seconds)*10);time.value=time.textContent='00:'+String(seconds).padStart(2,'0')+'.'+tenths+' / 00:26.3';
     const spans=[[0,5.8],[5.8,12.5],[12.5,19.4],[19.4,26.3]];
     scenes.forEach((scene,i)=>{
       const [start,end]=spans[i],p=clamp((current-start)/(end-start));
