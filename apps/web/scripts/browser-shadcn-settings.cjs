@@ -45,7 +45,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.evaluate(() => window.kefeSettings.get('aspect')), '9:16');
       await dialog.getByRole('button', { name: 'Reset all settings' }).click();
       assert.deepEqual(await page.evaluate(() => [window.kefeSettings.get('titleCard'), window.kefeSettings.get('fpsTarget'), window.kefeSettings.get('aspect')]), [true, 60, '16:9']);
-      await dialog.getByRole('button', { name: 'Done' }).click();
+      await dialog.getByRole('button', { name: 'Close settings' }).click();
       await dialog.waitFor({ state: 'hidden' });
       await page.waitForFunction(() => document.activeElement?.matches('[data-top-panel="settings"]'));
       await opener.click(); await dialog.waitFor({ state: 'visible' });
