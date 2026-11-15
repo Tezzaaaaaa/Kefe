@@ -44,17 +44,17 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => document.querySelector('[data-workspace-tab="content"]')?.getAttribute('aria-selected') === 'true');
       await page.keyboard.press('ArrowRight');
       await page.waitForFunction(() => document.querySelector('[data-workspace-tab="design"]')?.getAttribute('aria-selected') === 'true');
-      const sublist = page.locator('#kefe-workspace-appearance-panel [data-slot="tabs-list"]');
-      const subtabs = sublist.getByRole('tab');
-      assert.equal(await subtabs.count(), 2);
-      assert.equal(await sublist.locator('[data-slot="tabs-trigger"]').count(), 2);
-      await subtabs.first().focus(); await page.keyboard.press('End');
-      await page.waitForFunction(() => document.querySelector('#kefe-subtab-background')?.getAttribute('aria-selected') === 'true');
-      const backgroundRelation = await page.locator('#kefe-subtab-background').evaluate(node => {
+      const effectSubtabMount = page.locator('#kefe-workspace-appearance-panel .kefe-subtabs-mount');
+      assert.equal(await effectSubtabMount.count(), 1);
+      assert.equal(await effectSubtabMount.isVisible(), false, 'single-section Effects workspace must not show a redundant one-tab strip');
+      const effectPanel = page.locator('#kefe-subpanel-lyric-effects');
+      assert.equal(await effectPanel.isVisible(), true, 'the sole Effects section remains visible without a subtab strip');
+      const backgroundTab = page.locator('#kefe-subtab-background');
+      const backgroundRelation = await backgroundTab.evaluate(node => {
         const panel = document.getElementById(node.getAttribute('aria-controls'));
         return [panel?.getAttribute('role'), panel?.getAttribute('aria-labelledby'), panel?.hidden];
       });
-      assert.deepEqual(backgroundRelation, ['tabpanel', 'kefe-subtab-background', false]);
+      assert.deepEqual(backgroundRelation, ['tabpanel', 'kefe-subtab-background', true], 'single-section Background workspace keeps its section panel mounted without exposing a redundant tab');
       await page.evaluate(() => window.kefeSettingsPanelAdapter.activateSection('export'));
       await page.waitForFunction(() => document.querySelector('#kefe-subtab-export')?.getAttribute('aria-selected') === 'true' && document.querySelector('[data-workspace-tab="export"]')?.getAttribute('aria-selected') === 'true');
       assert.equal(await page.locator('#kefe-subpanel-export').isVisible(), true);
