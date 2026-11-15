@@ -74,6 +74,8 @@ assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loa
 assert.match(editor, /lyric-signature-four\.js/, "the four new Signature treatments must be loaded by the editor");
 assert.match(editor, /lyric-typography-pack\.js/, "the typography renderer must be loaded by the editor");
 assert.match(editor, /lyricfx-matrix-pack\.js/, "the LyricFX Matrix renderer must be loaded by the editor");
+assert.match(editor, /lyric-typography-pack\.js\?v=typography-pack-20261115-2/, "the corrected typography renderer must bypass stale browser cache");
+assert.match(editor, /lyricfx-matrix-pack\.js\?v=lyricfx-matrix-20261115-2/, "the corrected Matrix renderer must bypass stale browser cache");
 assert.match(editor, /lyric-text-swap\.js/, "Text Swap renderer must be loaded by the editor");
 assert.match(editor, /lyric-premium-kit\.js[^]*lyric-signature-pack\.js/, "the premium kit must load before the Signature pack");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
