@@ -21,6 +21,8 @@ const keys = EXPECTED.flatMap(([, list]) => list);
 const addedSignatureKeys = ["sigfrost", "sigvoid", "sigscript", "sigbrat"];
 const TYPOGRAPHY = [["Entrance","ty-fade-in"],["Entrance","ty-slide-up"],["Entrance","ty-slide-down"],["Entrance","ty-slide-left"],["Entrance","ty-slide-right"],["Entrance","ty-scale-in"],["Entrance","ty-blur-in"],["Entrance","ty-flip-x"],["Entrance","ty-flip-y"],["Entrance","ty-rotate-in"],["Entrance","ty-bounce-in"],["Entrance","ty-elastic-in"],["Entrance","ty-zoom-in"],["Entrance","ty-zoom-out"],["Entrance","ty-skew-in"],["Entrance","ty-wipe-in"],["Entrance","ty-mask-in"],["Entrance","ty-reveal-up"],["Entrance","ty-drop-in"],["Entrance","ty-float-in"],["Loops & Beats","ty-pulse"],["Loops & Beats","ty-shake"],["Loops & Beats","ty-wobble"],["Loops & Beats","ty-jello"],["Loops & Beats","ty-heartbeat"],["Loops & Beats","ty-bounce-loop"],["Loops & Beats","ty-flash"],["Loops & Beats","ty-rubber-band"],["Loops & Beats","ty-swing"],["Loops & Beats","ty-tada"],["Loops & Beats","ty-flip-loop"],["Loops & Beats","ty-spin-loop"],["Kinetic Text","ty-morph-text"],["Kinetic Text","ty-letter-fade"],["Kinetic Text","ty-number-slide"],["Kinetic Text","ty-slide-cycle"],["Kinetic Text","ty-bounce-cycle"],["Kinetic Text","ty-rotate-cycle"],["Kinetic Text","ty-zoom-cycle"],["Kinetic Text","ty-wave"],["Decode & Data","ty-scramble"],["Decode & Data","ty-typewriter"],["Decode & Data","ty-binary"],["Decode & Data","ty-decrypt"],["Decode & Data","ty-cipher"],["Decode & Data","ty-matrix-rain"],["Decode & Data","ty-glitch-decode"],["Decode & Data","ty-noise"],["Decode & Data","ty-signal"],["Decode & Data","ty-resolve"],["Decode & Data","ty-count-up"],["Decode & Data","ty-percentage"],["Decode & Data","ty-money"],["Decode & Data","ty-year"],["Decode & Data","ty-leading-zero"],["Decode & Data","ty-decimal"],["Decode & Data","ty-progress"],["Decode & Data","ty-hex"],["Decode & Data","ty-answer"],["Decode & Data","ty-phone"],["Surface & Finish","ty-gradient-text"],["Surface & Finish","ty-neon"],["Surface & Finish","ty-glitch-text"],["Surface & Finish","ty-chrome"],["Surface & Finish","ty-emboss"],["Surface & Finish","ty-pressed"],["Surface & Finish","ty-paper-cut"],["Surface & Finish","ty-drop-cap"],["Surface & Finish","ty-rainbow"],["Surface & Finish","ty-glow"],["Surface & Finish","ty-neon-green"],["Typography Styles","ty-monospace"],["Typography Styles","ty-wide"],["Typography Styles","ty-italic"],["Typography Styles","ty-underline"],["Typography Styles","ty-strikethrough"],["Typography Styles","ty-black-weight"],["Typography Styles","ty-case-cycle"],["Typography Styles","ty-lowercase-cycle"],["Typography Styles","ty-capitalize-cycle"],["Beat-Reactive Controls","ty-magnet"],["Beat-Reactive Controls","ty-pressure"],["Beat-Reactive Controls","ty-hover-glow"],["Beat-Reactive Controls","ty-scale-hover"],["Beat-Reactive Controls","ty-expand"],["Beat-Reactive Controls","ty-color-shift"],["Beat-Reactive Controls","ty-italic-hover"],["Beat-Reactive Controls","ty-underline-hover"],["Beat-Reactive Controls","ty-tilt"],["Display & Texture","ty-fade"],["Display & Texture","ty-outline"],["Display & Texture","ty-lcd"],["Display & Texture","ty-split-flap"],["Display & Texture","ty-liquid-fill"],["Display & Texture","ty-fire"],["Display & Texture","ty-ice"],["Display & Texture","ty-shadow-dance"]];
 const typographyKeys = TYPOGRAPHY.map(([,key])=>key);
+const MATRIX = [["kinetic","lf-karaoke-sweep"],["minimal","lf-line-focus"],["minimal","lf-smooth-glide"],["glow","lf-blur-unveil"],["glow","lf-neon-glow"],["kinetic","lf-kinetic-pop"],["cyber","lf-typewriter"],["glow","lf-sustain-pulse"],["cyber","lf-3d-tilt"],["minimal","lf-genre-theme"],["cyber","lf-chromatic-split"],["kinetic","lf-waveform-stretch"],["glow","lf-liquid-ink"],["cyber","lf-laser-sweep"],["cyber","lf-tunnel-zoom"],["glow","lf-particle-dissolve"],["cyber","lf-strobe-shutter"],["minimal","lf-zero-gravity"],["cyber","lf-cyber-hud"],["minimal","lf-harmony-split"],["glow","lf-holo-flare"],["minimal","lf-vinyl-groove"],["cyber","lf-matrix-stream"],["kinetic","lf-lightning-arc"],["cyber","lf-neon-marquee"],["glow","lf-crystal-glass"],["cyber","lf-thermal-heat"],["kinetic","lf-seismic-tremor"],["glow","lf-velvet-shadow"],["glow","lf-supernova-flare"],["rare glow","lf-anamorphic-streak"],["rare kinetic","lf-spatial-doppler"],["rare cyber","lf-quantum-shift"],["rare glow","lf-biolumen-ripple"],["rare cyber","lf-crt-phosphor"],["rare glow","lf-aurora-wave"],["rare glow","lf-prism-reflection"],["rare kinetic","lf-solar-plasma"],["rare cyber","lf-gravity-well"],["rare glow","lf-volumetric-fog"],["rare kinetic","lf-ferrofluid-pulse"],["rare cyber","lf-vhs-tracking"],["rare cyber","lf-vaporwave-grid"],["rare cyber","lf-cyber-weave"],["rare glow","lf-frost-bloom"],["rare glow","lf-golden-bokeh"],["rare kinetic","lf-kinetic-wave"],["rare glow","lf-nebula-burn"],["rare glow","lf-acid-liquid"],["rare kinetic","lf-cyber-equalizer"]];
+const matrixKeys = MATRIX.map(([,key])=>key);
 
 /* ---- manifest ---------------------------------------------------- */
 const sandbox = { window: {}, console, Math, Number, String, Array, Object, Map, Set, Intl };
@@ -29,7 +31,7 @@ vm.createContext(sandbox);
 vm.runInContext(read("app/effects/manifest.js"), sandbox, { filename: "manifest.js" });
 const manifest = sandbox.window.KEFE_EFFECTS;
 assert.ok(Array.isArray(manifest), "manifest must publish KEFE_EFFECTS");
-assert.equal(manifest.length, 156, `roster must be Apple + Text Swap + Lyric Pull + 56 Signature + 97 typography effects, found ${manifest.length}`);
+assert.equal(manifest.length, 206, `roster must be Apple + Text Swap + Lyric Pull + 56 Signature + 97 typography + 50 LyricFX Matrix effects, found ${manifest.length}`);
 assert.equal(manifest[0].key, "apple", "Apple must stay first in the roster");
 assert.equal(manifest.filter(item => item.key === "apple").length, 1, "Apple must be listed exactly once");
 const manifestKeys = Array.from(manifest, item => item.key);
@@ -44,25 +46,34 @@ for (const [category, list] of EXPECTED) {
     assert.equal(entry.key.startsWith("sig"), true, `${entry.key} must use the sig prefix`);
   }
 }
-for (const key of [...keys, ...addedSignatureKeys, ...typographyKeys]) assert.ok(manifestKeys.includes(key), `${key} is missing from the manifest`);
+for (const key of [...keys, ...addedSignatureKeys, ...typographyKeys, ...matrixKeys]) assert.ok(manifestKeys.includes(key), `${key} is missing from the manifest`);
+for (const [category,key] of MATRIX) {
+ const entry=manifest.find(item=>item.key===key);
+ assert.ok(entry, key+" must be listed");
+ const label=category.startsWith("rare ")?category.slice(5).replace(/^./,x=>x.toUpperCase()):category.replace(/^./,x=>x.toUpperCase());
+ assert.equal(entry.category,"LyricFX — "+label,key+" must retain its source category");
+ assert.ok(entry.label&&entry.description,key+" needs a label and description");
+}
 for (const [category,key] of TYPOGRAPHY) {
  const entry=manifest.find(item=>item.key===key);
  assert.ok(entry, `${key} must be listed`);
  assert.equal(entry.category, `Typography — ${category}`, `${key} must retain its reference category`);
  assert.ok(entry.label&&entry.description, `${key} needs a label and description`);
 }
-const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && key !== "lyricpull" && !key.startsWith("sig") && !key.startsWith("ty-"));
+const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && key !== "lyricpull" && !key.startsWith("sig") && !key.startsWith("ty-") && !key.startsWith("lf-"));
 assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${legacy.join(", ")}`);
 
 /* ---- page wiring ------------------------------------------------- */
 const editor = read("editor.source.html");
 assert.match(editor, /<meta name="kefe-lyric-signature" content="56">/, "the editor must declare the Signature pack marker");
 assert.match(editor, /<meta name="kefe-typography-effects" content="97">/, "the editor must declare the typography pack marker");
+assert.match(editor, /<meta name="kefe-lyricfx-effects" content="50">/, "the editor must declare the LyricFX pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
 assert.match(editor, /lyric-signature-four\.js/, "the four new Signature treatments must be loaded by the editor");
 assert.match(editor, /lyric-typography-pack\.js/, "the typography renderer must be loaded by the editor");
+assert.match(editor, /lyricfx-matrix-pack\.js/, "the LyricFX Matrix renderer must be loaded by the editor");
 assert.match(editor, /lyric-text-swap\.js/, "Text Swap renderer must be loaded by the editor");
 assert.match(editor, /lyric-premium-kit\.js[^]*lyric-signature-pack\.js/, "the premium kit must load before the Signature pack");
 assert.match(editor, /effects\/manifest\.js/, "the manifest must be loaded");
@@ -92,6 +103,7 @@ assert.match(typography, /\n\s+lyricpull:\s*\{ family: families\./, "Lyric Pull 
 for (const key of [...keys, ...addedSignatureKeys]) {
   assert.match(typography, new RegExp(`\\n\\s+${key}:\\s+\\{ family: families\\.`), `${key} needs a typography contract`);
 }
+for (const key of matrixKeys) assert.ok(typography.includes("'"+key+"': { family: families.ui"), key+" needs a typography contract");
 for (const key of typographyKeys) assert.ok(typography.includes(`'${key}': { family: families.ui`), `${key} needs a typography contract`);
 
 /* ---- renderer registration + execution --------------------------- */
@@ -145,6 +157,8 @@ vm.runInContext(read("app/effects/lyric-signature-pack.js"), runtime, { filename
 vm.runInContext(read("app/effects/lyric-signature-four.js"), runtime, { filename: "lyric-signature-four.js" });
 vm.runInContext(read("app/effects/lyric-typography-pack.js"), runtime, { filename: "lyric-typography-pack.js" });
 for (const key of typographyKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
+vm.runInContext(read("app/effects/lyricfx-matrix-pack.js"), runtime, { filename: "lyricfx-matrix-pack.js" });
+for (const key of matrixKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
 for (const key of addedSignatureKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
 vm.runInContext(read("app/effects/lyric-text-swap.js"), runtime, { filename: "lyric-text-swap.js" });
 assert.equal(typeof runtime.kefeEffects.textswap, "function", "Text Swap renderer must register");
@@ -166,6 +180,8 @@ const registered = Object.keys(runtime.kefeEffects || {}).filter(key => key.star
 assert.deepEqual(registered.sort(), [...keys, ...addedSignatureKeys].sort(), "Signature renderer registrations must match the roster");
 const registeredTypography = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("ty-"));
 assert.deepEqual(registeredTypography.sort(), [...typographyKeys].sort(), "typography renderer registrations must match the 97-treatment roster");
+const registeredMatrix = Object.keys(runtime.kefeEffects || {}).filter(key => key.startsWith("lf-"));
+assert.deepEqual(registeredMatrix.sort(), [...matrixKeys].sort(), "LyricFX renderer registrations must match the 50-treatment roster");
 assert.equal(typeof runtime.kefeEffects.apple, "undefined", "the Apple renderer is owned by lyric-apple.js");
 
 runtime.dispatchEvent = () => {};
@@ -216,4 +232,12 @@ for (const key of typographyKeys) {
   runtime.kefeEffects[key](ctx,1280,720,style,plainLines,t);runtime.kefeEffects[key](ctx,1280,720,style,[],t);
  }
 }
-console.log(`Lyric effects verified: Apple + Text Swap + Lyric Pull + ${keys.length+addedSignatureKeys.length} Signature + ${typographyKeys.length} typography treatments; all registered and rendered on desktop/mobile.`);
+for (const key of matrixKeys) {
+ const ctx=makeContext(),style={effect:key,fontSize:84,kefeMotionFont:"Open Sans",textColor:"#fff"};
+ for(const t of [1.08,1.6,2.2]){
+  ctx.resetFills();runtime.kefeEffects[key](ctx,1280,720,style,lines,t);assert.ok(ctx.fills>0,key+" must paint desktop canvas");
+  ctx.resetFills();runtime.kefeEffects[key](ctx,360,640,{...style,fontSize:48},lines,t);assert.ok(ctx.fills>0,key+" must paint mobile canvas");
+  runtime.kefeEffects[key](ctx,1280,720,style,plainLines,t);runtime.kefeEffects[key](ctx,1280,720,style,[],t);
+ }
+}
+console.log("Lyric effects verified: Apple + Text Swap + Lyric Pull + "+(keys.length+addedSignatureKeys.length)+" Signature + "+typographyKeys.length+" typography + "+matrixKeys.length+" LyricFX Matrix effects; desktop/mobile canvas tests passed.");
