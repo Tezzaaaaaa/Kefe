@@ -50,7 +50,7 @@ for (const key of [...keys, ...addedSignatureKeys, ...typographyKeys, ...matrixK
 for (const [category,key] of MATRIX) {
  const entry=manifest.find(item=>item.key===key);
  assert.ok(entry, key+" must be listed");
- const label=category.replace(/^rare /,"Rare ").replace(/^./,x=>x.toUpperCase());
+ const label=category.split(" ").map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(" ");
  assert.equal(entry.category,"LyricFX — "+label,key+" must retain its source category");
  assert.ok(entry.label&&entry.description,key+" needs a label and description");
 }
