@@ -42,12 +42,12 @@ function audioFixture() {
       await page.locator('#mediaInput').setInputFiles({ name: 'export-test.wav', mimeType: 'audio/wav', buffer: audioFixture() });
       await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 1);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      await page.waitForSelector('.kv-tab[data-visualiser="gradient"]', { state: 'visible' });
-      await page.locator('.kv-tab[data-visualiser="gradient"]').click();
-      const visualiserPower = page.locator('.kv-card[data-visualiser="gradient"] [data-slot="switch"]');
-      if (await visualiserPower.getAttribute('aria-checked') !== 'true') await visualiserPower.click();
-      await page.waitForFunction(() => document.querySelector('.kv-card[data-visualiser="gradient"] [role="switch"]')?.getAttribute('aria-checked') === 'true');
+      const gradientTab = page.locator('.shad-vis-tabs-host .kv-tab[data-visualiser="gradient"]');
+      await gradientTab.waitFor({ state: 'visible' });
+      await gradientTab.focus();
+      await page.keyboard.press('Enter');
       await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true, null, { timeout: 10000 });
+      await page.waitForFunction(() => document.querySelector('.kv-card[data-visualiser="gradient"] [role="switch"]')?.getAttribute('aria-checked') === 'true');
       await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
       await page.evaluate(() => { const select = document.getElementById('exportResolution'); select.value = '720'; select.dispatchEvent(new Event('change', { bubbles: true })); });
