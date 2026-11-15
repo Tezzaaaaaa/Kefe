@@ -34,6 +34,7 @@ function mount(input) {
   function render() {
     if (disposed) return;
     host.hidden = input.hidden;
+    host.style.display = input.hidden ? "none" : "";
     const labelledBy = input.getAttribute("aria-labelledby");
     root.render(h(Checkbox, {
       checked: input.indeterminate ? "indeterminate" : input.checked,
