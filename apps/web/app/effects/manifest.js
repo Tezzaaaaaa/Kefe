@@ -124,7 +124,7 @@ window.KEFE_EFFECTS = [
   { key: 'ty-zoom-cycle', label: 'Zoom Cycle', description: 'Kinetic typography with staggered glyph motion tied to sung words.', category: 'Typography — Kinetic Text' },
   { key: 'ty-wave', label: 'Wave', description: 'Kinetic typography with staggered glyph motion tied to sung words.', category: 'Typography — Kinetic Text' },
   { key: 'ty-scramble', label: 'Scramble', description: 'Text-preserving decode and data-inspired animation; lyrics are never replaced by counters.', category: 'Typography — Decode & Data' },
-  { key: 'ty-typewriter', label: 'Typewriter', description: 'Text-preserving decode and data-inspired animation; lyrics are never replaced by counters.', category: 'Typography — Decode & Data' },
+  { key: 'ty-typewriter', label: 'Typewriter Reveal', description: 'Text-preserving decode and data-inspired animation; lyrics are never replaced by counters.', category: 'Typography — Decode & Data' },
   { key: 'ty-binary', label: 'Binary', description: 'Text-preserving decode and data-inspired animation; lyrics are never replaced by counters.', category: 'Typography — Decode & Data' },
   { key: 'ty-decrypt', label: 'Decrypt', description: 'Text-preserving decode and data-inspired animation; lyrics are never replaced by counters.', category: 'Typography — Decode & Data' },
   { key: 'ty-cipher', label: 'Cipher', description: 'Text-preserving decode and data-inspired animation; lyrics are never replaced by counters.', category: 'Typography — Decode & Data' },
