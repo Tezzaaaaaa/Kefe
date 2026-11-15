@@ -40,7 +40,21 @@ const server = http.createServer((req, res) => {
       assert.ok(box && box.x >= 0 && box.x + box.width <= width + 1, 'volume button fits viewport');
       await trigger.click();
       assert.equal(await trigger.getAttribute('aria-expanded'), 'true');
-      assert.equal(await popover.isVisible(), true);
+      const popoverState = await popover.evaluate(el => ({
+        hidden: el.hidden,
+        parent: el.parentElement?.className,
+        ancestors: [el.parentElement, el.parentElement?.parentElement, el.parentElement?.parentElement?.parentElement].map(node => node && ({
+          tag: node.tagName, className: node.className, hidden: node.hidden,
+          dataState: node.getAttribute('data-state'),
+          display: getComputedStyle(node).display,
+          visibility: getComputedStyle(node).visibility,
+          rect: (() => { const r = node.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })()
+        })),
+        display: getComputedStyle(el).display,
+        visibility: getComputedStyle(el).visibility,
+        rect: (() => { const r = el.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })()
+      }));
+      assert.equal(await popover.isVisible(), true, `volume popover must be visible after opening: ${JSON.stringify(popoverState)}`);
       assert.equal(await popover.evaluate(el => Boolean(el.closest('.kefe-volume-control'))), false, 'volume popover must escape the clipping control container');
       const popoverBox = await popover.boundingBox();
       assert.ok(popoverBox && popoverBox.x >= 0 && popoverBox.y >= 0 && popoverBox.x + popoverBox.width <= width + 1 && popoverBox.y + popoverBox.height <= 844 + 1, 'volume popover must remain fully visible in the viewport');
