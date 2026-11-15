@@ -29,6 +29,10 @@ function mount(button) {
   function render() {
     if (disposed) return;
     host.hidden = button.hidden;
+    host.style.display = button.hidden ? "none" : "";
+    host.style.visibility = button.hidden ? "hidden" : "";
+    host.style.pointerEvents = button.hidden ? "none" : "";
+    host.toggleAttribute("aria-hidden", button.hidden);
     const labelledBy = button.getAttribute("aria-labelledby");
     root.render(h(Switch, {
       checked: button.getAttribute("aria-checked") === "true", disabled: button.disabled,
