@@ -46,7 +46,25 @@ function audioFixture() {
       await gradientTab.waitFor({ state: 'visible' });
       await gradientTab.focus();
       await page.keyboard.press('Enter');
-      await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true, null, { timeout: 10000 });
+      try {
+        await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true, null, { timeout: 10000 });
+      } catch (error) {
+        const visualiserState = await page.evaluate(() => {
+          const backing = document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"]');
+          const power = backing?.closest('.kefe-vis-option')?.querySelector('.kefe-switch');
+          const card = document.querySelector('.kv-card[data-visualiser="gradient"]');
+          return {
+            enginePresent: !!window.kefeGradientLayer,
+            engineState: window.kefeGradientLayer?.state?.(),
+            backingSelected: backing?.getAttribute('aria-selected'),
+            backingPower: power?.getAttribute('aria-checked'),
+            cardSelected: card?.querySelector('.kv-tab')?.getAttribute('aria-selected'),
+            cardPower: card?.querySelector('[role="switch"]')?.getAttribute('aria-checked'),
+            backingHost: backing?.parentElement?.className
+          };
+        });
+        throw new Error(`Fluid Ink did not become active: ${JSON.stringify(visualiserState)}; ${error.message}`);
+      }
       await page.waitForFunction(() => document.querySelector('.kv-card[data-visualiser="gradient"] [role="switch"]')?.getAttribute('aria-checked') === 'true');
       await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
