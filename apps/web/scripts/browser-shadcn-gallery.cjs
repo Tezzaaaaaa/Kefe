@@ -22,7 +22,7 @@ const server = http.createServer((req, res) => {
       page.on('pageerror', error => errors.push(error.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/editor.html`);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-visualisers').evaluate(node => node.click());
+      await page.waitForSelector('.shad-vis-tabs-host', { state: 'visible' });
       const gallery = page.locator('.shad-vis-tabs-host');
       await gallery.locator('[data-slot="tabs-list"]').waitFor();
       assert.equal(await gallery.locator('[data-slot="card"]').count(), 7);
