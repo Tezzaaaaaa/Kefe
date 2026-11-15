@@ -77,7 +77,7 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => document.querySelector('#kefeReview0 + .kefe-checkbox-host [role="checkbox"]')?.getAttribute('aria-checked') === 'false');
       await page.evaluate(() => { document.getElementById('kefeReview0').hidden = true; });
       await page.waitForFunction(() => document.querySelector('#kefeReview0 + .kefe-checkbox-host').hidden);
-      assert.equal(await checkbox.isVisible(), false, 'hidden backing input hides its shadcn control');
+      assert.equal(await page.locator('#kefeReview0 + .kefe-checkbox-host [role="checkbox"]').isVisible(), false, 'hidden backing input hides its shadcn control');
       await page.evaluate(() => { document.getElementById('kefeReview0').hidden = false; });
       await page.locator('[data-workspace-tab="content"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-sync').evaluate(node => node.click());
