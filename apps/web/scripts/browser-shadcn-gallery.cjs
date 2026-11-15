@@ -57,7 +57,7 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => window.kefeProjectAutosave && window.kefeSettingsPanelAdapter);
       await page.evaluate(() => window.kefeProjectAutosave.ready);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-visualisers').evaluate(node => node.click());
+      await page.waitForSelector('.shad-vis-tabs-host', { state: 'visible' });
       await page.waitForFunction(id => document.querySelector(`.shad-vis-tabs-host [data-visualiser="${id}"][role="tab"]`)?.getAttribute('aria-selected') === 'true', firstId);
       assert.equal(await gallery.locator(`.kv-card[data-visualiser="${firstId}"] [data-slot="switch"]`).getAttribute('aria-checked'), 'false', 'saved engine power is restored');
       await page.evaluate(() => {
