@@ -54,7 +54,7 @@ const server = http.createServer((req, res) => {
         const panel = document.getElementById(node.getAttribute('aria-controls'));
         return [panel?.getAttribute('role'), panel?.getAttribute('aria-labelledby'), panel?.hidden];
       });
-      assert.deepEqual(backgroundRelation, ['tabpanel', 'kefe-subtab-background', true], 'single-section Background workspace keeps its section panel mounted without exposing a redundant tab');
+      assert.deepEqual(backgroundRelation, ['tabpanel', 'kefe-subtab-background', false], 'single-section Background workspace keeps its sole section selected without exposing a redundant tab');
       await page.evaluate(() => window.kefeSettingsPanelAdapter.activateSection('export'));
       await page.waitForFunction(() => document.querySelector('#kefe-subtab-export')?.getAttribute('aria-selected') === 'true' && document.querySelector('[data-workspace-tab="export"]')?.getAttribute('aria-selected') === 'true');
       assert.equal(await page.locator('#kefe-subpanel-export').isVisible(), true);
