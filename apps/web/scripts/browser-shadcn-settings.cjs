@@ -110,7 +110,11 @@ const server = http.createServer((req, res) => {
       await page.locator('#kefe-subtab-background').evaluate(node => node.click());
       const bgBacking = page.locator('#kefeBackgroundEffectToggle');
       const bgSwitch = page.locator('#kefeBackgroundEffectToggle + .kefe-switch-host [role="switch"]');
-      await page.waitForFunction(() => document.querySelector('#kefe-subtab-background')?.getAttribute('aria-selected') === 'true');
+      await page.waitForFunction(() => {
+        const tab = document.querySelector('#kefe-subtab-background');
+        const panel = tab && document.getElementById(tab.getAttribute('aria-controls'));
+        return tab?.getAttribute('aria-selected') === 'true' && panel && !panel.hidden;
+      });
       await bgSwitch.waitFor({ state: 'visible' });
       const bgBefore = await bgBacking.getAttribute('aria-checked');
       await bgSwitch.click();
@@ -152,7 +156,11 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => window.kefeProjectAutosave.ready);
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-background').evaluate(node => node.click());
-      await page.waitForFunction(() => document.querySelector('#kefe-subtab-background')?.getAttribute('aria-selected') === 'true');
+      await page.waitForFunction(() => {
+        const tab = document.querySelector('#kefe-subtab-background');
+        const panel = tab && document.getElementById(tab.getAttribute('aria-controls'));
+        return tab?.getAttribute('aria-selected') === 'true' && panel && !panel.hidden;
+      });
       await page.waitForFunction(expected => document.querySelector('#kefeBackgroundEffectToggle + .kefe-switch-host [role="switch"]')?.getAttribute('aria-checked') === expected, savedBackground);
       assert.equal(await page.locator('#backgroundTransparency').inputValue(), '2', 'toolbar edit persists after reload');
       await context.close();
