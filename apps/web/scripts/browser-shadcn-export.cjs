@@ -73,7 +73,21 @@ function audioFixture() {
       });
       await exportButton.click();
       const failed = page.getByRole('dialog', { name: 'Export failed' });
-      await failed.waitFor({ timeout: 15000 });
+      try {
+        await failed.waitFor({ timeout: 30000 });
+      } catch (error) {
+        const state = await page.evaluate(() => ({
+          exportButtonDisabled: document.getElementById('exportButton')?.disabled,
+          exportStatus: document.getElementById('exportStatus')?.textContent,
+          progressHostHidden: document.querySelector('.shad-export-dialog-host')?.hidden,
+          progressTitle: document.getElementById('kefeExportTitle')?.textContent,
+          progressFootnote: document.getElementById('kefeExportFootnote')?.textContent,
+          mediaRecorder: typeof window.MediaRecorder,
+          audioReadyState: document.getElementById('kefeAudio')?.readyState,
+          audioDuration: document.getElementById('kefeAudio')?.duration
+        }));
+        throw new Error(`Export failure dialog was not shown: ${JSON.stringify(state)}; ${error.message}`);
+      }
       assert.match(await failed.locator('#kefeExportFootnote').textContent(), /Forced recorder failure/);
       await failed.getByRole('button', { name: 'Close' }).click();
       await page.evaluate(() => { window.MediaRecorder = window.__originalRecorder; });
