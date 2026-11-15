@@ -12,9 +12,10 @@ export function SelectTrigger({ children, ...props }) {
     h(Primitive.Icon, { className: "shad-select-chevron" }, h(Icon, { name: "chevron-down" })));
 }
 export function SelectValue(props) { return h(Primitive.Value, { "data-slot": "select-value", ...props }); }
-export function SelectContent({ children, container, className = "" }) {
+export function SelectContent({ children, container, className = "", ...props }) {
   return h(Primitive.Portal, { container }, h(Primitive.Content, {
     "data-slot": "select-content", className: `shad-select-listbox ${className}`.trim(), position: "popper", sideOffset: 4,
+    ...props,
   }, h(Primitive.Viewport, null, children)));
 }
 export function SelectItem({ children, ...props }) {

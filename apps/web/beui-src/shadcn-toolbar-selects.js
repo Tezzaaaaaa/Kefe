@@ -13,6 +13,7 @@ function mount(source) {
   source.dataset.shadcnBacking = 'true'; source.hidden = true;
   const host = document.createElement('div'); host.className = 'kft-shad-select-host'; source.after(host);
   const root = createRoot(host);
+  const triggerRef = React.createRef();
   let open = false;
   source.closest('.kft-panel').addEventListener('kefe-panel-close', () => {
     if (open) { open = false; render(); }
@@ -27,10 +28,16 @@ function mount(source) {
         const option = options[index];
         if (option) api.choose(option.value);
       },
-    }, h(SelectTrigger, { className: 'kft-trigger kft-trigger--field kft-shad-select-trigger',
+    }, h(SelectTrigger, { ref: triggerRef, className: 'kft-trigger kft-trigger--field kft-shad-select-trigger',
       'aria-label': source.getAttribute('aria-label') }, h(SelectValue, { placeholder: source.textContent.trim() || 'Choose' })),
-      h(SelectContent, { className: 'kft-select-content', container: document.fullscreenElement || document.body },
-        options.map((option, index) => h(SelectItem, { value: `item-${index}`, key: index }, option.label || ' ')))));
+      h(SelectContent, {
+        className: 'kft-select-content',
+        container: document.fullscreenElement || document.body,
+        onCloseAutoFocus: event => {
+          event.preventDefault();
+          triggerRef.current?.focus({ preventScroll: true });
+        },
+      }, options.map((option, index) => h(SelectItem, { value: `item-${index}`, key: index }, option.label || ' ')))));
   }
   flushSync(render);
   source.addEventListener('kefe-menu-refresh', render);
