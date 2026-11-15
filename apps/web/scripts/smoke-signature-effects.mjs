@@ -159,6 +159,11 @@ vm.runInContext(read("app/effects/lyric-typography-pack.js"), runtime, { filenam
 for (const key of typographyKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
 vm.runInContext(read("app/effects/lyricfx-matrix-pack.js"), runtime, { filename: "lyricfx-matrix-pack.js" });
 for (const key of matrixKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
+const typographyRendererSource = read("app/effects/lyric-typography-pack.js");
+assert.doesNotMatch(typographyRendererSource, /v\\s*%\\s*(?:5|6|8|9|10)/, "typography effects must not cycle through shared modulo variants");
+for (const key of typographyKeys) assert.ok(typographyRendererSource.includes("case '"+key+"'"), key+" must have its own named rendering rule");
+const matrixRendererSource = read("app/effects/lyricfx-matrix-pack.js");
+for (const key of matrixKeys) assert.ok(matrixRendererSource.includes("case '"+key+"'"), key+" must have its own named rendering rule");
 for (const key of addedSignatureKeys) assert.equal(typeof runtime.kefeEffects[key], "function", `${key} renderer must register`);
 vm.runInContext(read("app/effects/lyric-text-swap.js"), runtime, { filename: "lyric-text-swap.js" });
 assert.equal(typeof runtime.kefeEffects.textswap, "function", "Text Swap renderer must register");

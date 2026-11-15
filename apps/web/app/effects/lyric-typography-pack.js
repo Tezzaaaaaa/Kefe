@@ -16,70 +16,123 @@ const c=window.KEFE_TYPE?.effects?.[s.key]||{},base=Math.min(Number(style.fontSi
 const lay=U.layoutText(ctx,text,{setFont:(target,size)=>U.setFont(target,style.kefeMotionFont||c.family||'Open Sans',size,c.weight||700),size:base,minSize:16,maxWidth:w*.9,maxHeight:h*.66,lineHeight:c.lineHeight||1.06,maxLines:3,tracking:c.tracking||0});
 U.setFont(ctx,style.kefeMotionFont||c.family||'Open Sans',lay.size,c.weight||700);
 if('letterSpacing'in ctx)ctx.letterSpacing=(c.tracking||0)*lay.size+'px';
-const words=U.wordsFor(item.line,item.next),map=U.charMap(lay.lines,words),local=Math.max(0,time-(Number(item.line.time)||0)),v=s.variant,phase=local*(1.1+(v%5)*.17)+v*.37,cycle=(phase%6.28318530718)/6.28318530718;
+const words=U.wordsFor(item.line,item.next),map=U.charMap(lay.lines,words),local=Math.max(0,time-(Number(item.line.time)||0)),phase=local*1.4+s.variant*.11,cycle=(phase%6.28318530718)/6.28318530718;
 ctx.save();ctx.globalAlpha*=clamp(item.alpha);ctx.textAlign='center';ctx.textBaseline='middle';
 const top=(h-lay.blockH)/2+lay.lineH*.5;
 lay.lines.forEach((row,ri)=>{
 const width=ctx.measureText(row).width,x0=w/2-width/2,y=top+ri*lay.lineH,cells=map[ri]||[],a=Array.from(row);
 a.forEach((original,i)=>{
 const before=ctx.measureText(a.slice(0,i).join('')).width,after=ctx.measureText(a.slice(0,i+1).join('')).width,cw=after-before,x=x0+before+cw/2,cell=cells[i],raw=cell?U.charProgress(cell.word,cell.j,cell.n,time,.82,.34):1,p=clamp(raw),wp=cell?.word?U.wordProgress(cell.word,time,.08):{pulse:0},wave=Math.sin(phase+i*.47);
-let glyph=original,alpha=1,dx=0,dy=0,sx=1,sy=1,rot=0,blur=0;
+let glyph=original,alpha=1,dx=0,dy=0,sx=1,sy=1,rot=0,blur=0,fill=style.textColor||'#f8fafc';
 ctx.fillStyle=style.textColor||'#f8fafc';ctx.shadowColor='transparent';ctx.shadowBlur=0;if('filter'in ctx)ctx.filter='none';
-switch(s.category){
-case 'Entrance':
-alpha=clamp((p-.02)*1.4);
-if(v%10===0)dy=(1-p)*lay.size*.8;else if(v%10===1)dy=-(1-p)*lay.size*.75;else if(v%10===2)dx=(1-p)*lay.size*.8;else if(v%10===3)dx=-(1-p)*lay.size*.8;else if(v%10===4){sx=sy=.15+.85*p;}else if(v%10===5)blur=(1-p)*lay.size*.11;else if(v%10===6){sx=.08+.92*p;rot=(1-p)*Math.PI*.5;}else if(v%10===7){sy=.08+.92*p;rot=(1-p)*Math.PI;}else if(v%10===8){rot=(1-p)*.7;sy=.4+.6*p;}else{dy=Math.sin((1-p)*Math.PI)*-lay.size*.38;sy=.55+.45*p;}break;
-case 'Loops & Beats':
-alpha=v%6===0?.55+.45*Math.abs(wave):1;
-if(v%6===0||v%6===5){sx=1+Math.max(0,wave)*.12;sy=1-Math.max(0,wave)*.08;}else if(v%6===1){dx=wave*lay.size*.055;dy=Math.cos(phase+i)*lay.size*.035;}else if(v%6===2)rot=wave*.12;else if(v%6===3){sx=1+Math.sin(phase+i*.3)*.08;sy=1+Math.cos(phase+i*.3)*.08;}else{sx=sy=1+Math.max(0,wp.pulse)*.2;}break;
-case 'Kinetic Text':
-if(v%8===0){dy=Math.sin(phase+i*.55)*lay.size*.18;rot=Math.sin(phase+i*.55)*.08;}else if(v%8===1){alpha=.25+.75*p;sy=.15+.85*p;}else if(v%8===2){dy=(1-p)*-lay.size*.5;sx=.7+.3*p;}else if(v%8===3){rot=wave*.16;dx=wave*lay.size*.08;}else if(v%8===4){sx=sy=.8+.2*(.5+.5*wave);}else if(v%8===5)dy=wave*lay.size*.13;else if(v%8===6){rot=wave*.25;sy=.9+.1*Math.abs(wave);}else{dx=Math.sin(phase+i*.6)*lay.size*.08;dy=Math.cos(phase+i*.6)*lay.size*.08;}break;
-case 'Decode & Data':
-alpha=v%3===0?clamp(p*1.8):1;
-if(p<.94&&v%10!==1&&v%10!==4&&v%10!==7)glyph=chars[Math.floor(hash(Math.floor((1-p)*12+v+i*13))*chars.length)];
-if(v%4===0)dy=(1-p)*-lay.size*.35;else if(v%4===1)blur=(1-p)*lay.size*.06;else if(v%4===2)dx=(1-p)*lay.size*.15;break;
-case 'Surface & Finish':
-if(s.key==='ty-gradient-text'||s.key==='ty-rainbow'){const g=ctx.createLinearGradient(x-lay.size,y,x+lay.size,y);g.addColorStop(0,colours[(i+1)%colours.length]);g.addColorStop(.5,'#fff');g.addColorStop(1,colours[(i+3)%colours.length]);ctx.fillStyle=g;}
-else if(s.key==='ty-neon'||s.key==='ty-glow'){ctx.fillStyle='#f8fafc';ctx.shadowColor='#c4b5fd';ctx.shadowBlur=lay.size*.24;}
-else if(s.key==='ty-glitch-text'){ctx.fillStyle=i%2?'#67e8f9':'#fb7185';dx=wave*lay.size*.035;}
-else if(s.key==='ty-chrome'){const g=ctx.createLinearGradient(x,y-lay.size*.5,x,y+lay.size*.5);g.addColorStop(0,'#fff');g.addColorStop(.35,'#64748b');g.addColorStop(.58,'#fff');g.addColorStop(1,'#94a3b8');ctx.fillStyle=g;ctx.shadowColor='#cbd5e1';ctx.shadowBlur=lay.size*.08;}
-else if(s.key==='ty-emboss'){ctx.fillStyle='#e2e8f0';ctx.shadowColor='#64748b';ctx.shadowBlur=lay.size*.08;dy=1;}
-else if(s.key==='ty-pressed'){ctx.fillStyle='#cbd5e1';ctx.shadowColor='#020617';ctx.shadowBlur=lay.size*.12;dy=1;}
-else if(s.key==='ty-paper-cut'){ctx.fillStyle='#f8fafc';ctx.shadowColor='#0f172a';ctx.shadowBlur=lay.size*.14;dx=2;dy=2;}
-else if(s.key==='ty-drop-cap'&&i===0){ctx.fillStyle='#f8fafc';sx=1.35;sy=1.35;dy=-lay.size*.12;}
-else if(s.key==='ty-neon-green'){ctx.fillStyle='#d9f99d';ctx.shadowColor='#84cc16';ctx.shadowBlur=lay.size*.3;}
-break;
-case 'Typography Styles':
-if(s.key==='ty-monospace')ctx.font='700 '+lay.size+'px ui-monospace,monospace';
-else if(s.key==='ty-wide'&&'letterSpacing'in ctx)ctx.letterSpacing=(lay.size*.1)+'px';
-else if(s.key==='ty-italic'||s.key==='ty-italic-hover')ctx.font='italic 700 '+lay.size+'px '+(c.family||'sans-serif');
-else if(s.key==='ty-black-weight')ctx.font='900 '+lay.size+'px '+(c.family||'sans-serif');
-else if(s.key==='ty-case-cycle')glyph=cycle<.33?original.toLowerCase():cycle<.66?original.toUpperCase():original;
-else if(s.key==='ty-lowercase-cycle')glyph=cycle<.5?original.toUpperCase():original.toLowerCase();
-else if(s.key==='ty-capitalize-cycle')glyph=cycle<.5?original.toLowerCase():(i===0||a[i-1]===' '?original.toUpperCase():original.toLowerCase());
-break;
-case 'Beat-Reactive Controls':
-alpha=.78+.22*Math.max(0,wave);
-if(v%9===0){dx=wave*lay.size*.09;dy=-Math.abs(wave)*lay.size*.05;}else if(v%9===1){sx=1+Math.max(0,wave)*.14;sy=1+Math.max(0,wave)*.08;}else if(v%9===2){ctx.shadowColor='#a78bfa';ctx.shadowBlur=lay.size*(.08+.22*Math.max(0,wave));}else if(v%9===3){sx=sy=1+Math.max(0,wave)*.12;}else if(v%9===4&&'letterSpacing'in ctx)ctx.letterSpacing=(Math.max(0,wave)*lay.size*.08)+'px';else if(v%9===5)ctx.fillStyle=mix('#f8fafc',colours[(v+2)%colours.length],.5+.5*Math.max(0,wave));else if(v%9===6)rot=wave*.08;else rot=wave*.12;break;
-case 'Display & Texture':
-if(s.key==='ty-fade')alpha=.48+.52*clamp((local+.15)/.6);
-else if(s.key==='ty-outline'){ctx.strokeStyle=style.textColor||'#f8fafc';ctx.lineWidth=Math.max(1,lay.size*.035);}
-else if(s.key==='ty-lcd'){ctx.fillStyle='#a3e635';ctx.shadowColor='#84cc16';ctx.shadowBlur=lay.size*.08;ctx.font='700 '+lay.size+'px ui-monospace,monospace';}
-else if(s.key==='ty-split-flap'){ctx.fillStyle='#f8fafc';ctx.shadowColor='#020617';ctx.shadowBlur=lay.size*.1;}
-else if(s.key==='ty-liquid-fill'){const g=ctx.createLinearGradient(x,y+lay.size*.5,x,y-lay.size*.5);g.addColorStop(0,'#0ea5e9');g.addColorStop(.55,'#bae6fd');g.addColorStop(1,'#fff');ctx.fillStyle=g;}
-else if(s.key==='ty-fire'){ctx.fillStyle='#ffedd5';ctx.shadowColor='#f97316';ctx.shadowBlur=lay.size*.28;dy=Math.sin(phase+i)*lay.size*.025;}
-else if(s.key==='ty-ice'){ctx.fillStyle='#e0f2fe';ctx.shadowColor='#38bdf8';ctx.shadowBlur=lay.size*.2;}
-else if(s.key==='ty-shadow-dance'){ctx.fillStyle='#f8fafc';ctx.shadowColor='#c084fc';ctx.shadowBlur=lay.size*.18;dx=Math.sin(phase+i)*lay.size*.035;}
-break;
+const key=s.key, enter=clamp(p), beat=Math.sin(local* Math.PI*2*1.15), loop=(local%2.2)/2.2, pulse=Math.sin(loop*Math.PI*2), stagger=i/Math.max(1,a.length-1);
+switch(key){
+case 'ty-fade-in': alpha=.1+.9*enter; break;
+case 'ty-slide-up': alpha=enter; dy=(1-enter)*lay.size*.66; break;
+case 'ty-slide-down': alpha=enter; dy=-(1-enter)*lay.size*.66; break;
+case 'ty-slide-left': alpha=enter; dx=(1-enter)*lay.size*.8; break;
+case 'ty-slide-right': alpha=enter; dx=-(1-enter)*lay.size*.8; break;
+case 'ty-scale-in': alpha=enter; sx=sy=.5+.5*enter; break;
+case 'ty-blur-in': alpha=enter; blur=(1-enter)*lay.size*.12; break;
+case 'ty-flip-x': alpha=enter; sy=Math.max(.03,Math.abs(Math.cos((1-enter)*Math.PI/2))); break;
+case 'ty-flip-y': alpha=enter; sx=Math.max(.03,Math.abs(Math.cos((1-enter)*Math.PI/2))); break;
+case 'ty-rotate-in': alpha=enter; rot=(1-enter)*-Math.PI; sx=sy=.7+.3*enter; break;
+case 'ty-bounce-in': {const q=enter; sx=sy=q<.7?.3+q*1.14:q<.86?1.1-(q-.7)*.65:1.0; alpha=enter; break;}
+case 'ty-elastic-in': {const q=enter; sx=sy=q<.6?1.25*q/0.6:q<.8?1.25-(q-.6)*1.75:.9+(q-.8)*.5; alpha=enter; break;}
+case 'ty-zoom-in': alpha=enter; sx=sy=.5+.5*enter; break;
+case 'ty-zoom-out': alpha=enter; sx=sy=1.5-.5*enter; break;
+case 'ty-skew-in': alpha=enter; rot=(1-enter)*.22; dx=(1-enter)*-lay.size*.12; break;
+case 'ty-wipe-in': alpha=enter; sx=Math.max(.03,enter); break;
+case 'ty-mask-in': alpha=enter; sx=sy=Math.max(.03,enter); break;
+case 'ty-reveal-up': alpha=enter; sy=Math.max(.03,enter); dy=(1-enter)*lay.size*.22; break;
+case 'ty-drop-in': alpha=enter; dy=-(1-enter)*lay.size*.95; sx=sy=.8+.2*enter; break;
+case 'ty-float-in': alpha=enter; dy=(1-enter)*lay.size*.5; rot=(1-enter)*-.09; break;
+case 'ty-pulse': alpha=.3+.7*(.5+.5*pulse); sx=1+.04*Math.max(0,pulse); sy=1+.04*Math.max(0,pulse); break;
+case 'ty-shake': dx=Math.sin(loop*Math.PI*8)*lay.size*.045; break;
+case 'ty-wobble': dx=Math.sin(loop*Math.PI*4)*lay.size*.065; rot=Math.sin(loop*Math.PI*4)*.08; break;
+case 'ty-jello': sx=1+.13*Math.sin(loop*Math.PI*4); sy=1-.13*Math.sin(loop*Math.PI*4); rot=Math.sin(loop*Math.PI*4)*.025; break;
+case 'ty-heartbeat': {const beatPhase=(local%1.25)/1.25; const beatScale=beatPhase<.14?1+beatPhase/.14*.22:beatPhase<.28?1.22-(beatPhase-.14)/.14*.22:beatPhase<.42?1+(beatPhase-.28)/.14*.22:beatPhase<.56?1.22-(beatPhase-.42)/.14*.22:1; sx=sy=beatScale; break;}
+case 'ty-bounce-loop': dy=-Math.max(0,Math.sin(loop*Math.PI*2))*lay.size*.18; break;
+case 'ty-flash': alpha=.12+.88*(.5+.5*Math.cos(loop*Math.PI*2)); break;
+case 'ty-rubber-band': sx=1+.18*Math.sin(loop*Math.PI*2); sy=1-.18*Math.sin(loop*Math.PI*2); break;
+case 'ty-swing': rot=Math.sin(loop*Math.PI*2)*.18; break;
+case 'ty-tada': {const k=Math.sin(loop*Math.PI*6); sx=sy=1+.08*Math.max(0,k); rot=k*.055; break;}
+case 'ty-flip-loop': sx=Math.cos(loop*Math.PI*2); break;
+case 'ty-spin-loop': rot=loop*Math.PI*2; break;
+case 'ty-morph-text': {const q=clamp(enter); if(q<.72&&q>0)glyph=chars[Math.floor(hash(Math.floor((1-q)*15+i*11))*chars.length)]; alpha=q; blur=(1-q)*lay.size*.08; sx=1.15-.15*q; break;}
+case 'ty-letter-fade': alpha=clamp((enter-stagger*.42)*1.8); break;
+case 'ty-number-slide': dy=(1-enter)*-lay.size*.5; alpha=enter; break;
+case 'ty-slide-cycle': dx=Math.sin(loop*Math.PI*2)*lay.size*.2; alpha=.25+.75*(.5+.5*Math.cos(loop*Math.PI*2)); break;
+case 'ty-bounce-cycle': dy=-Math.max(0,Math.sin(loop*Math.PI*4))*lay.size*.18; break;
+case 'ty-rotate-cycle': rot=loop*Math.PI*2; break;
+case 'ty-zoom-cycle': sx=sy=.78+.22*(.5+.5*Math.sin(loop*Math.PI*2)); break;
+case 'ty-wave': dy=Math.sin(local*3.8+i*.48)*lay.size*.15; break;
+case 'ty-scramble': if(enter<.96)glyph=chars[Math.floor(hash(Math.floor((1-enter)*18+i*31))*chars.length)]; alpha=.2+.8*enter; break;
+case 'ty-typewriter': alpha=enter<.08?0:1; break;
+case 'ty-binary': if(enter<.92&&/[A-Za-z]/.test(original))glyph=(Math.floor(hash(i+Math.floor(local*8))*2)?"1":"0"); fill='#86efac'; break;
+case 'ty-decrypt': if(enter<.96&&/[A-Za-z]/.test(original)){const base=original===original.toUpperCase()?65:97;glyph=String.fromCharCode((original.charCodeAt(0)-base+Math.floor((1-enter)*17+1))%26+base);} break;
+case 'ty-cipher': if(enter<.9&&/[A-Za-z]/.test(original)){const base=original===original.toUpperCase()?65:97;glyph=String.fromCharCode((original.charCodeAt(0)-base+13)%26+base);} break;
+case 'ty-matrix-rain': if(enter<.96&&/[A-Za-z]/.test(original))glyph=chars[Math.floor(hash(i+Math.floor(local*12))*chars.length)]; fill='#86efac'; dy=-Math.max(0,1-enter)*lay.size*.2; break;
+case 'ty-glitch-decode': if(enter<.96&&i%3!==0)glyph=chars[Math.floor(hash(i+Math.floor(local*20))*chars.length)]; dx=Math.sin(local*31+i)*lay.size*.025; break;
+case 'ty-noise': dx=(hash(i+Math.floor(local*22))-.5)*lay.size*.045; dy=(hash(i+31+Math.floor(local*22))-.5)*lay.size*.045; break;
+case 'ty-signal': alpha=.35+.65*(Math.sin(local*13+i*.3)>.0?1:.35); dx=Math.sin(local*9)*lay.size*.018; break;
+case 'ty-resolve': alpha=enter; blur=(1-enter)*lay.size*.1; sx=.92+.08*enter; break;
+case 'ty-count-up': if(/[0-9]/.test(original)){alpha=enter;dy=(1-enter)*-lay.size*.28;} break;
+case 'ty-percentage': if(/[0-9%]/.test(original)){alpha=.55+.45*(.5+.5*Math.sin(local*2.2));fill='#7dd3fc';} break;
+case 'ty-money': if(/[0-9$.,]/.test(original)){fill='#fcd34d';ctx.shadowColor='#d97706';ctx.shadowBlur=lay.size*.08;dy=Math.sin(local*2+i*.2)*lay.size*.015;} break;
+case 'ty-year': if(/[0-9]/.test(original)){alpha=enter;dy=(1-enter)*-lay.size*.42;rot=(1-enter)*-.08;} break;
+case 'ty-leading-zero': if(/[0-9]/.test(original)){sx=sy=.65+.35*enter;alpha=enter;} break;
+case 'ty-decimal': if(/[0-9.]/.test(original)){blur=(1-enter)*lay.size*.1;alpha=enter;} break;
+case 'ty-progress': if(/[0-9%]/.test(original)){fill='#86efac';sx=.75+.25*enter;alpha=enter;} break;
+case 'ty-hex': if(/[0-9A-Fa-fx]/.test(original)){fill='#86efac';ctx.font='700 '+lay.size+'px ui-monospace,monospace';} break;
+case 'ty-answer': if(/[0-9]/.test(original)){fill='#a5f3fc';sx=sy=1+.08*Math.max(0,beat);} break;
+case 'ty-phone': if(/[0-9+()-]/.test(original)){alpha=clamp(enter-stagger*.18);dy=(1-enter)*lay.size*.16;} break;
+case 'ty-gradient-text': case 'ty-rainbow': {const g=ctx.createLinearGradient(x-lay.size,y,x+lay.size,y);g.addColorStop(0,colours[(i+Math.floor(local*2))%colours.length]);g.addColorStop(.5,'#fff');g.addColorStop(1,colours[(i+3+Math.floor(local*2))%colours.length]);fill=g;break;}
+case 'ty-neon': case 'ty-glow': fill='#f8fafc';ctx.shadowColor='#c4b5fd';ctx.shadowBlur=lay.size*(.12+.14*(.5+.5*beat));break;
+case 'ty-glitch-text': fill=i%2?'#67e8f9':'#fb7185';dx=Math.sin(local*25+i)*lay.size*.025;break;
+case 'ty-chrome': {const g=ctx.createLinearGradient(x,y-lay.size*.5,x,y+lay.size*.5);g.addColorStop(0,'#fff');g.addColorStop(.35,'#64748b');g.addColorStop(.58,'#fff');g.addColorStop(1,'#94a3b8');fill=g;ctx.shadowColor='#cbd5e1';ctx.shadowBlur=lay.size*.06;break;}
+case 'ty-emboss': fill='#e2e8f0';ctx.shadowColor='#64748b';ctx.shadowBlur=lay.size*.08;dy=1;break;
+case 'ty-pressed': fill='#cbd5e1';ctx.shadowColor='#020617';ctx.shadowBlur=lay.size*.12;dy=1;break;
+case 'ty-paper-cut': fill='#f8fafc';ctx.shadowColor='#0f172a';ctx.shadowBlur=lay.size*.14;dx=2;dy=2;break;
+case 'ty-drop-cap': if(i===0){sx=1.35;sy=1.35;dy=-lay.size*.12;}break;
+case 'ty-neon-green': fill='#d9f99d';ctx.shadowColor='#84cc16';ctx.shadowBlur=lay.size*.3;break;
+case 'ty-monospace': ctx.font='700 '+lay.size+'px ui-monospace,monospace';break;
+case 'ty-wide': if('letterSpacing'in ctx)ctx.letterSpacing=(lay.size*.1)+'px';break;
+case 'ty-italic': ctx.font='italic 700 '+lay.size+'px '+(c.family||'sans-serif');break;
+case 'ty-underline': case 'ty-underline-hover': break;
+case 'ty-strikethrough': break;
+case 'ty-black-weight': ctx.font='900 '+lay.size+'px '+(c.family||'sans-serif');break;
+case 'ty-case-cycle': glyph=loop<.33?original.toLowerCase():loop<.66?original.toUpperCase():original;break;
+case 'ty-lowercase-cycle': glyph=loop<.5?original.toUpperCase():original.toLowerCase();break;
+case 'ty-capitalize-cycle': glyph=loop<.5?original.toLowerCase():(i===0||a[i-1]===' '?original.toUpperCase():original.toLowerCase());break;
+case 'ty-magnet': dx=Math.sin(local*2.5+i*.7)*lay.size*.075;dy=Math.cos(local*2.5+i*.7)*lay.size*.06;break;
+case 'ty-pressure': sx=1+.12*Math.max(0,beat);sy=1-.1*Math.max(0,beat);if('letterSpacing'in ctx)ctx.letterSpacing=(Math.max(0,beat)*lay.size*.06)+'px';break;
+case 'ty-hover-glow': ctx.shadowColor='#f0abfc';ctx.shadowBlur=lay.size*(.06+.22*(.5+.5*Math.sin(local*2)));break;
+case 'ty-scale-hover': sx=sy=1+.08*(.5+.5*Math.sin(local*2));break;
+case 'ty-expand': if('letterSpacing'in ctx)ctx.letterSpacing=(lay.size*(.05+.18*(.5+.5*beat)))+'px';break;
+case 'ty-color-shift': fill=colours[Math.floor(loop*colours.length)%colours.length];break;
+case 'ty-italic-hover': ctx.font='700 '+lay.size+'px '+(c.family||'sans-serif');rot=Math.sin(local*1.8)*.045;break;
+case 'ty-underline-hover': break;
+case 'ty-tilt': rot=Math.sin(local*1.4)*.1;break;
+case 'ty-fade': alpha=.25+.75*(.5+.5*Math.sin(local*1.5));break;
+case 'ty-outline': ctx.strokeStyle=style.textColor||'#f8fafc';ctx.lineWidth=Math.max(1,lay.size*.035);break;
+case 'ty-lcd': fill='#a3e635';ctx.shadowColor='#84cc16';ctx.shadowBlur=lay.size*.08;ctx.font='700 '+lay.size+'px ui-monospace,monospace';break;
+case 'ty-split-flap': fill='#f8fafc';ctx.shadowColor='#020617';ctx.shadowBlur=lay.size*.1;rot=Math.sin(local*4+i*.2)*.025;break;
+case 'ty-liquid-fill': {const g=ctx.createLinearGradient(x,y+lay.size*.5,x,y-lay.size*.5);g.addColorStop(0,'#0ea5e9');g.addColorStop(.55,'#bae6fd');g.addColorStop(1,'#fff');fill=g;break;}
+case 'ty-fire': fill='#ffedd5';ctx.shadowColor='#f97316';ctx.shadowBlur=lay.size*.28;dy=Math.sin(local*7+i)*lay.size*.025;break;
+case 'ty-ice': fill='#e0f2fe';ctx.shadowColor='#38bdf8';ctx.shadowBlur=lay.size*.2;break;
+case 'ty-shadow-dance': fill='#f8fafc';ctx.shadowColor=colours[Math.floor(loop*colours.length)%colours.length];ctx.shadowBlur=lay.size*.18;dx=Math.sin(local*4+i)*lay.size*.035;break;
+default: alpha=enter; break;
 }
+
 ctx.save();ctx.globalAlpha*=clamp(alpha);ctx.translate(x+dx,y+dy);ctx.rotate(rot);ctx.scale(Math.max(.02,sx),Math.max(.02,sy));if(blur&&'filter'in ctx)ctx.filter='blur('+Math.max(0,blur)+'px)';
-if(!ctx.fillStyle||ctx.fillStyle==='#fff')ctx.fillStyle=style.textColor||'#f8fafc';
-if(s.key==='ty-underline'||s.key==='ty-underline-hover'){ctx.fillText(glyph,-cw/2,0);ctx.fillRect(-cw/2,lay.size*.13,Math.max(1,cw),Math.max(1,lay.size*.025));}
+ctx.fillStyle=fill;
+if(s.key==='ty-underline'){ctx.fillText(glyph,-cw/2,0);ctx.fillRect(-cw/2,lay.size*.13,Math.max(1,cw),Math.max(1,lay.size*.025));}
+else if(s.key==='ty-underline-hover'){ctx.fillText(glyph,-cw/2,0);ctx.fillRect(-cw/2,lay.size*.13,Math.max(1,cw*(.5+.5*Math.sin(local*2))),Math.max(1,lay.size*.025));}
 else if(s.key==='ty-strikethrough'){ctx.fillText(glyph,-cw/2,0);ctx.strokeStyle=style.textColor||'#fff';ctx.lineWidth=Math.max(1,lay.size*.035);ctx.beginPath();ctx.moveTo(-cw/2,0);ctx.lineTo(cw/2,0);ctx.stroke();}
 else if(s.key==='ty-outline')ctx.strokeText(glyph,-cw/2,0);
 else if(s.key==='ty-split-flap'){ctx.fillStyle='#111827';ctx.fillRect(-cw/2-lay.size*.025,-lay.size*.52,cw+lay.size*.05,lay.size*.64);ctx.fillStyle='#f8fafc';ctx.fillText(glyph,-cw/2,0);}
 else ctx.fillText(glyph,-cw/2,0);
-if(s.category==='Typography Styles'&&v%9===5){ctx.fillStyle=style.textColor||'#fff';ctx.fillText(glyph,-cw/2,-lay.size*.012);}
 ctx.restore();
 });
 });
