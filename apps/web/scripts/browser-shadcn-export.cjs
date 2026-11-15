@@ -47,6 +47,7 @@ function audioFixture() {
       const visualiserPower = page.locator('.kv-card[data-visualiser="gradient"] [data-slot="switch"]');
       if (await visualiserPower.getAttribute('aria-checked') !== 'true') await visualiserPower.click();
       await page.waitForFunction(() => document.querySelector('.kv-card[data-visualiser="gradient"] [role="switch"]')?.getAttribute('aria-checked') === 'true');
+      await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true, null, { timeout: 10000 });
       await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
       await page.evaluate(() => { const select = document.getElementById('exportResolution'); select.value = '720'; select.dispatchEvent(new Event('change', { bubbles: true })); });
@@ -87,7 +88,10 @@ function audioFixture() {
           progressFootnote: document.getElementById('kefeExportFootnote')?.textContent,
           mediaRecorder: typeof window.MediaRecorder,
           audioReadyState: document.getElementById('kefeAudio')?.readyState,
-          audioDuration: document.getElementById('kefeAudio')?.duration
+          audioDuration: document.getElementById('kefeAudio')?.duration,
+          gradientState: window.kefeGradientLayer?.state?.(),
+          gradientTabSelected: document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"]')?.getAttribute('aria-selected'),
+          gradientPowerChecked: document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"]')?.closest('.kefe-vis-option')?.querySelector('.kefe-switch')?.getAttribute('aria-checked')
         }));
         throw new Error(`Export failure dialog was not shown: ${JSON.stringify(state)}; ${error.message}`);
       }
