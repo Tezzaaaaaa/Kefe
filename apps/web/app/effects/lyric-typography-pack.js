@@ -39,7 +39,7 @@ case 'ty-flip-y': alpha=enter; sx=Math.max(.03,Math.abs(Math.cos((1-enter)*Math.
 case 'ty-rotate-in': alpha=enter; rot=(1-enter)*-Math.PI; sx=sy=.7+.3*enter; break;
 case 'ty-bounce-in': {const q=enter; sx=sy=q<.7?.3+q*1.14:q<.86?1.1-(q-.7)*.65:1.0; alpha=enter; break;}
 case 'ty-elastic-in': {const q=enter; sx=sy=q<.6?1.25*q/0.6:q<.8?1.25-(q-.6)*1.75:.9+(q-.8)*.5; alpha=enter; break;}
-case 'ty-zoom-in': alpha=enter; sx=sy=.5+.5*enter; break;
+case 'ty-zoom-in': alpha=enter; sx=sy=.15+.85*enter; break;
 case 'ty-zoom-out': alpha=enter; sx=sy=1.5-.5*enter; break;
 case 'ty-skew-in': alpha=enter; rot=(1-enter)*.22; dx=(1-enter)*-lay.size*.12; break;
 case 'ty-wipe-in': alpha=enter; sx=Math.max(.03,enter); break;
