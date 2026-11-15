@@ -73,8 +73,8 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => window.kefeProjectAutosave && document.querySelector('#lyricEffectOptions[data-shadcn-hydrated]'));
       await page.evaluate(() => window.kefeProjectAutosave.ready);
       await page.waitForFunction(id => document.querySelector('#lyricEffectOptions > button.active')?.dataset.effect === id, selected);
-      await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
+      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
+      await page.waitForFunction(() => document.querySelector('[data-workspace-tab="audio-visuals"]')?.getAttribute('aria-selected') === 'true');
       const bg = page.locator('#kefeBackgroundEffectOptions');
       assert.equal(await bg.locator('button[data-slot="button"]').count(), 3);
       const video = bg.locator('[data-background-mode="video"]');
@@ -83,11 +83,12 @@ const server = http.createServer((req, res) => {
       await gradient.click();
       await page.waitForFunction(() => window.kefeBackground.mode() === 'gradient');
       assert.equal(await gradient.getAttribute('aria-pressed'), 'true');
+      await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
       await page.locator('#lyricEffectOptions > button').first().click();
       assert.equal(await page.locator('#kefeBackgroundEffectOptions [data-background-mode="gradient"]').getAttribute('aria-pressed'), 'true', 'lyric selection does not clear the background selection');
       assert.equal(await page.evaluate(() => window.kefeBackground.mode()), 'gradient');
-      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
+      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       await page.evaluate(() => window.kefeBackground.setMode('apple'));
       await page.waitForFunction(() => document.querySelector('#kefeBackgroundEffectOptions [data-background-mode="apple"]')?.getAttribute('aria-pressed') === 'true');
       assert.deepEqual(errors, [], `no page or hydration errors at ${width}px`);

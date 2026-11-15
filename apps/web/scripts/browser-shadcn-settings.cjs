@@ -107,14 +107,14 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => document.querySelector('#lyricsEnabledToggle + .kefe-switch-host').hidden);
       assert.equal(await lyricsSwitch.isVisible(), false, 'hidden backing switch hides its shadcn control');
       await page.evaluate(() => { document.getElementById('lyricsEnabledToggle').hidden = false; });
-      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
-      const bgBacking = page.locator('#kefeBackgroundEffectToggle');
-      const bgSwitch = page.locator('#kefeBackgroundEffectToggle + .kefe-switch-host [role="switch"]');
+      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       await page.waitForFunction(() => {
-        const tab = document.querySelector('#kefe-subtab-background');
+        const tab = document.querySelector('[data-workspace-tab="audio-visuals"]');
         const panel = tab && document.getElementById(tab.getAttribute('aria-controls'));
         return tab?.getAttribute('aria-selected') === 'true' && panel && !panel.hidden;
       });
+      const bgBacking = page.locator('#kefeBackgroundEffectToggle');
+      const bgSwitch = page.locator('#kefeBackgroundEffectToggle + .kefe-switch-host [role="switch"]');
       await bgSwitch.waitFor({ state: 'visible' });
       const bgBefore = await bgBacking.getAttribute('aria-checked');
       await bgSwitch.click();
@@ -154,10 +154,9 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => window.kefeProjectAutosave.saveNow());
       await page.reload({ waitUntil: 'networkidle' });
       await page.evaluate(() => window.kefeProjectAutosave.ready);
-      await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
-      await page.locator('#kefe-subtab-background').evaluate(node => node.click());
+      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       await page.waitForFunction(() => {
-        const tab = document.querySelector('#kefe-subtab-background');
+        const tab = document.querySelector('[data-workspace-tab="audio-visuals"]');
         const panel = tab && document.getElementById(tab.getAttribute('aria-controls'));
         return tab?.getAttribute('aria-selected') === 'true' && panel && !panel.hidden;
       });
