@@ -215,8 +215,24 @@
     });
   }
 
+  function ensureExportStream() {
+    var g = ensureGraph();
+    if (!g || !g.ac || !g.source) return null;
+    if (g.stream && typeof g.stream.getAudioTracks === 'function' && g.stream.getAudioTracks().length) return g.stream;
+    try {
+      var dest = g.ac.createMediaStreamDestination();
+      g.source.connect(dest);
+      g.stream = dest.stream;
+      return g.stream;
+    } catch (e) {
+      console.warn('[KEFE audio export stream retry]', e);
+      return null;
+    }
+  }
+
   window.kefeAudioGraph = {
     ensure: ensureGraph,
+    exportStream: ensureExportStream,
     resume: resumeAudio,
     readFrequencyData: readFrequencyData,
     promptResume: function () { showResumePrompt((graph && graph.ac && graph.ac.state) || 'suspended'); },

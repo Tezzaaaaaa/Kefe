@@ -2107,7 +2107,12 @@
     setExportProgress(success?100:Math.max(1,parseInt(exportProgressValue.textContent,10)||1),success?'Export complete':'Export stopped');
   }
   function getExportAudioStream(){
-    if(window.kefeAudioGraph){const graph=window.kefeAudioGraph.ensure();if(graph)return graph.stream;}
+    if(window.kefeAudioGraph){
+      const stream=window.kefeAudioGraph.exportStream?.();
+      if(stream)return stream;
+      const graph=window.kefeAudioGraph.ensure();
+      if(graph?.stream)return graph.stream;
+    }
     if(exportTap)return exportTap.stream;
     const AC=window.AudioContext||window.webkitAudioContext;
     if(!AC)return null;
@@ -2235,7 +2240,8 @@
     const webmTypes=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
     const mp4Types=['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=h264,aac','video/mp4'];
     const wantMp4=(document.getElementById('exportFormat')?.value||'webm')==='mp4';
-    const mime=(wantMp4?[...mp4Types,...webmTypes]:[...webmTypes,...mp4Types]).find(m=>MediaRecorder.isTypeSupported(m));
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    const mime=(isIOS||wantMp4?[...mp4Types,...webmTypes]:[...webmTypes,...mp4Types]).find(m=>MediaRecorder.isTypeSupported(m));
     if(!mime){status.textContent='No supported video format in this browser.';return;}
     const ext=mime.startsWith('video/mp4')?'mp4':'webm';
     const formatNote=wantMp4&&ext!=='mp4'?' MP4 is not supported by this browser, so this is WebM.':'';
@@ -2298,15 +2304,12 @@
         stream.getTracks().forEach(t=>ownedTracks.push(t));
         frameTicker=setInterval(()=>{if(!signal.aborted)compositeFrame();},1000/exportFps);
         const audioTracks=audioStream?.getAudioTracks()||[];
-        if(audioTracks.length){
-          audioTracks.forEach(t=>{
-            const track=typeof t.clone==='function'?t.clone():t;
-            if(track!==t)ownedTracks.push(track);
-            stream.addTrack(track);
-          });
-        }else{
-          status.textContent='Audio capture unavailable here; exporting video only…';
-        }
+        if(!audioTracks.length)throw new Error('KEFE could not capture an audio track on this device. Resume audio playback and retry; no silent video will be exported.');
+        audioTracks.forEach(t=>{
+          const track=typeof t.clone==='function'?t.clone():t;
+          if(track!==t)ownedTracks.push(track);
+          stream.addTrack(track);
+        });
         if(exportProgressUsesShadcn)window.kefeExportDialog.audio(audioTracks.length>0);
         else if(exportProgressModal)exportProgressModal.querySelector('#kefeExportAudio').textContent=audioTracks.length?'Audio track included':'Video only';
         const chunks=[];
