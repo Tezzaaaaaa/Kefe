@@ -4,6 +4,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { Input } from '../components/ui/input.js';
 import { Label } from '../components/ui/label.js';
+import { Badge } from '../components/ui/badge.js';
 import { Alert, AlertDescription } from '../components/ui/alert.js';
 
 const h = React.createElement;
@@ -33,8 +34,7 @@ function nodeTree(node, key) {
   if (node.nodeType !== Node.ELEMENT_NODE) return null;
   stripWhitespace(node);
 
-  if (node.classList.contains('shad-manual-notice-icon'))
-  ) {
+  if (node.classList.contains('shad-manual-notice-icon')) {
     const props = readAttrs(node);
     props.key = key;
     return h(node.tagName.toLowerCase(), { ...props, dangerouslySetInnerHTML: { __html: node.innerHTML } });
