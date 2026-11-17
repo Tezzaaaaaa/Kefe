@@ -2036,7 +2036,7 @@
     if(video.src)video.currentTime=state.time;
     updateTime();draw();
   });
-  let exportTap=null,exporting=false;
+  let exportTap=null,exporting=false,lastExportObjectUrl='';
   let exportProgressModal=null,exportProgressFill=null,exportProgressValue=null,exportProgressStage=null,exportProgressCancel=null,exportProgressCancelHandler=null,exportProgressUsesShadcn=false;
   function ensureExportProgressModal(){
     if(exportProgressModal)return;
@@ -2095,8 +2095,8 @@
     const close=exportProgressModal.querySelector('#kefeExportClose');close.hidden=true;
     setExportProgress(1,'Preparing export');
   }
-  function finishExportProgress(success,message){
-    if(exportProgressUsesShadcn){window.kefeExportDialog.finish(success,message);return;}
+  function finishExportProgress(success,message,download){
+    if(exportProgressUsesShadcn){window.kefeExportDialog.finish(success,message,download);return;}
     if(!exportProgressModal)return;
     exportProgressCancelHandler=null;
     if(exportProgressCancel)exportProgressCancel.hidden=true;
@@ -2285,20 +2285,13 @@
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         audio.pause();
         canvas.width=dims[0];canvas.height=dims[1];
-        await new Promise(resolve=>{
-          if(audio.currentTime===0){resolve();return;}
-          let done=false;
-          const finish=()=>{if(done)return;done=true;clearTimeout(t);audio.removeEventListener('seeked',finish);resolve();};
-          const t=setTimeout(finish,1500);
-          audio.addEventListener('seeked',finish,{once:true});
-          audio.currentTime=0;
-        });
+        try{audio.currentTime=0;}catch(error){console.warn('[KEFE export seek]',error);}
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         state.time=0;range.value=0;updateTime();draw();
         if(visualiserCanvas.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
         const audioStream=getExportAudioStream();
         const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
-        if(tapCtx&&tapCtx.state==='suspended')await tapCtx.resume();
+        const audioResume=tapCtx&&tapCtx.state==='suspended'?tapCtx.resume():Promise.resolve();
         compositeFrame();
         stream=compositeCanvas.captureStream(exportFps);
         stream.getTracks().forEach(t=>ownedTracks.push(t));
@@ -2345,7 +2338,8 @@
           },250);
         });
         recorder.start(1000);
-        await audio.play();
+        const playbackStart=audio.play();
+        await Promise.all([playbackStart,audioResume]);
         await playbackDone;
         if(frameTicker){clearInterval(frameTicker);frameTicker=null;}
         compositeFrame();
@@ -2364,14 +2358,16 @@
     }
 
     try{
-      if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
-      if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
-      if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
+      if(!isIOS){
+        if(window.KEFE_TYPE?.ready){try{await window.KEFE_TYPE.ready;}catch(_){} }
+        if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
+        if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
+      }
       let result=null,fallbackUsed=false;
       try{
         result=await runEncode(requestedRes,exportAbort.signal);
       }catch(primaryErr){
-        if(primaryErr?.name==='AbortError'||requestedRes<=720)throw primaryErr;
+        if(isIOS||primaryErr?.name==='AbortError'||requestedRes<=720)throw primaryErr;
         console.warn('[KEFE export retrying at 720p]',primaryErr);
         status.textContent='High-resolution export failed; retrying at 720p…';
         setExportProgress(1,'Retrying at 720p…');
@@ -2379,13 +2375,21 @@
         fallbackUsed=true;
       }
       const {blob,dims}=result;
-      const url=URL.createObjectURL(blob),a=document.createElement('a');
+      const url=URL.createObjectURL(blob);
+      if(lastExportObjectUrl)URL.revokeObjectURL(lastExportObjectUrl);
+      lastExportObjectUrl=url;
       const name=[songArtist.value,songTitle.value].map(v=>v.trim()).filter(Boolean).join(' - ').replace(/[\\/:*?"<>|]+/g,'')||'kefe-visualiser';
-      a.href=url;a.download=name+'.'+ext;document.body.appendChild(a);a.click();a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),10000);
+      const filename=name+'.'+ext;
       const fallbackNote=fallbackUsed?' Exported at 720p after a higher-resolution encoder failure.':'';
       status.textContent='Export complete ('+dims[0]+'×'+dims[1]+' '+ext.toUpperCase()+').'+formatNote+fallbackNote;
-      finishExportProgress(true,'Your video has been rendered and the download has started.'+formatNote+fallbackNote);
+      if(isIOS){
+        finishExportProgress(true,'Your video is ready. Tap Save video below to save it to Files.'+formatNote+fallbackNote,{url,filename});
+      }else{
+        const a=document.createElement('a');
+        a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>{if(lastExportObjectUrl===url){URL.revokeObjectURL(url);lastExportObjectUrl='';}},10000);
+        finishExportProgress(true,'Your video has been rendered and the download has started.'+formatNote+fallbackNote);
+      }
     }catch(error){
       if(error?.name==='AbortError'){
         status.textContent='Export cancelled.';
