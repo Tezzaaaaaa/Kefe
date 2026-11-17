@@ -2281,6 +2281,7 @@
       };
       let recorder=null,ticker=null,frameTicker=null,stream=null;
       const ownedTracks=[];
+      let stopPlaybackWait=null;
       try{
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         audio.pause();
@@ -2321,6 +2322,7 @@
             signal.removeEventListener('abort',onAbort);
             if(ticker){clearInterval(ticker);ticker=null;}
           };
+          stopPlaybackWait=()=>{if(settled)return;settled=true;cleanup();};
           const onEnded=()=>{if(settled)return;settled=true;cleanup();resolve();};
           const onAudioError=()=>{if(settled)return;settled=true;cleanup();reject(new Error('Audio playback failed during export.'));};
           const onAbort=()=>{if(settled)return;settled=true;cleanup();reject(new DOMException('Export cancelled','AbortError'));};
@@ -2350,6 +2352,7 @@
         if(!chunks.length)throw new Error('The video encoder produced an empty file.');
         return {blob:new Blob(chunks,{type:mime}),dims};
       }finally{
+        if(stopPlaybackWait)stopPlaybackWait();
         if(ticker){clearInterval(ticker);ticker=null;}
         if(frameTicker){clearInterval(frameTicker);frameTicker=null;}
         try{if(recorder&&recorder.state==='recording')recorder.stop();}catch(_){}
