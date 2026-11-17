@@ -23,7 +23,7 @@
     var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (saved && typeof saved === 'object') {
       if (MODES.some(function (m) { return m[0] === saved.mode; })) S.mode = saved.mode;
-      if (['left', 'center', 'justify'].indexOf(saved.alignment) !== -1) S.alignment = saved.alignment;
+      if (['left', 'center', 'right', 'justify'].indexOf(saved.alignment) !== -1) S.alignment = saved.alignment;
       if (CASES.some(function (c) { return c[0] === saved.caseMode; })) S.caseMode = saved.caseMode;
       if (Number.isFinite(saved.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(saved.chunk)));
     }
@@ -137,7 +137,7 @@
     if (!input || !host || document.getElementById('kefeLyricAlignment')) return;
     var wrap = el('div', 'kefe-lyric-alignment kefe-seg'); wrap.id = 'kefeLyricAlignment';
     wrap.setAttribute('role', 'group'); wrap.setAttribute('aria-label', 'Fetched lyrics alignment');
-    var choices = [['left', 'Left'], ['center', 'Center'], ['justify', 'Justify']];
+    var choices = [['left', 'Left'], ['center', 'Center'], ['right', 'Right'], ['justify', 'Justify']];
     var buttons = {};
     choices.forEach(function (choice) {
       var button = btn(choice[1], choice[1] + ' align fetched lyrics', 'kefe-seg-item');
@@ -466,7 +466,7 @@
     applySettings: function (value) {
       if (!value || typeof value !== 'object') return Object.assign({}, S);
       if (MODES.some(function (m) { return m[0] === value.mode; })) S.mode = value.mode;
-      if (['left', 'center', 'justify'].indexOf(value.alignment) !== -1) S.alignment = value.alignment;
+      if (['left', 'center', 'right', 'justify'].indexOf(value.alignment) !== -1) S.alignment = value.alignment;
       if (CASES.some(function (c) { return c[0] === value.caseMode; })) S.caseMode = value.caseMode;
       syncAlignmentUi();
       if (Number.isFinite(value.chunk)) S.chunk = Math.max(1, Math.min(12, Math.round(value.chunk)));
