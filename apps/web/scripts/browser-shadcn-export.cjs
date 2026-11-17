@@ -137,7 +137,7 @@ function audioFixture() {
         const saveLink = complete.locator('#kefeExportDownload');
         await saveLink.waitFor({ state: 'visible' });
         assert.match(await saveLink.getAttribute('href'), /^blob:/, 'iPhone export exposes the rendered video as a Save video link');
-        assert.match(await saveLink.getAttribute('download'), /\\.webm$/);
+        assert.match(await saveLink.getAttribute('download'), /\.webm$/);
         const savePromise = page.waitForEvent('download', { timeout: 30000 });
         await saveLink.click();
         download = await savePromise;
