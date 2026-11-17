@@ -40,6 +40,10 @@ function ExportDialog({ state, close, cancel, host, previousFocus }) {
       onClick: cancel,
       className: 'shad-export-cancel',
     }, state.cancelling ? 'Cancelling…' : 'Cancel export'),
+    state.done && state.success && state.downloadUrl && h('a', {
+      id: 'kefeExportDownload', href: state.downloadUrl, download: state.downloadFilename,
+      className: 'shad-btn shad-btn--default shad-export-download'
+    }, 'Save video'),
     state.done && h(Button, { type: 'button', id: 'kefeExportClose', onClick: close, className: 'shad-export-close' }, 'Close')));
 }
 function mountExportDialog() {
@@ -80,10 +84,11 @@ function mountExportDialog() {
       state = { ...state, audio: included ? 'Audio track included' : 'Video only' };
       render();
     },
-    finish(success, message) {
+    finish(success, message, download) {
       if (!state.open) return;
       state = {
-        ...state, done: true, cancelling: false, onCancel: null,
+        ...state, done: true, success: !!success, downloadUrl: success ? (download?.url || '') : '',
+        downloadFilename: success ? (download?.filename || '') : '', cancelling: false, onCancel: null,
         title: success ? 'Export complete' : (state.cancelling ? 'Export cancelled' : 'Export failed'),
         status: success ? 'Ready to download' : (state.cancelling ? 'Cancelled' : 'Needs attention'),
         stage: success ? 'Export complete' : 'Export stopped',

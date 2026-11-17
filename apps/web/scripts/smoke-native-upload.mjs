@@ -11,9 +11,13 @@ const compactStyles = readFileSync(resolve(root, "app/ui/panels-compact.css"), "
 const shadStyles = readFileSync(resolve(root, "beui-src/shadcn-kefe.css"), "utf8");
 const backgroundRuntime = readFileSync(resolve(root, "app/visualiser/background.js"), "utf8");
 const mediaRuntime = readFileSync(resolve(root, "app/media-carousel.js"), "utf8");
+const mediaBridge = readFileSync(resolve(root, "beui-src/shadcn-media.js"), "utf8");
 const failures = [];
 
 if (entry.includes("legacy-upload-card-bridge")) failures.push("Editor entry still loads the upload Card bridge");
+if (mediaBridge.includes("mountUploads();") || mediaBridge.includes("hydrateRoot(host, h(Dropzone")) {
+  failures.push("React must not rehydrate KEFE file inputs after their native upload listeners are attached");
+}
 if (existsSync(resolve(root, "beui-src/legacy-upload-card-bridge.jsx"))) failures.push("Retired upload Card bridge source remains");
 if (!structure.includes("kefeUploadZone") || !structure.includes("mediaInput") || !structure.includes("kefe-upload-title") || !structure.includes("kefe-upload-card")) {
   failures.push("Native upload label, inner Card, file input, or title are missing from KEFE structure");
