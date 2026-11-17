@@ -249,7 +249,7 @@ function observeManualNotice() {
 
 function start() {
   mountMediaFields();
-  mountUploads();
+  // Native KEFE file inputs and their existing listeners must not be rehydrated by React.
   mountMediaCardsAndBadges();
   observeManualNotice();
 }
