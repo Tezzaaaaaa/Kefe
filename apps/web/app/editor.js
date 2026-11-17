@@ -2229,7 +2229,6 @@
     if(exporting)return;
     const activeLayer=activeVisualiserLayer(),visualiserCanvas=activeLayer?activeLayer.canvas:null,visualiserBlend=activeLayer?activeLayer.blend:'source-over';
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){status.textContent='Video export is not supported by this browser.';return;}
-    if(!visualiserCanvas){status.textContent='Choose and enable a visualiser before exporting.';return;}
     if(activeLayer?.isReady&&!activeLayer.isReady()){status.textContent='The selected visualiser could not start graphics. Retry or switch visualisers before exporting.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)||audio.duration<=0){status.textContent='Upload a playable audio track first.';return;}
     if(window.kefeResilience&&titleArtImage&&!window.kefeResilience.isImageCorsSafe(titleArtImage)){
@@ -2289,7 +2288,7 @@
         try{audio.currentTime=0;}catch(error){console.warn('[KEFE export seek]',error);}
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         state.time=0;range.value=0;updateTime();draw();
-        if(visualiserCanvas.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
+        if(visualiserCanvas?.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
         const audioStream=getExportAudioStream();
         const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
         const audioResume=tapCtx&&tapCtx.state==='suspended'?tapCtx.resume():Promise.resolve();
