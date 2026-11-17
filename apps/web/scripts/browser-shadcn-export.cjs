@@ -26,19 +26,29 @@ function audioFixture() {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     browser = await chromium.launch({ headless: true, ...(process.env.CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.CHROMIUM_EXECUTABLE_PATH } : {}) });
     for (const width of [1440, 390]) {
-      const context = await browser.newContext({ viewport: { width, height: 844 }, serviceWorkers: 'block', acceptDownloads: true });
+      const context = await browser.newContext({
+        viewport: { width, height: 844 }, serviceWorkers: 'block', acceptDownloads: true,
+        ...(width === 390 ? { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' } : {})
+      });
       const page = await context.newPage(), errors = [];
       await page.addInitScript(() => {
         const observer = new MutationObserver(() => {
           const button = document.getElementById('exportButton');
-          if (button) { window.__originalExportButton = button; observer.disconnect(); }
+          const mediaInput = document.getElementById('mediaInput');
+          const backgroundInput = document.getElementById('bgVideoInput');
+          if (button) window.__originalExportButton = button;
+          if (mediaInput) window.__originalMediaInput = mediaInput;
+          if (backgroundInput) window.__originalBackgroundInput = backgroundInput;
+          if (button && mediaInput && backgroundInput) observer.disconnect();
         });
         observer.observe(document, { childList: true, subtree: true });
       });
       page.on('pageerror', error => errors.push(error.message));
       page.on('console', message => { if (message.type() === 'error' && /hydrat|react error/i.test(message.text())) errors.push(message.text()); });
       await page.goto(`http://127.0.0.1:${server.address().port}/editor.html`);
-      await page.waitForFunction(() => window.kefeExportDialog);
+      await page.waitForFunction(() => window.kefeExportDialog && document.getElementById('bgVideoInput'));
+      assert.equal(await page.evaluate(() => document.getElementById('mediaInput') === window.__originalMediaInput), true, 'primary file input identity retained after UI startup');
+      assert.equal(await page.evaluate(() => document.getElementById('bgVideoInput') === window.__originalBackgroundInput), true, 'background-video file input identity retained after UI startup');
       await page.locator('#mediaInput').setInputFiles({ name: 'export-test.wav', mimeType: 'audio/wav', buffer: audioFixture() });
       await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 1);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
@@ -116,13 +126,24 @@ function audioFixture() {
       assert.match(await failed.locator('#kefeExportFootnote').textContent(), /Forced recorder failure/);
       await failed.getByRole('button', { name: 'Close' }).click();
       await page.evaluate(() => { window.MediaRecorder = window.__originalRecorder; });
-      const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
+      const downloadPromise = width === 390 ? null : page.waitForEvent('download', { timeout: 30000 });
       await exportButton.click();
       const complete = page.getByRole('dialog', { name: 'Export complete' });
       await complete.waitFor({ timeout: 30000 });
       assert.equal(await complete.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
       assert.match(await page.locator('#exportStatus').textContent(), /Export complete/);
-      const download = await downloadPromise;
+      let download;
+      if (width === 390) {
+        const saveLink = complete.locator('#kefeExportDownload');
+        await saveLink.waitFor({ state: 'visible' });
+        assert.match(await saveLink.getAttribute('href'), /^blob:/, 'iPhone export exposes the rendered video as a Save video link');
+        assert.match(await saveLink.getAttribute('download'), /\\.webm$/);
+        const savePromise = page.waitForEvent('download', { timeout: 30000 });
+        await saveLink.click();
+        download = await savePromise;
+      } else {
+        download = await downloadPromise;
+      }
       assert.match(download.suggestedFilename(), /\.webm$/);
       assert.ok(fs.statSync(await download.path()).size > 0, 'the recorded video is downloaded');
       await complete.getByRole('button', { name: 'Close' }).click();
