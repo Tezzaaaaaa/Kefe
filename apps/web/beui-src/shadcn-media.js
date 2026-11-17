@@ -1,15 +1,9 @@
-/* Hydrate KEFE's Media & Alert surfaces in place using genuine shadcn
-   Input, Label, Dropzone, Card, Badge, Button, and Alert components while
-   preserving every original DOM node and event listener. */
+/* Enhance KEFE's metadata fields and alerts while leaving native media file inputs untouched. */
 import * as React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { Input } from '../components/ui/input.js';
 import { Label } from '../components/ui/label.js';
-import { Card } from '../components/ui/card.js';
-import { Badge } from '../components/ui/badge.js';
-import { Button } from '../components/ui/button.js';
-import { Dropzone } from '../components/ui/dropzone.js';
 import { Alert, AlertDescription } from '../components/ui/alert.js';
 
 const h = React.createElement;
@@ -39,59 +33,7 @@ function nodeTree(node, key) {
   if (node.nodeType !== Node.ELEMENT_NODE) return null;
   stripWhitespace(node);
 
-  if (node.tagName === 'LABEL' && node.classList.contains('shad-dropzone')) {
-    const className = stripPrefix(node.className, /\bshad-dropzone\b/g);
-    node.className = `shad-dropzone ${className}`.replace(/\s+/g, ' ').trim();
-    node.dataset.slot = 'dropzone';
-    const props = readAttrs(node, ['class', 'data-slot']);
-    return h(Dropzone, { key, className, ...props }, ...Array.from(node.childNodes, nodeTree));
-  }
-
-  if (node.classList.contains('kefe-upload-card')) {
-    const className = stripPrefix(node.className, /\bshad-card\b/g);
-    node.className = `shad-card ${className}`.replace(/\s+/g, ' ').trim();
-    node.dataset.slot = 'card';
-    const props = readAttrs(node, ['class', 'data-slot']);
-    return h(Card, { key, className, ...props }, ...Array.from(node.childNodes, nodeTree));
-  }
-
-  if (node.classList.contains('shad-upload-browse')) {
-    const className = stripPrefix(node.className, /\bshad-btn(?:--\S+)?\b/g);
-    node.className = `shad-btn shad-btn--outline shad-btn--sm ${className}`.replace(/\s+/g, ' ').trim();
-    node.dataset.slot = 'button';
-    node.dataset.variant = 'outline';
-    node.dataset.size = 'sm';
-    const props = readAttrs(node, ['class', 'data-slot', 'data-variant', 'data-size']);
-    return h(
-      Button,
-      { key, asChild: true, variant: 'outline', size: 'sm', className },
-      h('span', props, ...Array.from(node.childNodes, nodeTree))
-    );
-  }
-
-  if (node.classList.contains('shad-upload-file-status')) {
-    const className = stripPrefix(node.className, /\bshad-badge(?:--\S+)?\b/g);
-    node.className = `shad-badge shad-badge--secondary ${className}`.replace(/\s+/g, ' ').trim();
-    node.dataset.slot = 'badge';
-    node.dataset.variant = 'secondary';
-    const props = readAttrs(node, ['class', 'data-slot', 'data-variant']);
-    return h(Badge, { key, variant: 'secondary', className, ...props }, ...Array.from(node.childNodes, nodeTree));
-  }
-
-  if (node.tagName === 'BUTTON' && node.id === 'bgVideoRemove') {
-    const className = stripPrefix(node.className, /\bshad-btn(?:--\S+)?\b/g);
-    node.className = `shad-btn shad-btn--outline shad-btn--sm ${className}`.replace(/\s+/g, ' ').trim();
-    node.dataset.slot = 'button';
-    node.dataset.variant = 'outline';
-    node.dataset.size = 'sm';
-    const props = readAttrs(node, ['class', 'data-slot', 'data-variant', 'data-size']);
-    return h(Button, { key, variant: 'outline', size: 'sm', className, ...props }, ...Array.from(node.childNodes, nodeTree));
-  }
-
-  if (
-    node.classList.contains('shad-upload-symbol') ||
-    node.classList.contains('shad-upload-file-icon') ||
-    node.classList.contains('shad-manual-notice-icon')
+  if (node.classList.contains('shad-manual-notice-icon'))
   ) {
     const props = readAttrs(node);
     props.key = key;
@@ -139,36 +81,6 @@ function mountMediaFields() {
     flushSync(() => hydrateRoot(field, h(React.Fragment, null, ...children)));
     input.dataset.shadcnHydrated = 'true';
     label.dataset.shadcnHydrated = 'true';
-  }
-}
-
-function mountUploads() {
-  const row = document.querySelector('.kefe-panel[data-panel-view="media"] .kefe-media-upload-row');
-  if (row && !row.dataset.shadcnHydrated) {
-    stripWhitespace(row);
-    const tree = Array.from(row.childNodes, nodeTree);
-    flushSync(() => hydrateRoot(row, h(React.Fragment, null, ...tree)));
-    row.dataset.shadcnHydrated = 'true';
-    row.querySelectorAll('#kefeUploadZone, #kefeBgVideoZone, #bgVideoRemove').forEach(node => {
-      node.dataset.shadcnHydrated = 'true';
-    });
-    return;
-  }
-
-  for (const id of ['kefeUploadZone', 'kefeBgVideoZone']) {
-    const zone = document.getElementById(id);
-    if (!zone || !zone.parentNode || zone.dataset.shadcnHydrated) continue;
-    stripWhitespace(zone);
-    const className = stripPrefix(zone.className, /\bshad-dropzone\b/g);
-    zone.className = `shad-dropzone ${className}`.replace(/\s+/g, ' ').trim();
-    zone.dataset.slot = 'dropzone';
-    const host = document.createElement('span');
-    host.className = 'shad-media-card-host';
-    zone.parentNode.insertBefore(host, zone);
-    host.appendChild(zone);
-    const props = readAttrs(zone, ['class', 'data-slot']);
-    flushSync(() => hydrateRoot(host, h(Dropzone, { className, ...props }, ...Array.from(zone.childNodes, nodeTree))));
-    zone.dataset.shadcnHydrated = 'true';
   }
 }
 
