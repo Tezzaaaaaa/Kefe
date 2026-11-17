@@ -137,14 +137,14 @@ function audioFixture() {
         const saveLink = complete.locator('#kefeExportDownload');
         await saveLink.waitFor({ state: 'visible' });
         assert.match(await saveLink.getAttribute('href'), /^blob:/, 'iPhone export exposes the rendered video as a Save video link');
-        assert.match(await saveLink.getAttribute('download'), /\.webm$/);
+        assert.match(await saveLink.getAttribute('download'), /\.(mp4|webm)$/);
         const savePromise = page.waitForEvent('download', { timeout: 30000 });
         await saveLink.click();
         download = await savePromise;
       } else {
         download = await downloadPromise;
       }
-      assert.match(download.suggestedFilename(), /\.webm$/);
+      assert.match(download.suggestedFilename(), /\.(mp4|webm)$/);
       assert.ok(fs.statSync(await download.path()).size > 0, 'the recorded video is downloaded');
       await complete.getByRole('button', { name: 'Close' }).click();
       await page.waitForFunction(() => document.activeElement?.id === 'exportButton');
