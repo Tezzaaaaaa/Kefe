@@ -266,7 +266,28 @@ html:root .kefe-editor #kefe-settings-panel .kefe-lyric-effect-name { font-size:
 
 /* ── Visualisers: gallery fills its row; presets never break mid-word; checkboxes stay 16px ── */
 html:root .kefe-editor #kefe-settings-panel .kv-grid.kv-gallery {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  align-items: stretch !important;
+  gap: var(--lk-gap-s, 8px) !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kv-grid.kv-gallery > * {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+@media (max-width: 520px) {
+  html:root .kefe-editor #kefe-settings-panel .kv-grid.kv-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 360px) {
+  html:root .kefe-editor #kefe-settings-panel .kv-grid.kv-gallery {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
 }
 html:root .kefe-editor #kefe-settings-panel .kefe-visualiser-form :is([role="tab"], .kefe-visualiser-preset-row .kefe-btn),
 html:root .kefe-editor #kefe-settings-panel .kefe-visualiser-preset-row .kefe-btn {
@@ -348,9 +369,21 @@ html:root .kefe-editor #kefe-settings-panel .kefe-lyric-effects-control { paddin
 /* Same gallery + card for Background as for Lyric Effects. */
 html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  align-items: stretch !important;
   gap: var(--lk-gap-s, 8px) !important;
   padding: 2px !important;
+}
+@media (max-width: 520px) {
+  html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 360px) {
+  html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
 }
 html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions .kefe-background-effect-card {
   display: flex !important; flex-direction: column !important; height: auto !important; min-height: 0 !important; padding: 6px !important; gap: 6px !important;
@@ -411,7 +444,25 @@ html:root .kefe-editor .kefe-stage.is-empty::after {
 html:root .kefe-editor #kefe-settings-panel .kefe-visualiser-form :is(.kefe-vis-view, .kefe-visualiser-control-group)[hidden] { display: none !important; }
 
 /* ═══ Background workspace: Background Effects, then Visualisers, then the Album Art studio ═══ */
-html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] { margin-top: var(--lk-gap, 16px) !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group > .kefe-panel[data-panel-view="visualiser"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: var(--lk-gap-s, 8px) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group > .kefe-panel[data-panel-view="visualiser"] > .kefe-panel-head {
+  margin: var(--lk-gap-s, 8px) 0 0 !important;
+  padding: 8px 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid var(--shad-border) !important;
+}
 html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="visualiser"] > .kefe-panel-head {
   display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: center !important; gap: 8px 12px !important;
   margin: 0 0 var(--lk-gap-s, 8px) !important; padding: 0 0 8px !important; border: 0 !important; border-bottom: 1px solid var(--shad-border) !important; background: none !important; min-height: 0 !important;
