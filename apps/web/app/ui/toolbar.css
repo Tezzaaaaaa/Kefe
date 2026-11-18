@@ -704,3 +704,32 @@ html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider .shad-slid
 html .kefe-editor .kefe-timeline .kefe-timebar > .kefe-timebar-slider .shad-slider-thumb {
   width: 2px; height: 32px; border: 0; border-radius: 0; background: var(--accent); box-shadow: none;
 }
+
+/* Keep the launcher as the only in-flow timeline item. The expanded toolbar
+   overlays upward from the launcher and never increases the timeline row height. */
+html .kefe-editor .kefe-timeline > #kefeFloatingToolbar {
+  position: relative;
+  display: block;
+  flex: 0 0 32px;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  max-width: 32px;
+  overflow: visible;
+  align-self: center;
+}
+html .kefe-editor .kefe-timeline > #kefeFloatingToolbar > .kft-launch {
+  position: absolute;
+  inset: 0;
+  z-index: 10003;
+}
+html .kefe-editor .kefe-timeline > #kefeFloatingToolbar > .kft-bar {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  top: auto;
+  z-index: 10002;
+  width: max-content;
+  max-width: min(560px, calc(100vw - 16px));
+  margin: 0;
+}
