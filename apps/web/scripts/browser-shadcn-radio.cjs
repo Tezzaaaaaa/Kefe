@@ -55,6 +55,8 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.locator('#kefeDisplayGroup output').first().textContent(), '5');
       assert.equal(await page.locator('#lyricCase').inputValue(), 'upper', 'programmatic settings update their native select');
       await page.reload();
+      await page.waitForSelector('#kefeDisplayGroup [data-shadcn-radio-mounted]', { state: 'attached' });
+      await page.waitForFunction(() => window.kefeLyricStudio.settings().mode === 'chunk' && window.kefeLyricStudio.settings().chunk === 5);
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
       await page.waitForFunction(() => document.querySelector('.shad-lyric-display-options [aria-label="Chunk"]')?.getAttribute('aria-checked') === 'true');
