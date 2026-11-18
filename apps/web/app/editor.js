@@ -742,13 +742,13 @@
     const defaults=readEffectDefaults();delete defaults[state.effect];
     try{localStorage.setItem(effectDefaultsKey,JSON.stringify(defaults));return true;}catch(_){return false;}
   }
-  function setEffect(id){
+  function setEffect(id, options){
     state.effect=id;
     applyEffectDefault(id);
-    /* Each lyric effect starts in conventional whole-line display, regardless
-       of a different mode saved with that effect's previous style settings. */
+    /* A deliberate effect change starts in whole-line display; editor startup
+       preserves the user's saved lyric display mode. */
     const lyricStudio=window.kefeLyricStudio;
-    if(lyricStudio?.settings&&lyricStudio?.applySettings){
+    if(!(options&&options.preserveDisplayMode)&&lyricStudio?.settings&&lyricStudio?.applySettings){
       const settings=lyricStudio.settings();
       if(settings.mode!=='line')lyricStudio.applySettings({...settings,mode:'line'});
     }
@@ -2593,5 +2593,5 @@
     },
     redraw:()=>draw()
   };
-  canvas.width=1920;canvas.height=1080;parseLyrics();setEffect('apple');updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
+  canvas.width=1920;canvas.height=1080;parseLyrics();setEffect('apple',{preserveDisplayMode:true});updateTitleCard();updateTime();updatePlayButton();fitPreviewStage();ensureLyricsTools();applySettingsDefaults();
 })();
