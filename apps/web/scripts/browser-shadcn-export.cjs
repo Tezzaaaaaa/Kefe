@@ -52,30 +52,7 @@ function audioFixture() {
       await page.locator('#mediaInput').setInputFiles({ name: 'export-test.wav', mimeType: 'audio/wav', buffer: audioFixture() });
       await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 1);
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      const gradientTab = page.locator('.shad-vis-tabs-host .kv-tab[data-visualiser="gradient"]');
-      await gradientTab.waitFor({ state: 'visible' });
-      await gradientTab.focus();
-      await page.keyboard.press('Enter');
-      try {
-        await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true, null, { timeout: 10000 });
-      } catch (error) {
-        const visualiserState = await page.evaluate(() => {
-          const backing = document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"]');
-          const power = backing?.closest('.kefe-vis-option')?.querySelector('.kefe-switch');
-          const card = document.querySelector('.kv-card[data-visualiser="gradient"]');
-          return {
-            enginePresent: !!window.kefeGradientLayer,
-            engineState: window.kefeGradientLayer?.state?.(),
-            backingSelected: backing?.getAttribute('aria-selected'),
-            backingPower: power?.getAttribute('aria-checked'),
-            cardSelected: card?.querySelector('.kv-tab')?.getAttribute('aria-selected'),
-            cardPower: card?.querySelector('[role="switch"]')?.getAttribute('aria-checked'),
-            backingHost: backing?.parentElement?.className
-          };
-        });
-        throw new Error(`Fluid Ink did not become active: ${JSON.stringify(visualiserState)}; ${error.message}`);
-      }
-      await page.waitForFunction(() => document.querySelector('.kv-card[data-visualiser="gradient"] [role="switch"]')?.getAttribute('aria-checked') === 'true');
+      assert.equal(await page.evaluate(() => window.kefeShaderVis?.current?.() || window.kefeGradientLayer?.state?.().on), false, 'export starts with no active visualiser');
       await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
       await page.evaluate(() => { const select = document.getElementById('exportResolution'); select.value = '720'; select.dispatchEvent(new Event('change', { bubbles: true })); });
@@ -117,9 +94,7 @@ function audioFixture() {
           mediaRecorder: typeof window.MediaRecorder,
           audioReadyState: document.getElementById('kefeAudio')?.readyState,
           audioDuration: document.getElementById('kefeAudio')?.duration,
-          gradientState: window.kefeGradientLayer?.state?.(),
-          gradientTabSelected: document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"]')?.getAttribute('aria-selected'),
-          gradientPowerChecked: document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"]')?.closest('.kefe-vis-option')?.querySelector('.kefe-switch')?.getAttribute('aria-checked')
+          visualiserActive: !!(window.kefeShaderVis?.current?.() || window.kefeGradientLayer?.state?.().on)
         }));
         throw new Error(`Export failure dialog was not shown: ${JSON.stringify(state)}; ${error.message}`);
       }

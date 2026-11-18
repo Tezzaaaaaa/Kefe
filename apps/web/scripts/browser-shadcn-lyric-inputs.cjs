@@ -40,7 +40,11 @@ const server = http.createServer((req, res) => {
       await page.waitForSelector('[aria-label="Line 1 text"][data-shadcn-hydrated="true"]');
       assert.equal(await page.evaluate(() => window.__lyricRows.includes(document.querySelector('[aria-label="Line 1 text"]'))), true, 'original input node hydrated');
       assert.equal(await page.evaluate(() => [...document.querySelectorAll('#kefeTimingEditor .kefe-line button')].every(button => window.__lyricButtons.includes(button))), true, 'original timing action nodes hydrated');
-      assert.equal(await page.locator('#kefeTimingEditor .kefe-line button').count(), await page.locator('#kefeTimingEditor .kefe-line button[data-slot="button"]').count());
+      assert.equal(
+        await page.locator('#kefeTimingEditor .kefe-line button:not([data-slot="collapsible-trigger"])').count(),
+        await page.locator('#kefeTimingEditor .kefe-line button[data-slot="button"]').count(),
+        'all native timing actions are shadcn Buttons; Radix disclosure triggers remain Radix controls'
+      );
       const firstText = page.getByRole('textbox', { name: 'Line 1 text', exact: true });
       assert.equal(await firstText.getAttribute('data-slot'), 'input');
       await firstText.fill('New first line'); await firstText.press('Enter');
