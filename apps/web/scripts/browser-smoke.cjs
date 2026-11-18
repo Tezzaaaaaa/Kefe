@@ -1608,6 +1608,25 @@ async function captureEditorScreenState(page) {
     }));
     if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
+    const backgroundLayout = await page.locator(".kefe-background-effects-group").evaluate(group => {
+      const cards = [...group.querySelectorAll("#kefeBackgroundEffectOptions > .kefe-background-effect-card")];
+      const boxes = cards.map(card => {
+        const rect = card.getBoundingClientRect();
+        return { width: rect.width, height: rect.height, left: rect.left, top: rect.top };
+      });
+      return {
+        hasVideoUpload: !!group.querySelector(".shad-upload-wrap #bgVideoInput"),
+        hasDarknessControl: !!group.querySelector("#backgroundTransparency"),
+        cardCount: cards.length,
+        boxes
+      };
+    });
+    assert.equal(backgroundLayout.hasVideoUpload, true, "background video upload must live in the unified Background section");
+    assert.equal(backgroundLayout.hasDarknessControl, true, "background darkness must live in the unified Background section");
+    assert.equal(backgroundLayout.cardCount, 3, "all background modes must remain available");
+    assert.ok(backgroundLayout.boxes.every(box => Math.abs(box.width - backgroundLayout.boxes[0].width) <= 1
+      && Math.abs(box.height - backgroundLayout.boxes[0].height) <= 1),
+      `background mode cards must have matching dimensions: ${JSON.stringify(backgroundLayout)}`);
 
     await openSection("visualiser");
     await page.waitForSelector(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']", { state: "attached", timeout: 10000 });
