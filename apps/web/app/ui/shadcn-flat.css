@@ -361,7 +361,11 @@ html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions .kefe-b
 }
 html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions .kefe-background-effect-name { font-size: 12px !important; font-weight: 500 !important; text-align: center !important; line-height: 1.2 !important; }
 html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view="background-effects"] > .kefe-panel-head { display: none !important; }
-html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group { padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: var(--lk-gap-s, 8px) !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group > .shad-upload-wrap,
+html:root .kefe-editor #kefe-settings-panel .kefe-background-effects-group > .kefe-background-effect-control { width: 100% !important; min-width: 0 !important; box-sizing: border-box !important; margin: 0 !important; }
+html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; align-items: stretch !important; }
+html:root .kefe-editor #kefe-settings-panel #kefeBackgroundEffectOptions .kefe-background-effect-card { width: 100% !important; min-width: 0 !important; min-height: 100% !important; box-sizing: border-box !important; }
 
 /* ═══ Visualisers: every engine's settings use the same collapsible-group structure ═════ */
 html:root .kefe-editor #kefe-settings-panel .kefe-visualiser-form .kefe-vis-view { display: grid !important; gap: var(--lk-gap-s, 8px) !important; }
