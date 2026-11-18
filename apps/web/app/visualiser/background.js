@@ -239,11 +239,13 @@
       choiceWrap.appendChild(button);
     });
 
-    if(uploadWrap)backgroundForm.appendChild(uploadWrap);
-    if(transparencyBlock)backgroundForm.appendChild(transparencyBlock);
     backgroundForm.appendChild(effectsGroup);
+    if(uploadWrap)effectsGroup.appendChild(uploadWrap);
+    if(transparencyBlock)effectsGroup.appendChild(transparencyBlock);
     if(backgroundBlock)effectsGroup.appendChild(backgroundBlock);
     effectsGroup.appendChild(choiceWrap);
+    var visualiserPanel=document.querySelector('.kefe-panel[data-panel-view="visualiser"]');
+    if(visualiserPanel)effectsGroup.appendChild(visualiserPanel);
     select.hidden=true;
     select.setAttribute('aria-hidden','true');
     select.tabIndex=-1;

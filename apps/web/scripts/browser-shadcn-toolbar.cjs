@@ -64,6 +64,7 @@ const server = http.createServer((req, res) => {
       await page.getByRole('listbox').waitFor();
       await page.keyboard.press('Escape');
       assert.equal(await panel.isVisible(), true, 'Escape closes the Select without closing its panel');
+      await page.waitForFunction(() => document.activeElement?.matches('.kft-shad-select-trigger[aria-label^="Layer:"]'));
       assert.equal(await layerMenu.evaluate(node => document.activeElement === node), true, 'Select restores trigger focus');
       await layerMenu.click();
       const layerOptions = page.getByRole('listbox');

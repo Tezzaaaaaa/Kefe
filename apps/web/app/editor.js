@@ -743,12 +743,13 @@
     try{localStorage.setItem(effectDefaultsKey,JSON.stringify(defaults));return true;}catch(_){return false;}
   }
   function setEffect(id){
+    const changed=state.effect!==id;
     state.effect=id;
     applyEffectDefault(id);
-    /* Each lyric effect starts in conventional whole-line display, regardless
-       of a different mode saved with that effect's previous style settings. */
+    /* Reset to whole-line display only when the user changes effects, not
+       when the already-selected effect is initialized on editor startup. */
     const lyricStudio=window.kefeLyricStudio;
-    if(lyricStudio?.settings&&lyricStudio?.applySettings){
+    if(changed&&lyricStudio?.settings&&lyricStudio?.applySettings){
       const settings=lyricStudio.settings();
       if(settings.mode!=='line')lyricStudio.applySettings({...settings,mode:'line'});
     }
