@@ -59,6 +59,7 @@ jobs:
           node apps/web/scripts/smoke-signature-effects.mjs
           node apps/web/scripts/smoke-native-controls.mjs
           node apps/web/scripts/smoke-native-upload.mjs
+          node apps/web/scripts/smoke-export-engine.mjs
           node apps/web/scripts/smoke-mobile-sidebar.mjs
           node apps/web/scripts/smoke-mobile-sidebar-groups.mjs
       - name: Install Playwright and PNG comparison tools

@@ -168,7 +168,15 @@
     }
   }
 
+  /* Offline export source: while set, visualisers read spectrum data computed from the decoded file at the exact
+     frame time instead of the live analyser, so exports never depend on playback or machine speed. */
+  var offlineSource = null;
+
   function readFrequencyData(outUint8) {
+    if (offlineSource) {
+      offlineSource.fill(outUint8);
+      return { ok: true, reason: 'offline', analyser: offlineSource.analyser };
+    }
     var g = graph;
     if (!g || !g.analyser) return { ok: false, reason: 'no-analyser' };
     if (g.ac && g.ac.state && g.ac.state !== 'running') {
@@ -248,13 +256,16 @@
         audioAvailable: !!(graph && graph.analyser && st === 'running' && silentPlayFrames < 45)
       };
     },
-    context: function () { return graph ? graph.ac : null; },
-    analyser: function () { return graph ? graph.analyser : null; }
+    context: function () { return offlineSource ? offlineSource.context : (graph ? graph.ac : null); },
+    analyser: function () { return offlineSource ? offlineSource.analyser : (graph ? graph.analyser : null); },
+    fftSize: fftSize,
+    setOfflineSource: function (source) { offlineSource = source || null; }
   };
 
   /* Shared preview render-rate gate. Settings → Engine → FPS target caps how often a visualiser
      paints the preview. Only the visible visualiser calls this, so the cap stays accurate. */
   function frameGate(now) {
+    if (window.kefeResilience && window.kefeResilience.isOffline && window.kefeResilience.isOffline()) return true;
     var target = Math.round(Number(window.kefeSettings && window.kefeSettings.get('fpsTarget'))) || 60;
     target = Math.max(24, Math.min(120, target));
     var step = 1000 / target;

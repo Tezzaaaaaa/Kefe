@@ -101,6 +101,8 @@ function audioFixture() {
       await page.waitForFunction(() => document.activeElement?.id === 'exportButton');
       await page.evaluate(() => {
         window.__originalRecorder = window.MediaRecorder;
+        window.__originalEngineSupported = window.kefeExportEngine.supported;
+        window.kefeExportEngine.supported = () => false;
         window.MediaRecorder = class { static isTypeSupported() { return true; } constructor() { throw new Error('Forced recorder failure'); } };
       });
       await exportButton.click();
@@ -125,13 +127,15 @@ function audioFixture() {
       }
       assert.match(await failed.locator('#kefeExportFootnote').textContent(), /Forced recorder failure/);
       await failed.getByRole('button', { name: 'Close' }).click();
-      await page.evaluate(() => { window.MediaRecorder = window.__originalRecorder; });
+      await page.evaluate(() => { window.MediaRecorder = window.__originalRecorder; window.kefeExportEngine.supported = window.__originalEngineSupported; });
+      const engineAvailable = await page.evaluate(() => window.kefeExportEngine.supported());
       const downloadPromise = width === 390 ? null : page.waitForEvent('download', { timeout: 30000 });
       await exportButton.click();
       const complete = page.getByRole('dialog', { name: 'Export complete' });
       await complete.waitFor({ timeout: 30000 });
       assert.equal(await complete.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
       assert.match(await page.locator('#exportStatus').textContent(), /Export complete/);
+      if (engineAvailable) assert.match(await page.locator('#exportStatus').textContent(), / fps · /, 'the precise offline renderer produced the video');
       let download;
       if (width === 390) {
         const saveLink = complete.locator('#kefeExportDownload');

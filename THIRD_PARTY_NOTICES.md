@@ -85,3 +85,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## Bundled third-party software
+
+| Package | Location | Licence | Purpose |
+|---|---|---|---|
+| mp4-muxer 5.2.2 (Vanilagy) | `apps/web/app/vendor/mp4-muxer/` | MIT (`LICENSE` beside the file) | Writes the MP4 container for video export |
+| webm-muxer 5.1.4 (Vanilagy) | `apps/web/app/vendor/webm-muxer/` | MIT (`LICENSE` beside the file) | Writes the WebM container for video export |

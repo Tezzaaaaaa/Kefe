@@ -286,7 +286,10 @@ function setupDom(html = '<!doctype html><html><body></body></html>', opts = {})
   assert.ok(!/image\.src=normalizeArtworkUrl\(cover\);\s*titleArtImage=image;/.test(editorSrc), 'titleArtImage is not assigned prior to onload');
   assert.ok(editorSrc.includes('exportAbort=new AbortController()'), 'editor export supports AbortController cancellation');
   assert.ok(editorSrc.includes('typeof t.clone===\'function\'?t.clone():t'), 'editor export clones shared audio tracks before stopping');
-  assert.ok(editorSrc.includes('runEncode(720,exportAbort.signal)'), 'editor export retries at 720p on high-res encoder failure');
+  assert.ok(editorSrc.includes('runRealtime(720,exportAbort.signal)'), 'compatibility recorder retries at 720p on high-res encoder failure');
+  assert.ok(editorSrc.includes('const ladder=[requestedRes,'), 'offline export steps down through lower resolutions when an encode fails');
+  assert.ok(editorSrc.includes('rl?.beginOffline()') && editorSrc.includes('rl?.endOffline()'), 'offline export always pairs beginOffline with endOffline');
+  assert.ok(/finally\{\s*window\.kefeAudioGraph\?\.setOfflineSource\?\.\(null\);/.test(editorSrc), 'offline spectrum source is always released after export');
 
   const autoSyncSrc = read('app/lyrics/auto-sync.js');
   assert.ok(!/decodeAudio\(\)[\s\S]*return\s*\{[^}]*context\s*:/.test(autoSyncSrc), 'auto-sync closes AudioContext inside decodeAudio before ML inference');

@@ -233,6 +233,36 @@
     };
   }
 
+  /* Offline rendering (video export). While it is on, every preview loop stands still and the exporter
+     steps the running loops itself with a virtual clock, one call per output frame, so what a visualiser
+     draws depends on the frame being rendered and never on how fast the machine happens to be. */
+  const renderLoops = new Set();
+  let offline = false;
+
+  function beginOffline() {
+    if (offline) return;
+    offline = true;
+    /* Visualiser steps bail out when the page is hidden; an export must keep rendering regardless. */
+    try { Object.defineProperty(document, 'hidden', { configurable: true, get: () => false }); } catch (_) {}
+  }
+  function endOffline() {
+    if (!offline) return;
+    offline = false;
+    try { delete document.hidden; } catch (_) {}
+    renderLoops.forEach(handle => { try { handle.resume(); } catch (_) {} });
+  }
+  /* Calls step(now) on every running loop that is not driven by the exporter itself. Errors propagate so a
+     broken visualiser fails the export instead of silently exporting a blank layer. */
+  function stepRenderLoops(now) {
+    let stepped = 0;
+    renderLoops.forEach(handle => {
+      if (handle.managed || !handle.isActive()) return;
+      handle.step(now);
+      stepped++;
+    });
+    return stepped;
+  }
+
   function createRenderLoop(step, opts) {
     const options = opts && typeof opts === 'object' ? opts : {};
     let raf = 0;
@@ -243,6 +273,7 @@
 
     function tick(now, token) {
       raf = 0;
+      if (offline) return;
       if (disposed || !running || crashed || token !== gen || document.hidden) return;
       try {
         const keepGoing = step(now);
@@ -280,6 +311,15 @@
 
     document.addEventListener('visibilitychange', onVisibility);
 
+    const handle = {
+      /* offlineManaged loops are driven by the exporter through their own export API, not stepped generically. */
+      managed: !!options.offlineManaged,
+      isActive: () => running && !crashed && !disposed,
+      step: now => step(now),
+      resume() { if (running && !crashed && !disposed) schedule(); },
+    };
+    renderLoops.add(handle);
+
     return {
       start() {
         if (disposed || crashed) return;
@@ -310,6 +350,7 @@
           window.cancelAnimationFrame(raf);
           raf = 0;
         }
+        renderLoops.delete(handle);
         document.removeEventListener('visibilitychange', onVisibility);
       },
     };
@@ -353,6 +394,10 @@
     guard,
     createScope,
     createRenderLoop,
+    beginOffline,
+    endOffline,
+    stepRenderLoops,
+    isOffline: () => offline,
     createAsyncGate,
     rootScope,
     hasUsableSize(node) {

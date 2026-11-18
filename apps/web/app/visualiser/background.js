@@ -145,6 +145,8 @@
 
   /* ── video sync ── */
   function syncVideo(force){
+    /* During offline export the exporter owns the video's position; never let preview sync seek it. */
+    if(window.kefeResilience&&window.kefeResilience.isOffline&&window.kefeResilience.isOffline())return;
     if(!vid||!audio||!vid.duration||!Number.isFinite(vid.duration))return;
     var want=audio.currentTime%vid.duration;
     if(force||Math.abs(vid.currentTime-want)>0.35){try{vid.currentTime=want;}catch(e){}}
@@ -347,7 +349,7 @@
       ? window.kefeResilience.createRenderLoop(renderStep,{onError:function(err){
           console.error('[KEFE Background]',err);
           window.kefeResilience?.panelError('background-effects',{id:'bg-render',title:'Background effect paused',message:'A canvas error interrupted background playback.'});
-        }})
+        },offlineManaged:true})
       : null;
     var transparencyLayer=document.createElement('div');transparencyLayer.id='kefeBackgroundTransparencyLayer';transparencyLayer.setAttribute('aria-hidden','true');
     transparencyLayer.style.cssText='position:absolute;inset:0;z-index:3;pointer-events:none;background:#000;opacity:0;';
@@ -371,5 +373,38 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 
   function paintTransparency(g,w,h){var amount=Math.max(0,Math.min(100,Number(document.getElementById('backgroundTransparency')?.value)||0))/100;if(amount>0){g.save();g.fillStyle='rgba(0,0,0,'+amount+')';g.fillRect(0,0,w,h);g.restore();}}
-  window.kefeBackground={paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
+  /* ── offline (video export) ── */
+  function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+  /* Makes sure an uploaded background video is decoded and seekable before export starts, so it can never be
+     silently replaced by the fallback art. */
+  async function offlinePrepare(){
+    if(!(enabled&&mode==='video'&&vid))return {video:false};
+    try{vid.pause();}catch(e){}
+    var waited=0;
+    while((vid.readyState<2||!(vid.duration>0)||!isFinite(vid.duration))&&waited<15000){
+      if(vid.error)throw new Error('The background video could not be read for export.');
+      await sleep(100);waited+=100;
+    }
+    if(vid.readyState<2||!(vid.duration>0))throw new Error('The background video is not ready. Re-select it and try again.');
+    return {video:true,duration:vid.duration};
+  }
+  /* Puts the background on exact media time t: seeks the video (looping) and repaints the preview canvas that the
+     glass visualisers sample as their texture. Throws if the video cannot be positioned. */
+  async function offlineFrame(t){
+    if(enabled&&mode==='video'&&vid){
+      var eng=window.kefeExportEngine;
+      if(eng&&typeof eng.seekVideo==='function'){
+        var ok=await eng.seekVideo(vid,t);
+        if(!ok)ok=await eng.seekVideo(vid,t);
+        if(!ok)throw new Error('The background video stopped responding while exporting.');
+      }
+    }
+    if(cctx&&size())paint(cctx,cv.width,cv.height,t);
+  }
+  function offlineEnd(){
+    if(window.kefeExportEngine&&window.kefeExportEngine.resetSeek)window.kefeExportEngine.resetSeek(vid);
+    syncVideo(true);
+    if(cctx&&size())paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
+  }
+  window.kefeBackground={offlinePrepare:offlinePrepare,offlineFrame:offlineFrame,offlineEnd:offlineEnd,video:function(){return vid;},paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
 })();

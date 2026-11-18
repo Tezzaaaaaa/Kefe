@@ -312,7 +312,7 @@
         },{onError:function(err){
           console.error('[KEFE Fluid Ink]',err);
           window.kefeResilience?.panelError('visualiser',{id:'fluid-ink-err',title:'Fluid Ink paused',message:'A rendering error interrupted Fluid Ink.'});
-        }})
+        },offlineManaged:true})
       : null;
     function syncFluidLoop(){
       var isOn=active();
