@@ -40,7 +40,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.evaluate(() => [...document.querySelectorAll('.shad-lyric-action-host > button')].every(button => window.__originalActions.includes(button))), true, 'all native buttons are retained');
       await page.locator('[data-workspace-tab="content"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-sync').evaluate(node => node.click());
-      const auto = page.getByRole('button', { name: 'Auto-time lyrics' });
+      const auto = page.getByRole('button', { name: 'Auto-sync to audio' });
       assert.equal(await auto.getAttribute('data-slot'), 'button');
       assert.equal(await auto.getAttribute('data-variant'), 'default');
       assert.equal(await page.getByRole('button', { name: 'Undo auto-time' }).isDisabled(), true);
