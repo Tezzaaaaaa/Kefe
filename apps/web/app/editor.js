@@ -575,15 +575,22 @@
     ctx.restore();
   }
   let lyricsEnabled=true;
+  /* Safe-area inset (%) shared with the floating toolbar slider; clamps to the same 2-20 range. */
+  let safeInsetPct=5;
+  try{const sp=JSON.parse(localStorage.getItem('kefe.toolbar.preferences.v1')||'null');if(sp&&Number.isFinite(sp.safeInset))safeInsetPct=Math.max(2,Math.min(20,sp.safeInset));}catch(_){}
+  function currentSafeInset(){return safeInsetPct;}
+  window.addEventListener('kefe-toolbar-change',e=>{
+    if(e.detail?.action==='safe-inset'&&Number.isFinite(Number(e.detail.value))){safeInsetPct=Math.max(2,Math.min(20,Number(e.detail.value)));draw();}
+  });
   let lyricLayer=null;
   function draw(){
     if(!canvas||!ctx)return;
     const W=canvas.width,H=canvas.height;
     if(W<2||H<2)return;
     ctx.clearRect(0,0,W,H);
-    // Keep all rendered lyrics and title-card text inside an invisible 5% safe margin,
-    // matching the inset content area used by standard document/presentation layouts.
-    const safeX=Math.round(W*.05),safeY=Math.round(H*.05);
+    // Keep all rendered lyrics and title-card text inside the safe margin (toolbar "Safe-area inset", default 5%).
+    const safeInset=currentSafeInset()/100;
+    const safeX=Math.round(W*safeInset),safeY=Math.round(H*safeInset);
     ctx.save();
     ctx.beginPath();
     ctx.rect(safeX,safeY,Math.max(0,W-safeX*2),Math.max(0,H-safeY*2));
@@ -610,9 +617,13 @@
             lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
             if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
             if(state.effect==='apple'){
-              const u=Math.min(W,H),landscapeLyrics=W/Math.max(1,H)>=1.25,edge=landscapeLyrics?Math.max(32,H*.13):Math.max(32,H*.07)+u*.173,fade=u*.12;
+              // Soft-fade lyrics out at the top/bottom safe edges so a line dissolves instead of being sliced flat.
+              // The effect already fades lines under the pinned title header itself, so nothing else masks the layer.
+              const fade=Math.min(W,H)*.06;
               lc.save();lc.globalCompositeOperation='destination-in';
-              const g=lc.createLinearGradient(0,edge-fade,0,edge);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,1)');
+              const g=lc.createLinearGradient(0,safeY,0,H-safeY);
+              const f=Math.min(.45,fade/Math.max(1,H-safeY*2));
+              g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(f,'rgba(0,0,0,1)');g.addColorStop(1-f,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');
               lc.fillStyle=g;lc.fillRect(0,0,W,H);lc.restore();
             }
             ctx.drawImage(lyricLayer,0,0);
