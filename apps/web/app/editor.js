@@ -2243,7 +2243,7 @@
     const engineOk=!!(engine&&typeof engine.supported==='function'&&engine.supported());
     const legacyOk=!!(window.MediaRecorder&&HTMLCanvasElement.prototype.captureStream);
     if(!engineOk&&!legacyOk){status.textContent='Video export is not supported by this browser.';return;}
-    if(!visualiserCanvas){status.textContent='Choose and enable a visualiser before exporting.';return;}
+    /* A visualiser is optional: lyrics over a background image/video and audio export fine without one. */
     if(activeLayer?.isReady&&!activeLayer.isReady()){status.textContent='The selected visualiser could not start graphics. Retry or switch visualisers before exporting.';return;}
     if(!audio.src||!Number.isFinite(audio.duration)||audio.duration<=0){status.textContent='Upload a playable audio track first.';return;}
     if(window.kefeResilience&&titleArtImage&&!window.kefeResilience.isImageCorsSafe(titleArtImage)){
@@ -2283,7 +2283,7 @@
        gradient layer, background dimming, then lyrics and title card on top. */
     function makeCompositor(dims){
       compositeCanvas.width=dims[0];compositeCanvas.height=dims[1];
-      const ls=layerStyle(visualiserCanvas);
+      const ls=visualiserCanvas?layerStyle(visualiserCanvas):{alpha:1,blend:null};
       const blend=visualiserBlend!=='source-over'?visualiserBlend:(ls.blend||'source-over');
       return ()=>{
         compositeCtx.fillStyle='#000';compositeCtx.fillRect(0,0,dims[0],dims[1]);
@@ -2307,8 +2307,8 @@
        and sound are locked together and the result does not depend on how fast this machine is. */
     async function runEngine(res,signal,decoded){
       const dims=dimsForRes(res),frame=makeCompositor(dims),rl=window.kefeResilience,bg=window.kefeBackground;
-      const isFluid=visualiserCanvas.id==='kefeFluidInkCanvas';
-      const usesProjectVideo=(visualiserCanvas.id==='kefeFlutedGlassCanvas'||visualiserCanvas.id==='kefeLiquidGlassCanvas')&&video&&video.src;
+      const isFluid=!!visualiserCanvas&&visualiserCanvas.id==='kefeFluidInkCanvas';
+      const usesProjectVideo=!!visualiserCanvas&&(visualiserCanvas.id==='kefeFlutedGlassCanvas'||visualiserCanvas.id==='kefeLiquidGlassCanvas')&&video&&video.src;
       const fluidScale=Math.min(1,1920/Math.max(dims[0],dims[1])),fluidW=Math.max(2,Math.round(dims[0]*fluidScale)),fluidH=Math.max(2,Math.round(dims[1]*fluidScale));
       const channelData=[];
       for(let c=0;c<Math.min(2,decoded.numberOfChannels);c++)channelData.push(decoded.getChannelData(c));
@@ -2384,7 +2384,7 @@
         try{audio.currentTime=0;}catch(error){console.warn('[KEFE export seek]',error);}
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         state.time=0;range.value=0;updateTime();draw();
-        if(visualiserCanvas.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
+        if(visualiserCanvas&&visualiserCanvas.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
         const audioStream=getExportAudioStream();
         const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
         const audioResume=tapCtx&&tapCtx.state==='suspended'?tapCtx.resume():Promise.resolve();
