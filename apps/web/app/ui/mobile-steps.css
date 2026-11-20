@@ -1,0 +1,155 @@
+/* KEFE — mobile guided steps.
+
+   On phones the editor is one step at a time: a compact preview, a step header, the active
+   section and a Back / Next bar. The workspace tab rows are hidden (the steps replace them), so
+   the section gets the room the two tab rows and the large preview used to take.
+
+   Desktop and tablet are untouched: the step header and bar are display:none outside this query. */
+
+.kefe-step-header,
+.kefe-step-nav { display: none; }
+
+@media (max-width: 760px), (pointer: coarse) and (max-height: 520px) {
+  /* Compact preview by default; the Preview button in the step header makes it larger. */
+  html:root { --lk-preview-h: clamp(104px, 17dvh, 180px); }
+  html:root.kefe-preview-large { --lk-preview-h: clamp(180px, 40dvh, 360px); }
+
+  /* The steps replace the workspace tab row, the section sub-tab row and the workspace title. */
+  html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs,
+  html:root .kefe-editor #kefe-settings-panel .kefe-subtabs,
+  html:root .kefe-editor #kefe-settings-panel .kefe-workspace > .kefe-workspace-title,
+  html:root .kefe-editor #kefe-settings-panel .kefe-settings-embedded-panel > .kefe-panel-head h2 {
+    display: none !important;
+  }
+
+  /* Background and Visualisers are one section on desktop; each phone step shows only its slot. */
+  html:root[data-kefe-step="visualiser"] .kefe-editor .kefe-slot[data-kefe-slot="background"],
+  html:root[data-kefe-step="background"] .kefe-editor .kefe-slot[data-kefe-slot="visualisers"] {
+    display: none !important;
+  }
+
+  /* ── Step header ── */
+  html:root .kefe-editor #kefe-settings-panel > .kefe-step-header {
+    display: flex !important;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0 !important;
+    padding: 0 2px !important;
+    min-width: 0;
+  }
+  .kefe-step-progress {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .kefe-step-dot {
+    position: relative;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kefe-step-dot::before {
+    content: "";
+    position: absolute;
+    inset: 6px 0;
+    border-radius: 999px;
+    background: var(--shad-border, #34353c);
+    transition: background-color 0.2s ease;
+  }
+  .kefe-step-dot.is-done::before { background: color-mix(in srgb, var(--shad-primary, #d92f33) 55%, var(--shad-border, #34353c)); }
+  .kefe-step-dot.is-current::before { background: var(--shad-primary, #d92f33); }
+  .kefe-step-dot:focus-visible { outline: 2px solid var(--shad-primary, #d92f33); outline-offset: 1px; border-radius: 6px; }
+
+  .kefe-step-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+  }
+  .kefe-step-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .kefe-step-count {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--shad-muted-foreground, #a1a1aa);
+  }
+  .kefe-step-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--shad-foreground, #f5f5f5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kefe-step-header.is-auto .kefe-step-title { color: var(--shad-primary, #d92f33); }
+  .kefe-step-preview {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--shad-border, #34353c);
+    border-radius: 999px;
+    background: var(--shad-card, #202126);
+    color: var(--shad-foreground, #f5f5f5);
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kefe-step-preview[aria-pressed="true"] { border-color: var(--shad-primary, #d92f33); }
+
+  /* ── Back / Next bar ── */
+  html:root .kefe-editor #kefe-settings-panel > .kefe-step-nav {
+    display: grid !important;
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 8px;
+    margin: 0 !important;
+    padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
+  }
+  .kefe-step-nav.is-last { grid-template-columns: minmax(0, 1fr); }
+  .kefe-step-back,
+  .kefe-step-next {
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kefe-step-back {
+    border: 1px solid var(--shad-border, #34353c);
+    background: var(--shad-card, #202126);
+    color: var(--shad-foreground, #f5f5f5);
+  }
+  .kefe-step-back[disabled] { opacity: 0.4; cursor: default; }
+  .kefe-step-next {
+    border: 1px solid transparent;
+    background: var(--shad-primary, #d92f33);
+    color: #fff;
+  }
+  .kefe-step-next.is-ready { animation: kefe-step-ready 1.6s ease-in-out 2; }
+  .kefe-step-back:focus-visible,
+  .kefe-step-next:focus-visible { outline: 2px solid var(--shad-primary, #d92f33); outline-offset: 2px; }
+  @keyframes kefe-step-ready {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--shad-primary, #d92f33) 55%, transparent); }
+    50% { box-shadow: 0 0 0 6px transparent; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kefe-step-next.is-ready { animation: none; }
+  .kefe-step-dot::before { transition: none; }
+}

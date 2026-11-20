@@ -63,6 +63,7 @@ async function measure(page) {
       ["toolbar", strip],
       ["timeline", q(".kefe-timeline")],
       ["tabs", q(".kefe-workspace-tabs")],
+      ["steps", q(".kefe-step-header")],
       ["title", q(".kefe-workspace-title")],
       ["workspace", q(".kefe-workspace:not([hidden]) > .kefe-workspace-stack") || q(".kefe-workspace-stack")],
     ].filter(([, n]) => n);

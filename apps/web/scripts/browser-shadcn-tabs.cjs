@@ -23,6 +23,30 @@ const server = http.createServer((req, res) => {
       await page.goto(`http://127.0.0.1:${server.address().port}/editor.html`);
       await page.waitForFunction(() => window.kefeSettingsPanelAdapter && document.querySelector('[data-workspace-tablist][data-slot="tabs-list"]'));
       await page.waitForFunction(() => document.documentElement.classList.contains('kefe-ready'));
+      if (width <= 760) {
+        /* Phones replace the workspace/section tab rows with a guided step flow (mobile-steps.js). */
+        await page.waitForSelector('.kefe-step-header', { state: 'visible' });
+        assert.equal(await page.locator('[data-workspace-tablist]').isVisible(), false, 'workspace tab row is replaced by steps on phones');
+        assert.equal(await page.locator('.kefe-step-dot').count(), 6, 'six steps');
+        const expected = ['Add your song', 'Check your lyrics', 'Pick a lyric style', 'Set the background', 'Add a visualiser', 'Export your video'];
+        for (let i = 0; i < expected.length; i++) {
+          assert.equal(await page.locator('.kefe-step-title').textContent(), expected[i], 'step ' + (i + 1) + ' title');
+          assert.equal(await page.locator('.kefe-step-count').textContent(), 'Step ' + (i + 1) + ' of 6');
+          if (i < expected.length - 1) {
+            assert.equal(await page.locator('.kefe-step-next').isVisible(), true);
+            await page.locator('.kefe-step-next').click();
+          }
+        }
+        assert.equal(await page.locator('.kefe-step-next').isVisible(), false, 'no Next on the last step');
+        assert.equal(await page.locator('#kefe-subpanel-export').isVisible(), true, 'Export section shown on the last step');
+        await page.locator('.kefe-step-back').click();
+        await page.waitForFunction(() => document.querySelector('.kefe-step-title')?.textContent === 'Add a visualiser');
+        assert.equal(await page.locator('[data-kefe-slot="visualisers"]').isVisible(), true, 'visualiser step shows the visualiser slot');
+        assert.equal(await page.locator('[data-kefe-slot="background"]').isVisible(), false, 'visualiser step hides the background slot');
+        assert.deepEqual(errors, [], `no page errors at ${width}px`);
+        await context.close();
+        continue;
+      }
       const list = page.locator('[data-workspace-tablist]');
       const tabs = list.getByRole('tab');
       assert.equal(await tabs.count(), 4);
@@ -68,6 +92,6 @@ const server = http.createServer((req, res) => {
       assert.deepEqual(errors, [], `no page errors at ${width}px`);
       await context.close();
     }
-    console.log('PASS: shadcn workspace and section tabs, keyboard, accessibility, navigation API and persistence in desktop and mobile Chromium');
+    console.log('PASS: shadcn workspace and section tabs, keyboard, accessibility, navigation API and persistence in desktop Chromium, and the guided steps on mobile Chromium');
   } finally { if (browser) await browser.close(); server.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
