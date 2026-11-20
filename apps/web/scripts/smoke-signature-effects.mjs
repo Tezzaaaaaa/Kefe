@@ -96,7 +96,7 @@ assert.ok(structure.includes("The quick brown fox jumps over the lazy dog."), "t
 const sectionLayout = read("app/ui/section-layout.css");
 assert.match(sectionLayout, /grid-auto-rows: 112px !important;/, "lyric effect cards must retain consistent row sizing across breakpoints");
 assert.doesNotMatch(editorSource, /window\.kefeEffects\[state\.effect\]\s*\|\|\s*window\.kefeEffects\.apple/, "a missing renderer must not silently substitute Apple");
-assert.match(editorSource, /if\(state\.effect==='apple'\)\{\s*const u=Math\.min\(W,H\)/, "the pinned-header mask must be scoped to Apple only");
+assert.match(editorSource, /if\(state\.effect==='apple'\)\{[^}]*?destination-in/, "the safe-edge fade mask must be scoped to Apple only");
 
 /* ---- typography contracts ---------------------------------------- */
 const typography = read("app/ui/typography.js");
