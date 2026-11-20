@@ -1,0 +1,215 @@
+/* KEFE — shadcn theme.
+
+   The final stylesheet. It restyles the editor to the shadcn/ui neutral system used by
+   shadcn.io and shadcndashboard.dev: neutral surfaces (no blue tint), 1px hairline borders,
+   shadcn's radius scale (sm 6 / md 8 / lg 10 / xl 14), flat cards with shadow-xs, no gradients
+   or glows, and Inter. KEFE's crimson stays as the one primary colour.
+
+   Only tokens and surface chrome live here; layout is owned by layout-lock.css and
+   mobile-steps.css. */
+
+/* ── Tokens: dark (default) ────────────────────────────────────────────────────────── */
+html:root,
+html:root[data-theme="night"] {
+  --font-ui: "Inter Tight", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --shad-background: #0a0a0a;
+  --shad-foreground: #fafafa;
+  --shad-card: #171717;
+  --shad-card-elevated: #1f1f1f;
+  --shad-card-foreground: #fafafa;
+  --shad-popover: #171717;
+  --shad-popover-foreground: #fafafa;
+  --shad-secondary: #262626;
+  --shad-secondary-hover: #2e2e2e;
+  --shad-secondary-foreground: #fafafa;
+  --shad-muted: #262626;
+  --shad-muted-foreground: #a1a1a1;
+  --shad-accent: #262626;
+  --shad-accent-foreground: #fafafa;
+  --shad-border: rgba(255, 255, 255, 0.1);
+  --shad-border-strong: rgba(255, 255, 255, 0.18);
+  --shad-input: rgba(255, 255, 255, 0.15);
+  --shad-ring: color-mix(in srgb, var(--shad-primary) 40%, transparent);
+  --shad-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shad-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shad-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shad-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.55);
+
+  --shell-bg: #0a0a0a;
+  --shell-panel: #171717;
+  --shell-text: #fafafa;
+  --shell-muted: #a1a1a1;
+  --shell-line: rgba(255, 255, 255, 0.1);
+  --shell-line-strong: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Tokens: light ─────────────────────────────────────────────────────────────────── */
+html:root[data-theme="day"] {
+  --shad-background: #fafafa;
+  --shad-foreground: #0a0a0a;
+  --shad-card: #ffffff;
+  --shad-card-elevated: #ffffff;
+  --shad-card-foreground: #0a0a0a;
+  --shad-popover: #ffffff;
+  --shad-popover-foreground: #0a0a0a;
+  --shad-secondary: #f5f5f5;
+  --shad-secondary-hover: #ebebeb;
+  --shad-secondary-foreground: #171717;
+  --shad-muted: #f5f5f5;
+  --shad-muted-foreground: #737373;
+  --shad-accent: #f5f5f5;
+  --shad-accent-foreground: #171717;
+  --shad-border: #e5e5e5;
+  --shad-border-strong: #d4d4d4;
+  --shad-input: #e5e5e5;
+  --shad-ring: color-mix(in srgb, var(--shad-primary) 30%, transparent);
+  --shad-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shad-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shad-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shad-shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.15);
+
+  --shell-bg: #fafafa;
+  --shell-panel: #ffffff;
+  --shell-text: #0a0a0a;
+  --shell-muted: #737373;
+  --shell-line: #e5e5e5;
+  --shell-line-strong: #d4d4d4;
+}
+
+/* ── Page ──────────────────────────────────────────────────────────────────────────── */
+html:root body:has(.kefe-editor),
+html:root .kefe-editor {
+  background: var(--shad-background) !important;
+  background-image: none !important;
+  color: var(--shad-foreground) !important;
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header: flat bar with a hairline, like a shadcn dashboard top bar ─────────────── */
+html:root .kefe-editor .kefe-sidebar {
+  background: var(--shad-background) !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--shad-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+html:root .kefe-editor .kefe-sidebar-link {
+  border-radius: var(--shad-radius-md) !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--shad-muted-foreground) !important;
+  font-weight: 500 !important;
+}
+html:root .kefe-editor .kefe-sidebar-link:hover { background: var(--shad-accent) !important; color: var(--shad-accent-foreground) !important; }
+html:root .kefe-editor .kefe-sidebar-link.is-current,
+html:root .kefe-editor .kefe-sidebar-link[aria-current="page"] {
+  background: var(--shad-accent) !important;
+  color: var(--shad-foreground) !important;
+}
+
+/* ── Cards: the preview, timeline and every section sit on the same card surface ────── */
+html:root .kefe-editor :is(.kefe-timeline, .kefe-settings-embedded-panel, .kefe-editor-panel-card, .kefe-media-track, .kefe-suggestions) {
+  background: var(--shad-card) !important;
+  background-image: none !important;
+  border: 1px solid var(--shad-border) !important;
+  border-radius: var(--shad-radius-xl) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+  backdrop-filter: none !important;
+}
+html:root .kefe-editor .kefe-preview {
+  background: var(--shad-muted) !important;
+  background-image: none !important;
+  border: 1px solid var(--shad-border) !important;
+  border-radius: var(--shad-radius-xl) !important;
+  box-shadow: none !important;
+}
+
+/* ── Inputs, selects, textareas ────────────────────────────────────────────────────── */
+html:root .kefe-editor :is(.kefe-input, .kefe-select, .kefe-textarea) {
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid var(--shad-input) !important;
+  border-radius: var(--shad-radius-md) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+  color: var(--shad-foreground) !important;
+}
+html:root .kefe-editor :is(.kefe-input, .kefe-select, .kefe-textarea):focus-visible {
+  outline: none !important;
+  border-color: var(--shad-primary) !important;
+  box-shadow: 0 0 0 3px var(--shad-ring) !important;
+}
+html:root .kefe-editor :is(.kefe-input, .kefe-textarea)::placeholder { color: var(--shad-muted-foreground) !important; }
+
+/* ── Labels and helper text ────────────────────────────────────────────────────────── */
+html:root .kefe-editor .kefe-label { color: var(--shad-foreground) !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; }
+html:root .kefe-editor .kefe-meta { color: var(--shad-muted-foreground) !important; }
+
+/* ── Tabs / steps: shadcn Tabs (muted track, card trigger) ─────────────────────────── */
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs {
+  background: var(--shad-muted) !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-radius: var(--shad-radius-lg) !important;
+  box-shadow: none !important;
+}
+html:root .kefe-editor .kefe-workspace-tabs > .kefe-workspace-tab {
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  color: var(--shad-muted-foreground) !important;
+  font-weight: 500 !important;
+  border-radius: var(--shad-radius-md) !important;
+}
+html:root .kefe-editor .kefe-workspace-tabs > .kefe-workspace-tab[aria-selected="true"] {
+  background: var(--shad-card) !important;
+  border-color: var(--shad-border) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+  color: var(--shad-foreground) !important;
+}
+
+/* ── Mobile steps: same vocabulary ─────────────────────────────────────────────────── */
+html:root .kefe-editor .kefe-step-back,
+html:root .kefe-editor .kefe-step-preview {
+  background: transparent !important;
+  border: 1px solid var(--shad-input) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+  border-radius: var(--shad-radius-md) !important;
+  color: var(--shad-foreground) !important;
+  font-weight: 500 !important;
+}
+html:root .kefe-editor .kefe-step-next {
+  background: var(--shad-primary) !important;
+  border-radius: var(--shad-radius-md) !important;
+  box-shadow: var(--shad-shadow-xs) !important;
+  font-weight: 500 !important;
+}
+html:root .kefe-editor .kefe-step-title { font-weight: 600 !important; letter-spacing: -0.01em; }
+
+/* ── Scrollbars stay hidden inside the locked layout; selection follows the primary ── */
+html:root ::selection { background: color-mix(in srgb, var(--shad-primary) 35%, transparent); }
+
+/* ── Leftover tinted surfaces: everything inside a card uses the muted neutral ─────── */
+html:root .kefe-editor :is(.kefe-editing, .kefe-work, .kefe-settings-mount, #kefe-settings-panel, .kefe-settings-columns, .kefe-workspace) {
+  background: transparent !important;
+  background-image: none !important;
+}
+html:root .kefe-editor :is(.kefe-upload-zone, .kefe-upload-card, .shad-dropzone, .beui-upload-dropzone, .kefe-timebar, .kefe-wave) {
+  background: var(--shad-muted) !important;
+  background-image: none !important;
+  border-color: var(--shad-border-strong) !important;
+  box-shadow: none !important;
+}
+html:root .kefe-editor :is(.kefe-suggestion-list, .kefe-media-track-info) { background: transparent !important; }
+html:root .kefe-editor .kefe-workspace-title,
+html:root .kefe-editor .kefe-panel-head h2 {
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  color: var(--shad-foreground) !important;
+  font-weight: 600 !important;
+}
