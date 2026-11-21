@@ -24,6 +24,15 @@
 
   const orderOf = n => { const v = parseInt(n.style.order, 10); return Number.isNaN(v) ? 99 : v; };
 
+  /* On phones the guided flow gives Background and Visualiser their own step (mobile-steps.js), so each
+     step lists only its own kind of slide. Desktop and tablet show every option in one carousel. */
+  const PHONE = matchMedia('(max-width: 760px), (pointer: coarse) and (max-height: 520px)');
+  function stepKind() {
+    if (!PHONE.matches) return null;
+    const step = document.documentElement.dataset.kefeStep;
+    return step === 'background' ? 'Background' : step === 'visualiser' ? 'Visualiser' : null;
+  }
+
   /* The source controls, in display order: backgrounds first, then visualisers. */
   function readSources() {
     const out = [];
@@ -49,7 +58,7 @@
   }
 
   function slideFor(item) {
-    const slide = el('div', 'kbc-slide', { role: 'group', 'aria-roledescription': 'slide' });
+    const slide = el('div', 'kbc-slide', { role: 'group', 'aria-roledescription': 'slide', 'data-kind': item.kind });
     const card = el('div', 'kbc-card');
     const pick = el('button', 'kbc-pick', { type: 'button' });
     const art = el('span', 'kbc-art');
@@ -162,7 +171,10 @@
       mounted.selectedIndex = sel;
     }
     function refresh() {
-      const items = readSources();
+      const kind = stepKind();
+      const items = readSources().filter(item => !kind || item.kind === kind);
+      if (title) title.textContent = kind === 'Visualiser' ? 'Visualiser' : 'Background';
+      group.dataset.kbcKind = kind || 'all';
       const sig = items.map(i => i.key).join('|');
       if (sig !== signature) { signature = sig; build(items); buildDots(); }
       paint(items);
@@ -231,6 +243,8 @@
     const gallery = document.querySelector('.kv-gallery');
     if (gallery) watch.observe(gallery.parentElement || gallery, opts);
     document.addEventListener('kefe-background-change', queue);
+    new MutationObserver(queue).observe(document.documentElement, { attributes: true, attributeFilter: ['data-kefe-step'] });
+    PHONE.addEventListener('change', queue);
 
     mounted = { refresh, viewport, selectedIndex: -1 };
     refresh();

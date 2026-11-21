@@ -42,7 +42,12 @@ const server = http.createServer((req, res) => {
         await page.locator('.kefe-step-back').click();
         await page.waitForFunction(() => document.querySelector('.kefe-step-title')?.textContent === 'Add a visualiser');
         assert.equal(await page.locator('[data-kefe-slot="visualisers"]').isVisible(), true, 'visualiser step shows the visualiser slot');
-        assert.equal(await page.locator('[data-kefe-slot="background"]').isVisible(), false, 'visualiser step hides the background slot');
+        assert.equal(await page.locator('[data-kefe-slot="background"] .shad-upload-wrap').isVisible(), false, 'visualiser step hides the background video upload');
+        await page.waitForFunction(() => { const s = [...document.querySelectorAll('.kbc-slide')].filter(e => e.offsetParent); return s.length > 0 && s.every(e => e.dataset.kind === 'Visualiser'); });
+        await page.locator('.kefe-step-back').click();
+        await page.waitForFunction(() => document.querySelector('.kefe-step-title')?.textContent === 'Set the background');
+        await page.waitForFunction(() => { const s = [...document.querySelectorAll('.kbc-slide')].filter(e => e.offsetParent); return s.length > 0 && s.every(e => e.dataset.kind === 'Background'); });
+        assert.equal(await page.locator('[data-kefe-slot="visualisers"]').isVisible(), false, 'background step hides the visualiser settings slot');
         assert.deepEqual(errors, [], `no page errors at ${width}px`);
         await context.close();
         continue;

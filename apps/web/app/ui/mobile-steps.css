@@ -22,9 +22,16 @@
     display: none !important;
   }
 
-  /* Background and Visualisers are one section on desktop; each phone step shows only its slot. */
-  html:root[data-kefe-step="visualiser"] .kefe-editor .kefe-slot[data-kefe-slot="background"],
+  /* Background and Visualisers are one section on desktop; on phones each gets its own step. The one
+     carousel lives in the Background slot, so the Visualiser step keeps that slot but shows only the
+     carousel (filtered to visualisers by background-carousel.js) above the visualiser settings, and the
+     Background step hides the visualiser settings slot. */
   html:root[data-kefe-step="background"] .kefe-editor .kefe-slot[data-kefe-slot="visualisers"] {
+    display: none !important;
+  }
+  html:root[data-kefe-step="visualiser"] .kefe-editor .kefe-slot[data-kefe-slot="background"] .kefe-form > .shad-upload-wrap,
+  html:root[data-kefe-step="visualiser"] .kefe-editor .kefe-slot[data-kefe-slot="background"] .kefe-form > .kefe-background-effect-control,
+  html:root[data-kefe-step="visualiser"] .kefe-editor .kbc-group .kefe-background-effects-heading :is(.kefe-switch-host, #kefeBackgroundEffectToggle) {
     display: none !important;
   }
 
