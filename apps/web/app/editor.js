@@ -2256,6 +2256,11 @@
     const requestedRes=Number(document.getElementById('exportResolution').value)||720;
     const aspect=previewAspectRatio||'16:9';
     const exportFps=Math.max(24,Math.min(60,Math.round(Number(window.kefeSettings?.get('fpsTarget')))||60));
+    /* Optional clip (Quick reel): render only [start, start+length] of the track. Plain exports leave window.kefeExportClip unset. */
+    const clipReq=window.kefeExportClip;
+    const clip=clipReq&&Number(clipReq.length)>0?(()=>{const start=Math.max(0,Math.min(Number(clipReq.start)||0,audio.duration-1));return {start,length:Math.max(1,Math.min(Number(clipReq.length),audio.duration-start))};})():null;
+    const clipEnd=clip?clip.start+clip.length:audio.duration;
+    let exportOk=false;
     const even=n=>Math.round(n/2)*2;
     const dimsForRes=r=>{const long=even(r*16/9);return aspect==='9:16'?[r,long]:aspect==='1:1'?[r,r]:[long,r];};
     const prev={w:canvas.width,h:canvas.height,time:state.time};
@@ -2269,7 +2274,7 @@
     const initialDims=dimsForRes(requestedRes);
     const projectTitle=songTitle.value.trim()||'Untitled project',projectArtist=songArtist.value.trim()||'Unknown artist';
     const lyricsNote=!state.lines.length?'No timed lyrics loaded — exporting visualiser and title card. Keep this tab open until complete.':'Keep this tab open. The download will start automatically when rendering finishes.';
-    openExportProgress({title:projectTitle,artist:projectArtist,format:wantMp4?'mp4':'webm',resolution:initialDims[0]+' × '+initialDims[1]+' px',aspect,duration:fmt(audio.duration),fps:exportFps,onCancel:()=>exportAbort.abort(),note:lyricsNote});
+    openExportProgress({title:projectTitle,artist:projectArtist,format:wantMp4?'mp4':'webm',resolution:initialDims[0]+' × '+initialDims[1]+' px',aspect,duration:fmt(clip?clip.length:audio.duration),fps:exportFps,onCancel:()=>exportAbort.abort(),note:lyricsNote});
 
     /* The preview shows visualiser canvases through CSS (opacity, blend mode). The export must apply the same
        values or the background video and artwork underneath would be covered by an opaque visualiser. */
@@ -2313,7 +2318,7 @@
       const channelData=[];
       for(let c=0;c<Math.min(2,decoded.numberOfChannels);c++)channelData.push(decoded.getChannelData(c));
       let spectrum=null,virtualBase=performance.now(),planFps=exportFps,stepErrors=0;
-      const total=decoded.duration;
+      const total=clip?clip.length:decoded.duration;
       rl?.beginOffline();
       try{
         setExportProgress(1,'Preparing background');
@@ -2322,7 +2327,7 @@
         if(isFluid)window.kefeFluidInk?.reset?.();
         canvas.width=dims[0];canvas.height=dims[1];
         const result=await engine.run({
-          format:wantMp4?'mp4':'webm',width:dims[0],height:dims[1],fps:exportFps,audioBuffer:decoded,signal,
+          format:wantMp4?'mp4':'webm',width:dims[0],height:dims[1],fps:exportFps,audioBuffer:decoded,signal,start:clip?clip.start:0,length:clip?clip.length:0,
           onPlan:plan=>{
             planFps=plan.fps;
             spectrum=engine.createSpectrum(channelData,decoded.sampleRate,{fftSize:window.kefeAudioGraph?.fftSize?.()||2048,fps:plan.fps});
@@ -2381,9 +2386,9 @@
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         audio.pause();
         canvas.width=dims[0];canvas.height=dims[1];
-        try{audio.currentTime=0;}catch(error){console.warn('[KEFE export seek]',error);}
+        try{audio.currentTime=clip?clip.start:0;}catch(error){console.warn('[KEFE export seek]',error);}
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
-        state.time=0;range.value=0;updateTime();draw();
+        state.time=clip?clip.start:0;range.value=state.time;updateTime();draw();
         if(visualiserCanvas&&visualiserCanvas.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
         const audioStream=getExportAudioStream();
         const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
@@ -2429,9 +2434,11 @@
             const now=performance.now();
             if(Math.abs(audio.currentTime-lastTime)>0.001){lastTime=audio.currentTime;lastAdvance=now;}
             else if(now-lastAdvance>15000){settled=true;cleanup();reject(new Error('Playback stalled during export.'));return;}
-            const p=Math.max(1,Math.min(99,Math.round(audio.currentTime/Math.max(0.01,audio.duration)*100)));
+            if(clip&&audio.currentTime>=clipEnd-0.02){settled=true;cleanup();try{audio.pause();}catch(_){}resolve();return;}
+            const spanLen=clip?clip.length:audio.duration,rel=audio.currentTime-(clip?clip.start:0);
+            const p=Math.max(1,Math.min(99,Math.round(rel/Math.max(0.01,spanLen)*100)));
             status.textContent='Exporting '+p+'% — keep this tab open…';
-            setExportProgress(p,'Rendering video (compatibility mode) · '+fmt(audio.currentTime)+' of '+fmt(audio.duration));
+            setExportProgress(p,'Rendering video (compatibility mode) · '+fmt(rel)+' of '+fmt(spanLen));
           },250);
         });
         recorder.start(1000);
@@ -2510,7 +2517,8 @@
       if(lastExportObjectUrl)URL.revokeObjectURL(lastExportObjectUrl);
       lastExportObjectUrl=url;
       const name=[songArtist.value,songTitle.value].map(v=>v.trim()).filter(Boolean).join(' - ').replace(/[\\/:*?"<>|]+/g,'')||'kefe-visualiser';
-      const filename=name+'.'+ext;
+      const filename=name+(clip?' - reel '+Math.round(clip.length)+'s':'')+'.'+ext;
+      exportOk=true;
       const detail=result.fps?' · '+result.fps+' fps · '+result.video+' + '+result.audio:'';
       status.textContent='Export complete ('+dims[0]+'×'+dims[1]+' '+ext.toUpperCase()+detail+').'+extra;
       if(isIOS){
@@ -2533,6 +2541,7 @@
     }finally{
       canvas.width=prev.w;canvas.height=prev.h;
       exporting=false;window.kefeAppleCanvasExport=false;button.disabled=false;
+      window.dispatchEvent(new CustomEvent('kefe-export-finished',{detail:{ok:exportOk,clip}}));
       try{wakeLock?.release?.().catch(()=>{});}catch(_){}
       audio.pause();state.time=prev.time;range.value=prev.time;audio.currentTime=prev.time;updateTime();draw();
     }

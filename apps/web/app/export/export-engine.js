@@ -444,6 +444,10 @@
        width,height  output size in pixels
        fps           requested frame rate (may be lowered if the encoder cannot do it)
        audioBuffer   decoded AudioBuffer from decodeAudio()
+       start,length  optional clip in seconds (start inside the track, length of the clip). The clip is
+                     rendered as its own video: renderFrame still receives the real media time, so lyrics,
+                     background video and the spectrum stay locked to the song, while the muxed timeline
+                     starts at zero. A clip that stops before the end of the track gets a short audio fade.
        renderFrame   async (time, index, total) => canvas   paints the frame for that exact media time
        onProgress    (fraction 0..1, stage text)
        onPlan        (plan) called once the codecs are chosen, before rendering starts
@@ -455,7 +459,15 @@
     var buffer = o.audioBuffer;
     var sampleRate = buffer.sampleRate;
     var channels = Math.min(2, buffer.numberOfChannels);
-    var duration = buffer.length / sampleRate;
+    var trackDuration = buffer.length / sampleRate;
+    var clipStart = Math.max(0, Math.min(Number(o.start) || 0, Math.max(0, trackDuration - 0.5)));
+    var clipLength = Number(o.length) > 0 ? Math.min(Number(o.length), trackDuration - clipStart) : trackDuration - clipStart;
+    var isClip = clipStart > 0.001 || clipLength < trackDuration - 0.001;
+    var startSample = Math.floor(clipStart * sampleRate);
+    var endSample = Math.min(buffer.length, startSample + Math.round(clipLength * sampleRate));
+    var duration = (endSample - startSample) / sampleRate;
+    var fadeIn = isClip && clipStart > 0.001 ? Math.round(sampleRate * 0.04) : 0;
+    var fadeOut = isClip && clipStart + clipLength < trackDuration - 0.001 ? Math.round(sampleRate * 0.6) : 0;
     var container = o.format === 'mp4' ? 'mp4' : 'webm';
     var width = even(o.width), height = even(o.height);
     var mobile = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
@@ -492,17 +504,26 @@
       videoEncoder.configure(plan.video.config);
       audioEncoder.configure(plan.audio.config);
 
-      var audioPos = 0;
+      var audioPos = startSample;
       var audioChunk = Math.round(sampleRate * 0.5);
       var channelData = [];
       for (var c = 0; c < channels; c++) channelData.push(buffer.getChannelData(c));
       var feedAudio = function (untilSeconds) {
-        var limit = Math.min(buffer.length, Math.ceil(untilSeconds * sampleRate));
+        var limit = Math.min(endSample, startSample + Math.ceil(untilSeconds * sampleRate));
         while (audioPos < limit) {
-          var frames = Math.min(audioChunk, buffer.length - audioPos);
+          var frames = Math.min(audioChunk, endSample - audioPos);
           var data = new Float32Array(frames * channels);
           for (var ch = 0; ch < channels; ch++) data.set(channelData[ch].subarray(audioPos, audioPos + frames), ch * frames);
-          var chunk = new AudioData({ format: 'f32-planar', sampleRate: sampleRate, numberOfFrames: frames, numberOfChannels: channels, timestamp: Math.round(audioPos / sampleRate * 1e6), data: data });
+          if (fadeIn || fadeOut) {
+            var rel0 = audioPos - startSample, relEnd = endSample - startSample;
+            for (var k = 0; k < frames; k++) {
+              var rel = rel0 + k, g = 1;
+              if (fadeIn && rel < fadeIn) g = rel / fadeIn;
+              if (fadeOut && rel > relEnd - fadeOut) g = Math.min(g, Math.max(0, (relEnd - rel) / fadeOut));
+              if (g < 1) for (var cc = 0; cc < channels; cc++) data[cc * frames + k] *= g;
+            }
+          }
+          var chunk = new AudioData({ format: 'f32-planar', sampleRate: sampleRate, numberOfFrames: frames, numberOfChannels: channels, timestamp: Math.round((audioPos - startSample) / sampleRate * 1e6), data: data });
           audioEncoder.encode(chunk);
           chunk.close();
           audioPos += frames;
@@ -534,7 +555,7 @@
         if (fatal) throw fatal;
         throwIfAborted(signal);
         var time = i / fps;
-        var canvas = await withTimeout(Promise.resolve(o.renderFrame(time, i, total)), 30000, 'A frame took too long to render.', 'stall');
+        var canvas = await withTimeout(Promise.resolve(o.renderFrame(clipStart + time, i, total)), 30000, 'A frame took too long to render.', 'stall');
         throwIfAborted(signal);
         if (!canvas || !canvas.width) throw tagged('The frame renderer produced no picture.', 'render');
         var frame = new VideoFrame(canvas, { timestamp: Math.round(i * frameMicros), duration: Math.round(frameMicros) });
@@ -563,7 +584,7 @@
       var check = await verifyOutput(blob, duration);
       if (!check.ok) throw tagged(check.reason || 'The exported file failed its self-check.', 'verify');
       if (check.warning) notes.push(check.warning);
-      return { blob: blob, ext: isMp4 ? 'mp4' : 'webm', mime: mime, container: container, video: plan.video.label, audio: plan.audio.label, fps: fps, frames: total, duration: duration, width: width, height: height, notes: notes };
+      return { blob: blob, ext: isMp4 ? 'mp4' : 'webm', mime: mime, container: container, video: plan.video.label, audio: plan.audio.label, fps: fps, frames: total, duration: duration, start: clipStart, width: width, height: height, notes: notes };
     } finally {
       try { if (videoEncoder && videoEncoder.state !== 'closed') videoEncoder.close(); } catch (_) {}
       try { if (audioEncoder && audioEncoder.state !== 'closed') audioEncoder.close(); } catch (_) {}
