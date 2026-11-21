@@ -488,6 +488,44 @@ html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row :is(
   min-height: 96px !important;
   max-height: none !important;
 }
+/* Media upload: the audio/video card is the only card in this row (the background video upload lives in
+   Background), so it spans the full width of the section, centred, in line with the cards below it. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row {
+  grid-template-columns: minmax(0, 1fr) !important;
+  justify-items: stretch !important;
+  gap: var(--lk-gap-s) !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row > :is(#kefeUploadZone, .shad-upload-wrap) {
+  grid-column: 1 / -1 !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row #kefeUploadZone .kefe-upload-card {
+  display: grid !important;
+  place-items: center !important;
+  justify-content: center !important;
+  align-content: center !important;
+  text-align: center !important;
+  gap: 4px !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 112px !important;
+  padding: var(--lk-gap) !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row #kefeUploadZone {
+  height: auto !important;
+  min-height: 112px !important;
+  max-height: none !important;
+}
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-media-upload-row #kefeUploadZone :is(.kefe-upload-title, .kefe-upload-help, .kefe-upload-name) {
+  text-align: center !important;
+  margin-inline: auto !important;
+}
+/* Find-your-song heading block: title and description share one left edge, no stretched justification. */
+html:root .kefe-editor #kefe-workspace-content-panel .kefe-find-step .kefe-step-head :is(h3, p) { text-align: left !important; }
+
 html:root .kefe-editor #kefe-workspace-content-panel .kefe-download-row {
   display: flex !important;
   flex-wrap: wrap !important;
@@ -504,4 +542,36 @@ html:root .kefe-editor #kefe-workspace-content-panel .kefe-download-row > * {
 html:root .kefe-editor .kefe-panel[data-panel-view] .kefe-label[data-slot="label"] {
   display: block !important;
   line-height: 1.5 !important;
+}
+
+
+/* ── Lyric Sync: one clear 1 → 2 → 3 flow, no repeated headings or boxes inside boxes ── */
+/* The step labels name each part, so the panel hint and the bare "Lyrics" caption go; the status line only shows when it has a message. */
+html:root .kefe-editor [data-panel-view="lyrics"] .kefe-panel-head:has(#kefeLyricsStatus:empty) { display: none !important; }
+html:root .kefe-editor [data-panel-view="lyrics"] .kefe-form > div > label[for="lyricsInput"] {
+  position: absolute !important; width: 1px !important; height: 1px !important; margin: -1px !important;
+  overflow: hidden !important; clip: rect(0 0 0 0) !important; white-space: nowrap !important;
+}
+/* Fetched-lyrics alignment: one compact row of four instead of two rows of big radios. */
+html:root .kefe-editor [data-panel-view="lyrics"] .shad-lyric-display-options {
+  display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: var(--lk-gap-s) !important;
+}
+html:root .kefe-editor [data-panel-view="lyrics"] .shad-lyric-display-options > * { min-height: 32px !important; padding-block: 4px !important; }
+/* Step 2 is a plain section like step 1, not a card inside the panel card. */
+html:root .kefe-editor [data-panel-view="lyrics"] #kefeAutoSync {
+  border: 0 !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; margin: var(--lk-gap) 0 0 !important;
+}
+/* Undo only appears once there is something to undo; until then Auto-sync takes the whole row. */
+html:root .kefe-editor [data-panel-view="lyrics"] #kefeAutoSync .kefe-undo-autotime[disabled] { display: none !important; }
+html:root .kefe-editor [data-panel-view="lyrics"] #kefeAutoSync .kefe-download-row:not(:has(.kefe-undo-autotime:not([disabled]))) {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+/* Step 3 with no timed lyrics yet: just the heading and the empty message. */
+html:root .kefe-editor [data-panel-view="lyrics"] .kefe-timing-editor.is-empty .kefe-timing-editor-actions,
+html:root .kefe-editor [data-panel-view="lyrics"] .kefe-timing-editor.is-empty .kefe-timing-editor-head .kefe-meta { display: none !important; }
+/* Phones: drop the radio dot and keep each alignment label on one line; the selected one is still highlighted. */
+@media (max-width: 520px) {
+  html:root .kefe-editor [data-panel-view="lyrics"] .shad-lyric-display-choice { justify-content: center !important; gap: 0 !important; padding-inline: 4px !important; }
+  html:root .kefe-editor [data-panel-view="lyrics"] .shad-lyric-display-choice > .shad-radio { display: none !important; }
+  html:root .kefe-editor [data-panel-view="lyrics"] .shad-lyric-display-choice > span { white-space: nowrap !important; font-size: 13px !important; }
 }

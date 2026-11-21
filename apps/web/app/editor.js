@@ -1766,7 +1766,7 @@
     const input=document.createElement('input');
     input.type='file';input.id='kefeLrcInput';input.accept='.lrc,.ttml,.xml,.txt,text/plain';input.hidden=true;
     const step=document.createElement('div');step.className='kefe-label kefe-step-label';step.textContent='1 · Get lyrics';
-    const hint=document.createElement('div');hint.className='kefe-meta';hint.textContent='Find lyrics automatically, upload a timed lyrics file, or paste your words in the box below.';
+    const hint=document.createElement('div');hint.className='kefe-meta';hint.textContent='Find them, upload a timed file, or paste below.';
     bar.append(step,hint,find,upload,input);
     if(!document.getElementById('kefeLyricsStatus')){
       const st=document.createElement('span');

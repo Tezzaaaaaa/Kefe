@@ -34,7 +34,7 @@ const server = http.createServer((req, res) => {
       page.on('pageerror', error => errors.push(error.message));
       page.on('console', message => { if (message.type() === 'error' && /hydrat|react error/i.test(message.text())) errors.push(message.text()); });
       await page.goto(`http://127.0.0.1:${server.address().port}/editor.html`);
-      await page.waitForFunction(() => document.querySelectorAll('.shad-lyric-action-host > [data-shadcn-hydrated="true"]').length === 11);
+      await page.waitForFunction(() => document.querySelectorAll('.shad-lyric-action-host > [data-shadcn-hydrated="true"]').length === 8);
       assert.equal(await page.evaluate(() => document.getElementById('kefeTimingEditor') === window.__timingCard), true, 'timing card retains its native node');
       assert.equal(await page.locator('#kefeTimingEditor').getAttribute('data-slot'), 'card');
       assert.equal(await page.evaluate(() => [...document.querySelectorAll('.shad-lyric-action-host > button')].every(button => window.__originalActions.includes(button))), true, 'all native buttons are retained');
@@ -58,7 +58,7 @@ const server = http.createServer((req, res) => {
       await undo.focus(); await page.keyboard.press('Enter');
       await page.waitForFunction(() => window.kefeLyrics.lines()[0]?.text === 'Original line');
       assert.equal(await undo.isDisabled(), true);
-      const lyricsDownload = page.locator('#kefeTimingEditor').getByRole('button', { name: 'Download Lyrics (.lrc)' });
+      const lyricsDownload = page.locator('#kefeExportExtras').getByRole('button', { name: 'Download Lyrics (.lrc)' });
       const downloadPromise = page.waitForEvent('download');
       await lyricsDownload.click();
       const download = await downloadPromise;

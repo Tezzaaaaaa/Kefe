@@ -312,6 +312,8 @@
     if (!listEl) return;
     var all = lines(), top = listEl.scrollTop;
     listEl.textContent = '';
+    var timingBox = document.getElementById('kefeTimingEditor');
+    if (timingBox) timingBox.classList.toggle('is-empty', !all.length);
     if (!all.length) {
       listEl.appendChild(el('div', 'kefe-empty-panel', 'Your timed lyrics will appear here after you find lyrics, upload a timed lyrics file or sync pasted lyrics.'));
     } else {
@@ -384,7 +386,7 @@
     if (!host || document.getElementById('kefeTimingEditor')) return;
     var box = el('div', 'kefe-timing-editor'); box.id = 'kefeTimingEditor';
     var head = el('div', 'kefe-timing-editor-head');
-    var titleBox = el('div'); titleBox.append(el('div', 'kefe-label', '3 · Check timing'), el('div', 'kefe-meta', 'Play the song and follow the highlighted line. If a line is early or late, tap Fix line when you hear it. Later lines move with it.'));
+    var titleBox = el('div'); titleBox.append(el('div', 'kefe-label', '3 · Check timing'), el('div', 'kefe-meta', 'Play the song. If a line is early or late, tap Fix line when you hear it.'));
     var controls = el('div', 'kefe-timing-editor-actions');
     undoBtn = btn('Undo', 'Undo the last timing edit'); undoBtn.disabled = true; undoBtn.addEventListener('click', undo);
     var follow = el('label', 'kefe-follow'); followBox = document.createElement('input'); followBox.type = 'checkbox'; followBox.checked = true;
@@ -393,8 +395,8 @@
     controls.append(statusEl, follow, undoBtn);
     head.append(titleBox, controls);
     listEl = el('div', 'kefe-line-list'); listEl.setAttribute('role', 'list');
-    var dlStatus = el('div', 'kefe-meta'); dlStatus.setAttribute('role', 'status');
-    box.append(head, listEl, downloadRow(dlStatus), dlStatus);
+    /* Lyric file downloads live in the Export panel (Lyric files); not repeated here. */
+    box.append(head, listEl);
     host.appendChild(box);
     render();
   }

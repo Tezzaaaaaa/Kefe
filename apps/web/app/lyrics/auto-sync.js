@@ -510,13 +510,13 @@
     var card = document.createElement('section'); card.id = 'kefeAutoSync'; card.className = 'kefe-editor-panel-card';
     card.style.cssText = 'display:grid;gap:8px;min-width:0;margin:8px 0;';
     var title = document.createElement('div'); title.className = 'kefe-label'; title.textContent = '2 · Sync lyrics';
-    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'If you pasted plain lyrics, KEFE can listen to your song and add the timing. This can take a few minutes the first time.';
+    var help = document.createElement('div'); help.className = 'kefe-meta'; help.textContent = 'Pasted plain lyrics? KEFE can listen to the song and add the timing (a few minutes the first time).';
     var controls = document.createElement('div'); controls.className = 'kefe-download-row'; controls.style.cssText = 'display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0;';
     var select = document.createElement('select'); select.className = 'kefe-select'; select.setAttribute('aria-label', 'Speech recognition model');
     [['tiny.en','English · Fast (default)'],['base.en','English · More accurate'],['ctc.en','English · Precise alignment'],['tiny','Other languages · Fast'],['base','Other languages · Balanced'],['small','Other languages · Most accurate']].forEach(function (pair) { var o = document.createElement('option'); o.value = pair[0]; o.textContent = pair[1]; select.appendChild(o); });
     var go = document.createElement('button'); go.type = 'button'; go.className = 'kefe-btn primary'; go.textContent = 'Auto-sync to audio';
     var cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'kefe-btn'; cancelBtn.textContent = 'Cancel auto-time'; cancelBtn.hidden = true;
-    var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-btn'; undo.textContent = 'Undo auto-time'; undo.disabled = true;
+    var undo = document.createElement('button'); undo.type = 'button'; undo.className = 'kefe-btn kefe-undo-autotime'; undo.textContent = 'Undo auto-time'; undo.disabled = true;
     var status = document.createElement('div'); status.className = 'kefe-meta'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
     var note = document.createElement('div'); note.className = 'kefe-meta';
     var previous = null, activeAbort = null;
@@ -525,7 +525,11 @@
     var moreHelp = document.createElement('div'); moreHelp.className = 'kefe-meta'; moreHelp.textContent = 'KEFE uses English · Fast by default. Choose an Other languages option for non-English songs. The precise English alignment option downloads a larger model and uses more memory.';
     more.append(moreSummary, select, moreHelp);
     controls.append(go, undo, cancelBtn); card.append(title, help, controls, more, status, note);
-    host.insertBefore(card, host.firstChild);
+    /* Step 2 follows step 1 (Get lyrics + the lyrics box); the timing editor (step 3) comes after it. */
+    var lyricsBox = document.getElementById('lyricsInput');
+    var lyricsBlock = lyricsBox && lyricsBox.parentElement;
+    while (lyricsBlock && lyricsBlock.parentElement !== host) lyricsBlock = lyricsBlock.parentElement;
+    host.insertBefore(card, lyricsBlock ? lyricsBlock.nextSibling : host.firstChild);
     cancelBtn.addEventListener('click', function () {
       if (activeAbort) activeAbort.abort();
       cancelBtn.disabled = true;
