@@ -406,6 +406,9 @@ html:root .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions.
     min-width: 30px !important;
     padding-inline: 0 !important;
   }
+  html:root .kefe-editor .kefe-sidebar-bottom > :is(.kefe-header-reset, .kefe-header-save) {
+    flex-basis: 30px !important;
+  }
 }
 
 /* ── Content workspace (Media, Lyric Sync): inner padding and rhythm ─────────────────

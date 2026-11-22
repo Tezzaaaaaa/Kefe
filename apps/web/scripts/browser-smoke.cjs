@@ -1608,25 +1608,45 @@ async function captureEditorScreenState(page) {
     }));
     if (backgroundOptionsLayout.width <= 360) assert.equal(backgroundOptionsLayout.columns, 1,
       `background effect cards must stack when the panel is narrow: ${JSON.stringify(backgroundOptionsLayout)}`);
+    const backgroundLayout = await page.locator(".kefe-background-effects-group").evaluate(group => {
+      const cards = [...group.querySelectorAll("#kefeBackgroundEffectOptions > .kefe-background-effect-card")];
+      const boxes = cards.map(card => {
+        const rect = card.getBoundingClientRect();
+        return { width: rect.width, height: rect.height, left: rect.left, top: rect.top };
+      });
+      return {
+        hasVideoUpload: !!group.querySelector(".shad-upload-wrap #bgVideoInput"),
+        hasDarknessControl: !!group.querySelector("#backgroundTransparency"),
+        cardCount: cards.length,
+        boxes
+      };
+    });
+    assert.equal(backgroundLayout.hasVideoUpload, true, "background video upload must live in the unified Background section");
+    assert.equal(backgroundLayout.hasDarknessControl, true, "background darkness must live in the unified Background section");
+    assert.equal(backgroundLayout.cardCount, 3, "all background modes must remain available");
+    assert.ok(backgroundLayout.boxes.every(box => Math.abs(box.width - backgroundLayout.boxes[0].width) <= 1
+      && Math.abs(box.height - backgroundLayout.boxes[0].height) <= 1),
+      `background mode cards must have matching dimensions: ${JSON.stringify(backgroundLayout)}`);
 
-    await openSection("visualiser");
-    await page.waitForSelector(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']", { state: "attached", timeout: 10000 });
-    assert.ok(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']").count() >= 1, "visualiser navigation should use shadcn Tabs");
-    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']").filter({ hasText: "Liquid Glass" }).count(), 1,
-      "Liquid Glass must be available in the visualiser tab list");
-    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), true,
-      "visualiser tabs must be visible while the Visualisers section is active");
+    const visualiserGroupLayout = await page.locator(".kefe-background-effects-group").evaluate(group => {
+      const panel = group.querySelector('.kefe-panel[data-panel-view="visualiser"]');
+      const gallery = group.querySelector(".kv-grid.kv-gallery");
+      const tabs = [...group.querySelectorAll(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tab']")];
+      const boxes = tabs.map(tab => {
+        const rect = tab.getBoundingClientRect();
+        return { width: rect.width, height: rect.height, left: rect.left, top: rect.top };
+      });
+      return { panelInsideGroup: !!panel, galleryInsideGroup: !!gallery, tabCount: tabs.length, boxes };
+    });
+    assert.equal(visualiserGroupLayout.panelInsideGroup, true,
+      "the complete Visualisers panel must be nested inside the unified Background group");
+    assert.equal(visualiserGroupLayout.galleryInsideGroup, true,
+      "the visualiser engine gallery must share the Background group");
+    assert.ok(visualiserGroupLayout.tabCount > 0, "visualiser engine choices must remain available inside Background");
+    assert.ok(visualiserGroupLayout.boxes.every(box => Math.abs(box.width - visualiserGroupLayout.boxes[0].width) <= 1
+      && Math.abs(box.height - visualiserGroupLayout.boxes[0].height) <= 1),
+      `visualiser engine cards must have matching dimensions: ${JSON.stringify(visualiserGroupLayout)}`);
 
-    await openSection("background-effects");
-    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), false,
-      "visualiser choices remain visible in workspaces and section-scoped in the legacy layout");
-    await openSection("visualiser");
-    assert.equal(await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host)").isVisible(), true,
-      "visualiser tabs must reliably reappear when Visualisers is reopened");
-    if (!workspaceMode) {
-      assert.equal(await page.locator(".kefe-visualiser-preset-row").isVisible(), true,
-        "legacy visualiser preset row must follow the selected section visibility state");
-    }
     const visualiserTabGeometry = await page.locator(":is(.shad-vis-tabs-host, .beui-vis-tabs-host) [role='tablist']").evaluate(list => {
       const rect = list.getBoundingClientRect();
       const tabs = [...list.querySelectorAll("[role='tab']")].map(tab => {

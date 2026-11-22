@@ -54,7 +54,13 @@ const server = http.createServer((req, res) => {
       await page.waitForFunction(() => document.querySelector('.shad-lyric-display-options [aria-label="Chunk"]')?.getAttribute('aria-checked') === 'true');
       assert.equal(await page.locator('#kefeDisplayGroup output').first().textContent(), '5');
       assert.equal(await page.locator('#lyricCase').inputValue(), 'upper', 'programmatic settings update their native select');
+      const savedBeforeReload = await page.evaluate(() => localStorage.getItem('kefe.lyricStudio.v1'));
+      assert.deepEqual(JSON.parse(savedBeforeReload), { mode: 'chunk', chunk: 5, caseMode: 'upper', alignment: 'justify' }, 'programmatic settings must be persisted before reload');
       await page.reload();
+      await page.waitForSelector('#kefeDisplayGroup [data-shadcn-radio-mounted]', { state: 'attached' });
+      const restored = await page.evaluate(() => ({ stored: localStorage.getItem('kefe.lyricStudio.v1'), settings: window.kefeLyricStudio.settings() }));
+      assert.equal(restored.settings.mode, 'chunk', 'editor startup must restore the saved lyric display mode: ' + JSON.stringify(restored));
+      assert.equal(restored.settings.chunk, 5, 'editor startup must restore the saved chunk size: ' + JSON.stringify(restored));
       await page.locator('[data-workspace-tab="design"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-lyric-effects').evaluate(node => node.click());
       await page.waitForFunction(() => document.querySelector('.shad-lyric-display-options [aria-label="Chunk"]')?.getAttribute('aria-checked') === 'true');
