@@ -2371,7 +2371,7 @@
     }
 
     /* Last resort only (no WebCodecs, or every offline attempt failed): record the live preview in real time. */
-    async function runRealtime(res,signal){
+    async function runRealtime(res,signal,decoded){
       const webmTypes=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
       const mp4Types=['video/mp4;codecs=avc1.640028,mp4a.40.2','video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=h264,aac','video/mp4'];
       const mime=(isIOS||wantMp4?[...mp4Types,...webmTypes]:[...webmTypes,...mp4Types]).find(m=>MediaRecorder.isTypeSupported(m));
@@ -2379,7 +2379,7 @@
       const ext=mime.startsWith('video/mp4')?'mp4':'webm';
       const dims=dimsForRes(res);
       const compositeFrame=makeCompositor(dims);
-      let recorder=null,ticker=null,frameTicker=null,stream=null;
+      let recorder=null,ticker=null,frameTicker=null,stream=null,bufferTap=null;
       const ownedTracks=[];
       let stopPlaybackWait=null;
       try{
@@ -2390,13 +2390,22 @@
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         state.time=clip?clip.start:0;range.value=state.time;updateTime();draw();
         if(visualiserCanvas&&visualiserCanvas.id==='kefeFluidInkCanvas'&&visualiserCanvas.width<2)window.kefeGradientLayer?.render?.(null,dims[0],dims[1],0);
-        const audioStream=getExportAudioStream();
-        const tapCtx=window.kefeAudioGraph?.context()||exportTap?.ac;
+        /* Record the decoded track itself, not whatever the playing <audio> element happens to route through the
+           browser's audio graph (that tap goes silent on Safari/iOS and whenever the context is suspended). */
+        if(decoded){
+          try{
+            const AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),dest=ac.createMediaStreamDestination();
+            bufferTap={ac,dest,src:null,start:()=>{const src=ac.createBufferSource();src.buffer=decoded;src.connect(dest);src.start(0,clip?clip.start:0,clip?clip.length:undefined);bufferTap.src=src;}};
+          }catch(_){bufferTap=null;}
+        }
+        const audioStream=bufferTap?bufferTap.dest.stream:getExportAudioStream();
+        const tapCtx=bufferTap?bufferTap.ac:(window.kefeAudioGraph?.context()||exportTap?.ac);
         const audioResume=tapCtx&&tapCtx.state==='suspended'?tapCtx.resume():Promise.resolve();
         compositeFrame();
         stream=compositeCanvas.captureStream(exportFps);
         stream.getTracks().forEach(t=>ownedTracks.push(t));
-        frameTicker=setInterval(()=>{if(!signal.aborted)compositeFrame();},1000/exportFps);
+        let syncTick=0;
+        frameTicker=setInterval(()=>{if(signal.aborted)return;compositeFrame();if(++syncTick%Math.max(1,Math.round(exportFps/2))===0)window.kefeBackground?.sync?.();},1000/exportFps);
         const audioTracks=audioStream?.getAudioTracks()||[];
         if(!audioTracks.length)throw new Error('KEFE could not capture an audio track on this device. Resume audio playback and retry; no silent video will be exported.');
         audioTracks.forEach(t=>{
@@ -2442,8 +2451,9 @@
           },250);
         });
         recorder.start(1000);
-        const playbackStart=audio.play();
-        await Promise.all([playbackStart,audioResume]);
+        await audioResume;
+        bufferTap?.start();
+        await audio.play();
         await playbackDone;
         if(frameTicker){clearInterval(frameTicker);frameTicker=null;}
         compositeFrame();
@@ -2459,6 +2469,7 @@
         if(frameTicker){clearInterval(frameTicker);frameTicker=null;}
         try{if(recorder&&recorder.state==='recording')recorder.stop();}catch(_){}
         ownedTracks.forEach(t=>{try{t.stop();}catch(_){}});
+        try{bufferTap?.src?.stop();bufferTap?.ac?.close();}catch(_){}
       }
     }
 
@@ -2468,10 +2479,9 @@
         if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
         if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
       }
-      let result=null,engineError=null;
+      let result=null,engineError=null,decoded=null;
       const notes=[];
-      if(engineOk){
-        let decoded=null;
+      if(engine&&typeof engine.decodeAudio==='function'){
         try{
           setExportProgress(1,'Reading audio');
           decoded=await engine.decodeAudio(audio.currentSrc||audio.src,{signal:exportAbort.signal});
@@ -2479,6 +2489,8 @@
           if(error?.name==='AbortError')throw error;
           engineError=error;console.warn('[KEFE export audio decode]',error);
         }
+      }
+      if(engineOk){
         if(decoded){
           const ladder=[requestedRes,...[2160,1440,1080,720,540].filter(r=>r<requestedRes)].slice(0,4);
           for(const res of ladder){
@@ -2500,15 +2512,43 @@
         if(engineOk)notes.push('The precise renderer was unavailable on this device, so the compatibility recorder was used. Keep the tab in front for best results.');
         setExportProgress(1,'Starting compatibility recorder');
         try{
-          result=await runRealtime(requestedRes,exportAbort.signal);
+          result=await runRealtime(requestedRes,exportAbort.signal,decoded);
         }catch(primaryErr){
           if(isIOS||primaryErr?.name==='AbortError'||requestedRes<=720)throw primaryErr;
           console.warn('[KEFE export retrying at 720p]',primaryErr);
           setExportProgress(1,'Retrying at 720p…');
-          result=await runRealtime(720,exportAbort.signal);
+          result=await runRealtime(720,exportAbort.signal,decoded);
           notes.push('Exported at 720p after a higher-resolution encoder failure.');
         }
       }
+      /* Look inside the finished file before handing it over: silent audio or a frozen background video is caught
+         here, re-rendered once on the other path, and otherwise flagged loudly instead of discovered later. */
+      const bgMoving=!!(window.kefeBackground?.mode?.()==='video'&&window.kefeBackground?.video?.());
+      let sourcePeak=0;
+      if(decoded){const cd=decoded.getChannelData(0);for(let i=0;i<cd.length;i+=97){const v=Math.abs(cd[i]);if(v>sourcePeak)sourcePeak=v;}}
+      const inspect=async r=>{
+        if(typeof engine?.inspectOutput!=='function')return {problems:[]};
+        setExportProgress(99,'Checking the finished video');
+        try{
+          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving}),problems=[];
+          if(info.audio==='silent')problems.push('the audio is silent');
+          if(info.audio==='missing')problems.push('the audio track is missing');
+          if(info.motion==='frozen')problems.push('the background video is frozen');
+          return {problems,info};
+        }catch(_){return {problems:[]};}
+      };
+      let check=await inspect(result);
+      if(check.problems.length&&result.fps&&legacyOk){
+        const first=check.problems.join(' and ');
+        setExportProgress(1,'Problem found ('+first+'). Re-rendering with the compatibility recorder');
+        try{
+          const alt=await runRealtime(requestedRes,exportAbort.signal,decoded),altCheck=await inspect(alt);
+          if(altCheck.problems.length<check.problems.length||(!altCheck.problems.length)){
+            result=alt;check=altCheck;notes.push('The first render had a problem ('+first+'), so it was re-rendered with the compatibility recorder.');
+          }
+        }catch(error){if(error?.name==='AbortError')throw error;console.warn('[KEFE export re-render]',error);}
+      }
+      if(check.problems.length)notes.push('⚠ Check this video before using it: '+check.problems.join(' and ')+'. Retry the export; if it happens again, tell me your browser and device.');
       const {blob,dims,ext}=result;
       (result.notes||[]).forEach(n=>notes.push(n));
       const formatNote=wantMp4&&ext!=='mp4'?' MP4 is not supported by this browser, so this is WebM.':'';

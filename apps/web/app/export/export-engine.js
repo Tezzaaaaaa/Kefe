@@ -438,6 +438,96 @@
     });
   }
 
+  /* ------------------------------------------------------- output inspection */
+  /* Looks inside the finished file, the way a viewer would, so a silent or frozen export is caught before
+     download instead of after. Never throws: anything it cannot measure on this browser is reported 'unknown'.
+       opts.sourcePeak     peak level (0..1) of the uploaded track; audio is only flagged when the source has sound
+       opts.expectMotion   true when an uploaded background video should be moving in the picture
+     Resolves { audio: 'ok'|'silent'|'missing'|'unknown', audioPeak, audioSeconds, motion: 'ok'|'frozen'|'unknown' }. */
+  async function inspectOutput(blob, opts) {
+    var o = opts || {};
+    var out = { audio: 'unknown', audioPeak: null, audioSeconds: null, motion: 'unknown' };
+    try {
+      if (blob.size < 160 * 1048576) {
+        var OAC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
+        if (OAC) {
+          var ctx = new OAC(1, 2, 44100);
+          var bytes = await blob.arrayBuffer();
+          var decoded = await withTimeout(new Promise(function (resolve, reject) {
+            var settled = ctx.decodeAudioData(bytes, resolve, reject);
+            if (settled && typeof settled.then === 'function') settled.then(resolve, reject);
+          }), 30000, 'Audio check timed out.', 'stall');
+          var peak = 0;
+          for (var c = 0; c < decoded.numberOfChannels; c++) {
+            var data = decoded.getChannelData(c);
+            for (var i = 0; i < data.length; i += 7) { var v = data[i] < 0 ? -data[i] : data[i]; if (v > peak) peak = v; }
+          }
+          out.audioPeak = peak; out.audioSeconds = decoded.duration;
+          out.audio = (o.sourcePeak > 0.002 && peak < 0.0005) ? 'silent' : 'ok';
+        }
+      }
+    } catch (e) { /* decode not possible here; fall through to the container check */ }
+    if (out.audio === 'unknown') {
+      /* Could not decode the sound, so look for an audio track in the container itself (WebM track codec ids,
+         MP4 sample entries). A file with none is exactly a silent export. */
+      try {
+        var span = 3 * 1048576, size = blob.size;
+        var parts = [await blob.slice(0, Math.min(size, span)).arrayBuffer()];
+        if (size > span) parts.push(await blob.slice(Math.max(span, size - span)).arrayBuffer());
+        var found = false, tokens = ['A_OPUS', 'A_VORBIS', 'A_AAC', 'mp4a', 'Opus'];
+        parts.forEach(function (buf) {
+          var u8 = new Uint8Array(buf);
+          tokens.forEach(function (t) {
+            if (found) return;
+            var c0 = t.charCodeAt(0), n = t.length;
+            for (var i = 0, last = u8.length - n; i <= last; i++) {
+              if (u8[i] !== c0) continue;
+              var m = 1; while (m < n && u8[i + m] === t.charCodeAt(m)) m++;
+              if (m === n) { found = true; return; }
+            }
+          });
+        });
+        if (!found && (o.sourcePeak === undefined || o.sourcePeak > 0.002)) out.audio = 'missing';
+      } catch (e) { /* leave unknown */ }
+    }
+
+    if (o.expectMotion && typeof document !== 'undefined') {
+      var v = document.createElement('video'), url = URL.createObjectURL(blob);
+      try {
+        v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+        await withTimeout(new Promise(function (resolve, reject) { v.onloadedmetadata = resolve; v.onerror = function () { reject(new Error('unreadable')); }; }), 8000, 'Video check timed out.', 'stall');
+        /* Recorder files report no duration until the end is reached once. */
+        if (!isFinite(v.duration)) {
+          v.currentTime = 1e101;
+          await withTimeout(new Promise(function (resolve) { v.ontimeupdate = function () { if (isFinite(v.duration)) resolve(); }; }), 5000, 'x', 'stall');
+          v.ontimeupdate = null;
+        }
+        var d = v.duration;
+        if (isFinite(d) && d > 1) {
+          var cv = document.createElement('canvas'); cv.width = 48; cv.height = 27;
+          var g = cv.getContext('2d', { willReadFrequently: true }), frames = [];
+          for (var k = 0; k < 6; k++) {
+            var at = d * (0.1 + 0.16 * k);
+            await withTimeout(new Promise(function (resolve) { v.onseeked = resolve; v.currentTime = at; }), 4000, 'seek', 'stall');
+            await new Promise(function (r) { setTimeout(r, 60); });
+            g.drawImage(v, 0, 0, 48, 27);
+            var px = g.getImageData(0, 0, 48, 27).data, gray = new Float32Array(48 * 27);
+            for (var j = 0; j < gray.length; j++) gray[j] = (px[j * 4] + px[j * 4 + 1] + px[j * 4 + 2]) / 3;
+            frames.push(gray);
+          }
+          var biggest = 0;
+          for (var a = 0; a < frames.length; a++) for (var b = a + 1; b < frames.length; b++) {
+            var sum = 0; for (var q = 0; q < frames[a].length; q++) sum += Math.abs(frames[a][q] - frames[b][q]);
+            biggest = Math.max(biggest, sum / frames[a].length);
+          }
+          out.motion = biggest < 0.6 ? 'frozen' : 'ok';
+        }
+      } catch (e) { /* leave motion 'unknown' */ }
+      finally { v.removeAttribute('src'); try { v.load(); } catch (_) {} URL.revokeObjectURL(url); }
+    }
+    return out;
+  }
+
   /* -------------------------------------------------------------------- run */
   /* options:
        format        'mp4' | 'webm'
@@ -594,6 +684,7 @@
   root.kefeExportEngine = {
     supported: supported,
     decodeAudio: decodeAudio,
+    inspectOutput: inspectOutput,
     createSpectrum: createSpectrum,
     seekVideo: seekVideo,
     resetSeek: resetSeek,

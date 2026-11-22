@@ -406,5 +406,5 @@
     syncVideo(true);
     if(cctx&&size())paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
   }
-  window.kefeBackground={offlinePrepare:offlinePrepare,offlineFrame:offlineFrame,offlineEnd:offlineEnd,video:function(){return vid;},paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
+  window.kefeBackground={sync:function(){syncVideo(false);},offlinePrepare:offlinePrepare,offlineFrame:offlineFrame,offlineEnd:offlineEnd,video:function(){return vid;},paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
 })();
