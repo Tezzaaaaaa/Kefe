@@ -2530,12 +2530,17 @@
         if(typeof engine?.inspectOutput!=='function')return {problems:[]};
         setExportProgress(99,'Checking the finished video');
         try{
-          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving}),problems=[];
+          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving}),problems=[],soft=[];
           if(info.audio==='silent')problems.push('the audio is silent');
           if(info.audio==='missing')problems.push('the audio track is missing');
           if(info.motion==='frozen')problems.push('the background video is frozen');
-          return {problems,info};
-        }catch(_){return {problems:[]};}
+          const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+          if(info.motion==='stalled'&&info.frozenRanges?.length)soft.push('nothing on screen moves between '+info.frozenRanges.slice(0,3).map(r=>fmt(r[0])+' and '+fmt(r[1])).join(', ')+' (the background video may have stalled)');
+          const bs=r.bgStats;
+          if(bs&&bs.unresolved>0)problems.push('the background video skipped frames ('+bs.unresolved+')');
+          else if(bs&&bs.checked&&bs.stale/bs.checked>0.02)soft.push('the background video needed '+bs.stale+' frame corrections');
+          return {problems,soft,info};
+        }catch(_){return {problems:[],soft:[]};}
       };
       let check=await inspect(result);
       if(check.problems.length&&result.fps&&legacyOk){
@@ -2548,6 +2553,7 @@
           }
         }catch(error){if(error?.name==='AbortError')throw error;console.warn('[KEFE export re-render]',error);}
       }
+      if(check.soft?.length)notes.push('⚠ Worth a look: '+check.soft.join('; ')+'.');
       if(check.problems.length)notes.push('⚠ Check this video before using it: '+check.problems.join(' and ')+'. Retry the export; if it happens again, tell me your browser and device.');
       const {blob,dims,ext}=result;
       (result.notes||[]).forEach(n=>notes.push(n));

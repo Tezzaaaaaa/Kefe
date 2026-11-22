@@ -336,6 +336,9 @@
 
   /* -------------------------------------------------------------- video seek */
   var seekStates = typeof WeakMap === 'function' ? new WeakMap() : null;
+  /* Ground truth about the background video during one render: frames where the browser reported which picture it
+     presented (checked), those that came back older than requested (stale), and how many re-seeks fixed them. */
+  var bgStats = { checked: 0, stale: 0, retried: 0, unresolved: 0 };
   function seekState(v) {
     var s = seekStates && seekStates.get(v);
     if (!s) { s = { last: -1, period: 0, rvfc: true, misses: 0 }; if (seekStates) seekStates.set(v, s); }
@@ -354,50 +357,71 @@
     if (st.last >= 0 && st.period > 0 && want >= st.last && want < st.last + st.period * 0.98 && v.readyState >= 2 && !v.seeking) return true;
     if (Math.abs(v.currentTime - want) < 1e-6 && v.readyState >= 2 && !v.seeking) return true;
 
-    var ok = await new Promise(function (resolve) {
-      var finished = false;
-      var timer = setTimeout(function () { done(false); }, 6000);
-      function done(result) {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timer);
-        v.removeEventListener('seeked', onSeeked);
-        v.removeEventListener('error', onError);
-        resolve(result);
-      }
-      function onError() { done(false); }
-      function onSeeked() { done(true); }
-      v.addEventListener('seeked', onSeeked);
-      v.addEventListener('error', onError);
-      try { v.currentTime = want; } catch (_) { done(false); }
-    });
+    function seekTo(target) {
+      return new Promise(function (resolve) {
+        var finished = false;
+        var timer = setTimeout(function () { done(false); }, 6000);
+        function done(result) {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          v.removeEventListener('seeked', onSeeked);
+          v.removeEventListener('error', onError);
+          resolve(result);
+        }
+        function onError() { done(false); }
+        function onSeeked() { done(true); }
+        v.addEventListener('seeked', onSeeked);
+        v.addEventListener('error', onError);
+        try { v.currentTime = target; } catch (_) { done(false); }
+      });
+    }
+    var ok = await seekTo(want);
     if (!ok) return false;
 
     /* 'seeked' fires before the compositor has necessarily swapped in the new picture, so drawing straight away
        can return the previous frame (observed on roughly a third of sequential seeks). Wait until the browser
-       reports the frame it is actually presenting. */
-    var meta = null;
+       reports the frame it is actually presenting, and check it is the one that was asked for. */
     var visible = typeof document !== 'undefined' && document.visibilityState === 'visible';
-    if (visible && st.rvfc && typeof v.requestVideoFrameCallback === 'function') {
-      meta = await new Promise(function (resolve) {
-        var timer = setTimeout(function () { resolve(null); }, 150);
-        v.requestVideoFrameCallback(function (_now, m) { clearTimeout(timer); resolve(m); });
-      });
-      if (meta) st.misses = 0;
-      else if (++st.misses >= 8) st.rvfc = false;
-    }
-    if (!meta) {
-      /* No presentation report (callback unsupported, already delivered, or tab in the background): give the
-         compositor two frames to take the new picture. */
-      if (visible && typeof requestAnimationFrame === 'function') {
-        await new Promise(function (resolve) {
-          var left = 2, timer = setTimeout(resolve, 120);
-          var tick = function () { if (--left <= 0) { clearTimeout(timer); resolve(); } else requestAnimationFrame(tick); };
-          requestAnimationFrame(tick);
+    async function presented() {
+      var m = null;
+      if (visible && st.rvfc && typeof v.requestVideoFrameCallback === 'function') {
+        m = await new Promise(function (resolve) {
+          var timer = setTimeout(function () { resolve(null); }, 150);
+          v.requestVideoFrameCallback(function (_now, info) { clearTimeout(timer); resolve(info); });
         });
-      } else {
-        await yieldNow(); await yieldNow();
+        if (m) st.misses = 0;
+        else if (++st.misses >= 8) st.rvfc = false;
       }
+      if (!m) {
+        /* No presentation report (callback unsupported, already delivered, or tab in the background): give the
+           compositor two frames to take the new picture. */
+        if (visible && typeof requestAnimationFrame === 'function') {
+          await new Promise(function (resolve) {
+            var left = 2, timer = setTimeout(resolve, 120);
+            var tick = function () { if (--left <= 0) { clearTimeout(timer); resolve(); } else requestAnimationFrame(tick); };
+            requestAnimationFrame(tick);
+          });
+        } else {
+          await yieldNow(); await yieldNow();
+        }
+      }
+      return m;
+    }
+    var meta = await presented();
+    var tol = Math.max(0.06, (st.period > 0 ? st.period : 0.034) * 2.5);
+    if (meta && typeof meta.mediaTime === 'number') {
+      bgStats.checked++;
+      var attempt = 0, wasStale = false;
+      while (want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5 && attempt < 3) {
+        /* The picture on screen is older than the one requested: ask again instead of drawing it. */
+        wasStale = true; attempt++; bgStats.retried++;
+        if (!(await seekTo(Math.min(duration - 0.002, want + attempt * 0.0007)))) break;
+        var again = await presented();
+        if (!again || typeof again.mediaTime !== 'number') break;
+        meta = again;
+      }
+      if (wasStale) { bgStats.stale++; if (want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5) bgStats.unresolved++; }
     }
     var shown = meta && typeof meta.mediaTime === 'number' ? meta.mediaTime : -1;
     if (shown >= 0) {
@@ -443,7 +467,7 @@
      download instead of after. Never throws: anything it cannot measure on this browser is reported 'unknown'.
        opts.sourcePeak     peak level (0..1) of the uploaded track; audio is only flagged when the source has sound
        opts.expectMotion   true when an uploaded background video should be moving in the picture
-     Resolves { audio: 'ok'|'silent'|'missing'|'unknown', audioPeak, audioSeconds, motion: 'ok'|'frozen'|'unknown' }. */
+     Resolves { audio: 'ok'|'silent'|'missing'|'unknown', audioPeak, audioSeconds, motion: 'ok'|'frozen'|'stalled'|'unknown', frozenRanges: [[from,to],...] seconds }. */
   async function inspectOutput(blob, opts) {
     var o = opts || {};
     var out = { audio: 'unknown', audioPeak: null, audioSeconds: null, motion: 'unknown' };
@@ -494,7 +518,10 @@
     if (o.expectMotion && typeof document !== 'undefined') {
       var v = document.createElement('video'), url = URL.createObjectURL(blob);
       try {
+        if (typeof v.requestVideoFrameCallback !== 'function') throw new Error('no frame callbacks');
         v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+        v.style.cssText = 'position:fixed;left:0;top:0;width:48px;height:27px;opacity:0.01;pointer-events:none;z-index:-1';
+        document.body.appendChild(v);
         await withTimeout(new Promise(function (resolve, reject) { v.onloadedmetadata = resolve; v.onerror = function () { reject(new Error('unreadable')); }; }), 8000, 'Video check timed out.', 'stall');
         /* Recorder files report no duration until the end is reached once. */
         if (!isFinite(v.duration)) {
@@ -504,26 +531,50 @@
         }
         var d = v.duration;
         if (isFinite(d) && d > 1) {
+          var unconfirmed = 0, times = [];
           var cv = document.createElement('canvas'); cv.width = 48; cv.height = 27;
           var g = cv.getContext('2d', { willReadFrequently: true }), frames = [];
-          for (var k = 0; k < 6; k++) {
-            var at = d * (0.1 + 0.16 * k);
-            await withTimeout(new Promise(function (resolve) { v.onseeked = resolve; v.currentTime = at; }), 4000, 'seek', 'stall');
-            await new Promise(function (r) { setTimeout(r, 60); });
+          var count = Math.min(160, Math.max(6, Math.floor(d / 0.5))), step = d * 0.96 / (count - 1);
+          for (var k = 0; k < count; k++) {
+            var at = d * 0.02 + step * k;
+            /* Only trust a sample once the browser reports presenting the frame at (or next to) the requested time;
+               drawing straight after 'seeked' returns the previous picture and would fake a freeze. */
+            var shownAt = await new Promise(function (resolve) {
+              var settled = false, timer = setTimeout(function () { if (!settled) { settled = true; resolve(null); } }, 4000);
+              var onFrame = function (_n, info) {
+                if (settled) return;
+                if (Math.abs(info.mediaTime - at) <= 0.3) { settled = true; clearTimeout(timer); resolve(info.mediaTime); }
+                else v.requestVideoFrameCallback(onFrame);
+              };
+              v.requestVideoFrameCallback(onFrame);
+              v.currentTime = at;
+            });
+            if (shownAt === null || Math.abs(shownAt - at) > 0.3) { unconfirmed++; continue; }
             g.drawImage(v, 0, 0, 48, 27);
             var px = g.getImageData(0, 0, 48, 27).data, gray = new Float32Array(48 * 27);
             for (var j = 0; j < gray.length; j++) gray[j] = (px[j * 4] + px[j * 4 + 1] + px[j * 4 + 2]) / 3;
-            frames.push(gray);
+            frames.push(gray); times.push(at);
           }
+          if (unconfirmed > count * 0.2 || frames.length < 6) throw new Error('frames not confirmed');
           var biggest = 0;
           for (var a = 0; a < frames.length; a++) for (var b = a + 1; b < frames.length; b++) {
             var sum = 0; for (var q = 0; q < frames[a].length; q++) sum += Math.abs(frames[a][q] - frames[b][q]);
             biggest = Math.max(biggest, sum / frames[a].length);
           }
-          out.motion = biggest < 0.6 ? 'frozen' : 'ok';
+          out.motion = biggest < 0.15 ? 'frozen' : 'ok';
+          /* A freeze part-way through: three seconds or more where nothing in the picture changes at all. */
+          var need = Math.max(3, Math.ceil(3 / step)), run = 0, ranges = [];
+          for (var m = 1; m <= frames.length; m++) {
+            var still = false;
+            if (m < frames.length && times[m] - times[m - 1] < step * 1.5) { var sd = 0; for (var q2 = 0; q2 < frames[m].length; q2++) sd += Math.abs(frames[m][q2] - frames[m - 1][q2]); still = sd / frames[m].length < 0.06; }
+            if (still) run++;
+            else { if (run >= need) ranges.push([times[m - 1 - run], times[m - 1]]); run = 0; }
+          }
+          out.frozenRanges = ranges;
+          if (out.motion === 'ok' && ranges.length) out.motion = 'stalled';
         }
       } catch (e) { /* leave motion 'unknown' */ }
-      finally { v.removeAttribute('src'); try { v.load(); } catch (_) {} URL.revokeObjectURL(url); }
+      finally { v.removeAttribute('src'); try { v.load(); } catch (_) {} if (v.parentNode) v.parentNode.removeChild(v); URL.revokeObjectURL(url); }
     }
     return out;
   }
@@ -544,6 +595,7 @@
        signal        AbortSignal
      Resolves { blob, ext, mime, container, video, audio, fps, frames, duration, notes }. */
   async function run(o) {
+    bgStats = { checked: 0, stale: 0, retried: 0, unresolved: 0 };
     var signal = o.signal;
     var onProgress = o.onProgress || function () {};
     var buffer = o.audioBuffer;
@@ -674,7 +726,7 @@
       var check = await verifyOutput(blob, duration);
       if (!check.ok) throw tagged(check.reason || 'The exported file failed its self-check.', 'verify');
       if (check.warning) notes.push(check.warning);
-      return { blob: blob, ext: isMp4 ? 'mp4' : 'webm', mime: mime, container: container, video: plan.video.label, audio: plan.audio.label, fps: fps, frames: total, duration: duration, start: clipStart, width: width, height: height, notes: notes };
+      return { blob: blob, ext: isMp4 ? 'mp4' : 'webm', mime: mime, container: container, video: plan.video.label, audio: plan.audio.label, fps: fps, frames: total, duration: duration, start: clipStart, width: width, height: height, notes: notes, bgStats: bgStats };
     } finally {
       try { if (videoEncoder && videoEncoder.state !== 'closed') videoEncoder.close(); } catch (_) {}
       try { if (audioEncoder && audioEncoder.state !== 'closed') audioEncoder.close(); } catch (_) {}
