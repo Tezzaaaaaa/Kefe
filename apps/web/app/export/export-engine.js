@@ -413,7 +413,7 @@
     if (meta && typeof meta.mediaTime === 'number') {
       bgStats.checked++;
       var attempt = 0, wasStale = false;
-      while (want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5 && attempt < 3) {
+      while (want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5 && attempt < 1) {
         /* The picture on screen is older than the one requested: ask again instead of drawing it. */
         wasStale = true; attempt++; bgStats.retried++;
         if (!(await seekTo(Math.min(duration - 0.002, want + attempt * 0.0007)))) break;
@@ -470,7 +470,11 @@
      Resolves { audio: 'ok'|'silent'|'missing'|'unknown', audioPeak, audioSeconds, motion: 'ok'|'frozen'|'stalled'|'unknown', frozenRanges: [[from,to],...] seconds }. */
   async function inspectOutput(blob, opts) {
     var o = opts || {};
-    var out = { audio: 'unknown', audioPeak: null, audioSeconds: null, motion: 'unknown' };
+    var out = { audio: 'unknown', audioPeak: null, audioSeconds: null, motion: 'unknown', skipped: false };
+    var report = typeof o.onProgress === 'function' ? o.onProgress : function () {};
+    var t0 = Date.now(), budget = o.budgetMs || 20000;
+    var over = function () { return Date.now() - t0 > budget; };
+    report(0, 'Checking audio');
     try {
       if (blob.size < 160 * 1048576) {
         var OAC = root.OfflineAudioContext || root.webkitOfflineAudioContext;
@@ -480,7 +484,7 @@
           var decoded = await withTimeout(new Promise(function (resolve, reject) {
             var settled = ctx.decodeAudioData(bytes, resolve, reject);
             if (settled && typeof settled.then === 'function') settled.then(resolve, reject);
-          }), 30000, 'Audio check timed out.', 'stall');
+          }), 12000, 'Audio check timed out.', 'stall');
           var peak = 0;
           for (var c = 0; c < decoded.numberOfChannels; c++) {
             var data = decoded.getChannelData(c);
@@ -515,7 +519,8 @@
       } catch (e) { /* leave unknown */ }
     }
 
-    if (o.expectMotion && typeof document !== 'undefined') {
+    report(0.3, 'Checking the picture');
+    if (o.expectMotion && typeof document !== 'undefined' && !over()) {
       var v = document.createElement('video'), url = URL.createObjectURL(blob);
       try {
         if (typeof v.requestVideoFrameCallback !== 'function') throw new Error('no frame callbacks');
@@ -535,8 +540,10 @@
           var cv = document.createElement('canvas'); cv.width = 48; cv.height = 27;
           var g = cv.getContext('2d', { willReadFrequently: true }), frames = [];
           var count = Math.min(160, Math.max(6, Math.floor(d / 0.5))), step = d * 0.96 / (count - 1);
+          var calibrated = false, aborted = false;
           for (var k = 0; k < count; k++) {
-            var at = d * 0.02 + step * k;
+            if (over()) { aborted = true; break; }
+            var at = d * 0.02 + step * k, sampleStart = Date.now();
             /* Only trust a sample once the browser reports presenting the frame at (or next to) the requested time;
                drawing straight after 'seeked' returns the previous picture and would fake a freeze. */
             var shownAt = await new Promise(function (resolve) {
@@ -554,7 +561,16 @@
             var px = g.getImageData(0, 0, 48, 27).data, gray = new Float32Array(48 * 27);
             for (var j = 0; j < gray.length; j++) gray[j] = (px[j * 4] + px[j * 4 + 1] + px[j * 4 + 2]) / 3;
             frames.push(gray); times.push(at);
+            if (!calibrated && frames.length === 2) {
+              /* Size the rest of the sweep to this browser's speed so the whole check fits the time budget. */
+              calibrated = true;
+              var per = Math.max(20, (Date.now() - sampleStart) * 1.15), room = budget - (Date.now() - t0);
+              var fit = Math.floor(room / per) + frames.length;
+              if (fit < count) { count = Math.max(24, fit); step = d * 0.96 / (count - 1); k = 0; times = times.slice(0, 1); frames = frames.slice(0, 1); }
+            }
+            report(0.3 + 0.7 * Math.min(1, (k + 1) / count), 'Checking the picture');
           }
+          if (aborted) { out.skipped = true; throw new Error('check ran out of time'); }
           if (unconfirmed > count * 0.2 || frames.length < 6) throw new Error('frames not confirmed');
           var biggest = 0;
           for (var a = 0; a < frames.length; a++) for (var b = a + 1; b < frames.length; b++) {
@@ -693,6 +709,7 @@
       var frameMicros = 1e6 / fps;
       var lastBreath = Date.now();
       var lastReport = 0;
+      var renderT0 = Date.now();
       for (var i = 0; i < total; i++) {
         if (fatal) throw fatal;
         throwIfAborted(signal);
@@ -708,6 +725,10 @@
         if (now - lastReport > 200 || i === total - 1) {
           lastReport = now;
           onProgress(0.01 + 0.93 * ((i + 1) / total), 'Rendering video');
+        }
+        if (o.slowGuard && i >= 20 && i < total - 1 && (i + 1) % 10 === 0 && now - renderT0 > 8000) {
+          var projected = (now - renderT0) / (i + 1) * total / 1000;
+          if (projected > Math.max(90, duration * 4)) throw tagged('Precise rendering would take about ' + Math.round(projected / 60) + ' min.', 'slow', { projectedSeconds: projected });
         }
         if (now - lastBreath > 120) { lastBreath = now; await breathe(); }
       }

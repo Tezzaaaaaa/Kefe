@@ -2073,6 +2073,19 @@
     });
     exportProgressModal.querySelector('#kefeExportClose').addEventListener('click',()=>{exportProgressModal.hidden=true;});
   }
+  /* Plain-language time left, rounded so it doesn't flicker. Empty until there is enough progress to estimate from. */
+  function leftText(seconds){
+    let s=Math.max(5,Math.ceil(seconds/5)*5);
+    if(s>=3600)return Math.floor(s/3600)+' h '+Math.round((s%3600)/60)+' min';
+    if(s>=60){const m=Math.floor(s/60),r=s%60;return m+' min'+(r?' '+r+' s':'');}
+    return s+' s';
+  }
+  function etaText(startMs,fraction){
+    const elapsed=(performance.now()-startMs)/1000;
+    if(!startMs||fraction<0.03||fraction>=1||elapsed<4)return '';
+    return ' · about '+leftText(elapsed*(1-fraction)/fraction)+' left';
+  }
+  let renderEtaStart=0;
   function setExportProgress(value,stage){
     if(exportProgressUsesShadcn){window.kefeExportDialog.progress(value,stage);return;}
     ensureExportProgressModal();
@@ -2327,7 +2340,7 @@
         if(isFluid)window.kefeFluidInk?.reset?.();
         canvas.width=dims[0];canvas.height=dims[1];
         const result=await engine.run({
-          format:wantMp4?'mp4':'webm',width:dims[0],height:dims[1],fps:exportFps,audioBuffer:decoded,signal,start:clip?clip.start:0,length:clip?clip.length:0,
+          slowGuard:legacyOk,format:wantMp4?'mp4':'webm',width:dims[0],height:dims[1],fps:exportFps,audioBuffer:decoded,signal,start:clip?clip.start:0,length:clip?clip.length:0,
           onPlan:plan=>{
             planFps=plan.fps;
             spectrum=engine.createSpectrum(channelData,decoded.sampleRate,{fftSize:window.kefeAudioGraph?.fftSize?.()||2048,fps:plan.fps});
@@ -2338,8 +2351,11 @@
           },
           onProgress:(f,text)=>{
             const p=Math.max(1,Math.min(99,Math.round(f*100)));
+            if(text==='Checking encoder support')renderEtaStart=0;
+            if(text==='Rendering video'&&!renderEtaStart)renderEtaStart=performance.now();
+            const renderFrac=Math.max(0,Math.min(1,(f-0.01)/0.93));
             status.textContent='Exporting '+p+'% — keep this tab open…';
-            setExportProgress(p,text==='Rendering video'?'Rendering video · '+fmt(f*total)+' of '+fmt(total):text);
+            setExportProgress(p,text==='Rendering video'?'Rendering video · '+fmt(f*total)+' of '+fmt(total)+etaText(renderEtaStart,renderFrac):(text==='Finalising video'?'Finalising video · a few seconds':text));
           },
           renderFrame:async(t,i)=>{
             if(activeLayer?.isReady&&!activeLayer.isReady())throw new Error('The visualiser graphics stopped during export.');
@@ -2447,7 +2463,7 @@
             const spanLen=clip?clip.length:audio.duration,rel=audio.currentTime-(clip?clip.start:0);
             const p=Math.max(1,Math.min(99,Math.round(rel/Math.max(0.01,spanLen)*100)));
             status.textContent='Exporting '+p+'% — keep this tab open…';
-            setExportProgress(p,'Rendering video (compatibility mode) · '+fmt(rel)+' of '+fmt(spanLen));
+            setExportProgress(p,'Rendering video (compatibility mode) · '+fmt(rel)+' of '+fmt(spanLen)+(spanLen-rel>=5?' · '+leftText(spanLen-rel)+' left':''));
           },250);
         });
         recorder.start(1000);
@@ -2479,7 +2495,7 @@
         if(document.fonts?.load){try{await Promise.all([document.fonts.load('700 48px "Inter Tight"'),document.fonts.load('600 48px "Inter Tight"')]);}catch(_){} }
         if(document.fonts?.ready){try{await document.fonts.ready;}catch(_){} }
       }
-      let result=null,engineError=null,decoded=null;
+      let result=null,engineError=null,decoded=null,slowErr=null;
       const notes=[];
       if(engine&&typeof engine.decodeAudio==='function'){
         try{
@@ -2501,7 +2517,7 @@
             }catch(error){
               if(error?.name==='AbortError')throw error;
               engineError=error;console.warn('[KEFE export attempt failed]',res,error);
-              if(error?.kind==='audio-unsupported')break;
+              if(error?.kind==='audio-unsupported'||error?.kind==='slow'){slowErr=error;break;}
               setExportProgress(1,'Retrying at a lower resolution…');
             }
           }
@@ -2509,8 +2525,8 @@
       }
       if(!result){
         if(!legacyOk)throw engineError||new Error('Video export is not supported by this browser.');
-        if(engineOk)notes.push('The precise renderer was unavailable on this device, so the compatibility recorder was used. Keep the tab in front for best results.');
-        setExportProgress(1,'Starting compatibility recorder');
+        if(slowErr)notes.push('The precise renderer was too slow on this device (it projected '+Math.max(1,Math.round(slowErr.projectedSeconds/60))+' min), so the real-time recorder was used instead.');else if(engineOk)notes.push('The precise renderer was unavailable on this device, so the compatibility recorder was used. Keep the tab in front for best results.');
+        setExportProgress(1,slowErr?'Rendering is too slow here. Switching to real-time recording · takes about the video length':'Starting compatibility recorder');
         try{
           result=await runRealtime(requestedRes,exportAbort.signal,decoded);
         }catch(primaryErr){
@@ -2528,9 +2544,14 @@
       if(decoded){const cd=decoded.getChannelData(0);for(let i=0;i<cd.length;i+=97){const v=Math.abs(cd[i]);if(v>sourcePeak)sourcePeak=v;}}
       const inspect=async r=>{
         if(typeof engine?.inspectOutput!=='function')return {problems:[]};
-        setExportProgress(99,'Checking the finished video');
+        setExportProgress(97,'Checking the video for problems · up to 20 s');
+        const checkStart=performance.now();
         try{
-          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving}),problems=[],soft=[];
+          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving,budgetMs:20000,onProgress:(f,text)=>{
+            const left=Math.max(0,20-(performance.now()-checkStart)/1000);
+            setExportProgress(97+Math.round(f*2),text+(f>=0.35?etaText(checkStart,f):' · up to '+Math.ceil(left/5)*5+' s'));
+          }}),problems=[],soft=[];
+          if(info.skipped)soft.push('the final check ran out of time, so the picture was not scanned for freezes');
           if(info.audio==='silent')problems.push('the audio is silent');
           if(info.audio==='missing')problems.push('the audio track is missing');
           if(info.motion==='frozen')problems.push('the background video is frozen');
