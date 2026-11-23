@@ -5,7 +5,7 @@
    Visualiser layers are composited into video export. */
 (function(){
   'use strict';
-  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidUrl='',vidName='',small=null,smallKey='',taintedArt=false,avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
+  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidFile=null,offSess=null,offSrc=null,vidUrl='',vidName='',small=null,smallKey='',taintedArt=false,avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
   var syncBackgroundOptionsUI=null,syncBackgroundToggleUI=null,bgLoop=null;
   var work=document.createElement('canvas'),wctx=work.getContext('2d');
   var t0=performance.now();
@@ -91,12 +91,13 @@
   }
 
   function drawCover(g,el,w,h){
-    var vw=el.videoWidth,vh=el.videoHeight;if(!vw||!vh)return false;
+    if(offSrc)el=offSrc;
+    var vw=el.videoWidth||el.width,vh=el.videoHeight||el.height;if(!vw||!vh)return false;
     var k=Math.max(w/vw,h/vh),dw=vw*k,dh=vh*k;
     try{g.drawImage(el,(w-dw)/2,(h-dh)/2,dw,dh);return true;}catch(e){return false;}
   }
 
-  function useVideo(){return mode==='video'&&vid&&vid.readyState>=2;}
+  function useVideo(){return mode==='video'&&vid&&(!!offSrc||vid.readyState>=2);}
 
   /* paint(ctx,w,h,t) – used by the preview loop and by video export */
   function paint(g,w,h,t){
@@ -318,7 +319,7 @@
     function load(file){
       if(!file||!/^video\//.test(file.type)&&! /\.(mp4|mov|m4v|webm)$/i.test(file.name)){name.textContent='Choose an MP4, MOV or WebM video';return;}
       clearVideo();
-      vidUrl=URL.createObjectURL(file);vidName=file.name;
+      vidFile=file;vidUrl=URL.createObjectURL(file);vidName=file.name;
       rowName.textContent=file.name;rowStatus.textContent='Loading preview…';row.hidden=false;z.classList.add('has-selected-file');
       vid=document.createElement('video');vid.muted=true;vid.loop=true;vid.playsInline=true;vid.preload='auto';vid.style.display='none';
       vid.src=vidUrl;document.body.appendChild(vid);
@@ -386,12 +387,25 @@
       await sleep(100);waited+=100;
     }
     if(vid.readyState<2||!(vid.duration>0))throw new Error('The background video is not ready. Re-select it and try again.');
-    return {video:true,duration:vid.duration};
+    /* Preferred path: decode the clip in order with WebCodecs (Mediabunny) instead of seeking an element per frame. */
+    offSess=null;offSrc=null;
+    try{
+      if(vidFile&&window.VideoDecoder){
+        if(!window.KefeFrames){await new Promise(function(res,rej){var sc=document.createElement('script');sc.src='./app/vendor/mediabunny/kefe-frames.js?v=1';sc.onload=res;sc.onerror=function(){rej(new Error('decoder script'));};document.head.appendChild(sc);});}
+        offSess=await window.KefeFrames.open(vidFile);
+        var probe=await offSess.at(0);if(!probe)throw new Error('no first frame');
+      }
+    }catch(e){console.warn('[KEFE bg] sequential decoder unavailable, using element seeking',e);if(offSess){offSess.close();}offSess=null;offSrc=null;}
+    return {video:true,duration:vid.duration,decoder:!!offSess};
   }
   /* Puts the background on exact media time t: seeks the video (looping) and repaints the preview canvas that the
      glass visualisers sample as their texture. Throws if the video cannot be positioned. */
   async function offlineFrame(t){
-    if(enabled&&mode==='video'&&vid){
+    if(enabled&&mode==='video'&&vid&&offSess){
+      try{var c=await offSess.at(t);if(c)offSrc=c;else throw new Error('no frame');}
+      catch(e){console.warn('[KEFE bg] decoder failed, falling back to seeking',e);offSess.close();offSess=null;offSrc=null;}
+    }
+    if(enabled&&mode==='video'&&vid&&!offSess){
       var eng=window.kefeExportEngine;
       if(eng&&typeof eng.seekVideo==='function'){
         var ok=await eng.seekVideo(vid,t);
@@ -402,6 +416,7 @@
     if(cctx&&size())paint(cctx,cv.width,cv.height,t);
   }
   function offlineEnd(){
+    if(offSess){offSess.close();offSess=null;}offSrc=null;
     if(window.kefeExportEngine&&window.kefeExportEngine.resetSeek)window.kefeExportEngine.resetSeek(vid);
     syncVideo(true);
     if(cctx&&size())paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
