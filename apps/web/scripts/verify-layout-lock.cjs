@@ -69,19 +69,28 @@ async function measure(page) {
     ].filter(([, n]) => n);
     out.stack = stack.map(([k, n]) => [k, rect(n)]);
 
-    const frameL = Math.min(...out.stack.filter(([k]) => k !== "toolbar").map(([, r]) => r.l));
-    const frameR = Math.max(...out.stack.filter(([k]) => k !== "toolbar").map(([, r]) => r.r));
-    out.frame = [frameL, frameR];
-    for (const [k, r] of out.stack) {
-      if (k === "toolbar") { if (r.r > frameR + 1 || r.l < frameL - 1) problem(`toolbar strip leaves the content frame (${Math.round(r.l)}..${Math.round(r.r)} vs ${Math.round(frameL)}..${Math.round(frameR)})`); continue; }
-      if (Math.abs(r.l - frameL) > 1) problem(`${k} left edge ${Math.round(r.l)} != frame ${Math.round(frameL)}`);
-      if (Math.abs(r.r - frameR) > 1) problem(`${k} right edge ${Math.round(r.r)} != frame ${Math.round(frameR)}`);
-    }
-    for (let i = 1; i < out.stack.length; i++) {
-      const [ka, a] = out.stack[i - 1], [kb, b] = out.stack[i];
-      const gap = b.t - a.b;
-      if (gap < -0.5) problem(`${ka} and ${kb} overlap by ${Math.round(-gap)}px`);
-      else if (Math.abs(gap - 12) > 1) problem(`gap ${ka}->${kb} is ${Math.round(gap * 10) / 10}px, expected 12`);
+    /* Wide desktop is two columns (preview + transport | controls); everything else is one stack. */
+    const pv = out.stack.find(([k]) => k === "preview"), tb = out.stack.find(([k]) => k === "tabs");
+    const twoCol = !!(pv && tb && tb[1].l >= pv[1].r - 1);
+    const groups = twoCol
+      ? [out.stack.filter(([k]) => ["preview", "toolbar", "timeline"].includes(k)), out.stack.filter(([k]) => !["preview", "toolbar", "timeline"].includes(k))]
+      : [out.stack];
+    out.frame = [];
+    for (const grp of groups) {
+      const frameL = Math.min(...grp.filter(([k]) => k !== "toolbar").map(([, r]) => r.l));
+      const frameR = Math.max(...grp.filter(([k]) => k !== "toolbar").map(([, r]) => r.r));
+      out.frame.push([frameL, frameR]);
+      for (const [k, r] of grp) {
+        if (k === "toolbar") { if (r.r > frameR + 1 || r.l < frameL - 1) problem(`toolbar strip leaves the content frame (${Math.round(r.l)}..${Math.round(r.r)} vs ${Math.round(frameL)}..${Math.round(frameR)})`); continue; }
+        if (Math.abs(r.l - frameL) > 1) problem(`${k} left edge ${Math.round(r.l)} != frame ${Math.round(frameL)}`);
+        if (Math.abs(r.r - frameR) > 1) problem(`${k} right edge ${Math.round(r.r)} != frame ${Math.round(frameR)}`);
+      }
+      for (let i = 1; i < grp.length; i++) {
+        const [ka, a] = grp[i - 1], [kb, b] = grp[i];
+        const gap = b.t - a.b;
+        if (gap < -0.5) problem(`${ka} and ${kb} overlap by ${Math.round(-gap)}px`);
+        else if (Math.abs(gap - 12) > 1) problem(`gap ${ka}->${kb} is ${Math.round(gap * 10) / 10}px, expected 12`);
+      }
     }
     const header = q(".kefe-sidebar");
     if (header) {

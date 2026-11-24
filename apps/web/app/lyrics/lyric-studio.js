@@ -413,9 +413,9 @@
     var review = el('div', 'kefe-review');
     review.appendChild(el('div', 'kefe-label', 'Before you export'));
     [
-      'Read the lyrics silently: spelling, punctuation, line breaks.',
-      'Listen once without editing: do the lines land with the vocal, especially chorus entrances?',
-      'Check the preview at phone size: is the text still readable?'
+      'Lyrics read cleanly (spelling, line breaks)',
+      'Lines land with the vocal',
+      'Text readable at phone size'
     ].forEach(function (t, i) {
       var l = el('label', 'kefe-review-item'), c = document.createElement('input'); c.type = 'checkbox'; c.id = 'kefeReview' + i;
       l.append(c, document.createTextNode(' ' + t)); review.appendChild(l);

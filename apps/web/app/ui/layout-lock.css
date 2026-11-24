@@ -575,3 +575,55 @@ html:root .kefe-editor [data-panel-view="lyrics"] .kefe-timing-editor.is-empty .
   html:root .kefe-editor [data-panel-view="lyrics"] .shad-lyric-display-choice > .shad-radio { display: none !important; }
   html:root .kefe-editor [data-panel-view="lyrics"] .shad-lyric-display-choice > span { white-space: nowrap !important; font-size: 13px !important; }
 }
+
+/* ── Wide desktop: preview + transport on the left, every control on the right ─────────────
+   Uses the whole screen instead of a thin preview over a squeezed control strip. */
+@media (min-width: 1000px) and (min-height: 540px) {
+  :root { --lk-preview-h: calc(100dvh - var(--lk-header-h) - 156px); --lk-side-w: clamp(460px, 40vw, 640px); }
+  html:root .kefe-editor {
+    grid-template-columns: minmax(0, 1fr) var(--lk-side-w) !important;
+    grid-template-rows: var(--lk-header-h) minmax(0, 1fr) !important;
+  }
+  html:root .kefe-editor > .kefe-sidebar { grid-column: 1 / -1 !important; grid-row: 1 !important; }
+  html:root .kefe-editor > .kefe-work { grid-column: 1 !important; grid-row: 2 !important; align-content: start !important; overflow: hidden !important; }
+  html:root .kefe-editor > .kefe-editing {
+    grid-column: 2 !important; grid-row: 2 !important;
+    border-left: 1px solid var(--border, rgba(255,255,255,.08)) !important;
+    padding-top: var(--lk-gap) !important;
+  }
+}
+
+/* ── Cut filler copy: titles repeat the tab, intros restate the control ─────────────────── */
+html:root .kefe-editor :is(.kefe-workspace-title, .kefe-panel-head > .kefe-meta, .kefe-panel-head > div > .kefe-meta,
+  #kefeStartAspectHint, .kefe-step-head p, .kefe-effects-heading .kefe-meta, .kefe-lyric-settings-head .kefe-meta,
+  .kqr-head .kefe-meta, .kefe-background-effect-control > p.kefe-meta, #kefeLyricsTools > .kefe-meta,
+  .kbc-card:not(.is-disabled) .kbc-desc) { display: none !important; }
+html:root .kefe-editor .kefe-step-head { padding-block: 0 !important; margin-block: 0 !important; min-height: 0 !important; }
+
+@media (min-width: 1000px) and (min-height: 540px) {
+  html:root .kefe-editor:has(.kefe-stage.is-16x9) { --lk-preview-h: min(calc(100dvh - var(--lk-header-h) - 156px), calc((100vw - var(--lk-side-w) - 24px) * 0.5625)); }
+  html:root .kefe-editor:has(.kefe-stage.is-1x1) { --lk-preview-h: min(calc(100dvh - var(--lk-header-h) - 156px), calc(100vw - var(--lk-side-w) - 24px)); }
+  html:root .kefe-editor > .kefe-work { align-content: start !important; }
+}
+
+/* Empty song-search shelf: one slim row, not a 280px black box. */
+html:root .kefe-editor #kefeCarousel:has(> #kefeCarEmpty:not([hidden])),
+html:root .kefe-editor #kefeCarousel:has(#kefeCarEmpty:not([hidden])) { min-height: 0 !important; height: auto !important; }
+html:root .kefe-editor #kefeCarEmpty { height: auto !important; min-height: 0 !important; padding-block: 10px !important; }
+
+/* Upload zones: one compact row (icon · name · Browse) instead of a centred 150px stack. */
+html:root .kefe-editor .kefe-upload-zone .kefe-upload-card {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-areas: "sym title browse" "sym name browse" !important;
+  column-gap: 12px !important; row-gap: 0 !important;
+  align-items: center !important; justify-items: start !important; text-align: left !important;
+  padding: 10px 12px !important; min-height: 0 !important;
+}
+html:root .kefe-editor .kefe-upload-zone .shad-upload-symbol { grid-area: sym !important; }
+html:root .kefe-editor .kefe-upload-zone .kefe-upload-title { grid-area: title !important; align-self: end !important; }
+html:root .kefe-editor .kefe-upload-zone .kefe-upload-name { grid-area: name !important; align-self: start !important; max-width: 100% !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; }
+html:root .kefe-editor .kefe-upload-zone .shad-upload-browse { grid-area: browse !important; justify-self: end !important; }
+html:root .kefe-editor .kefe-upload-zone.shad-dropzone { min-height: 0 !important; height: auto !important; padding: 0 !important; }
+html:root .kefe-editor .kefe-upload-zone .kefe-upload-title,
+html:root .kefe-editor .kefe-upload-zone .kefe-upload-name { text-align: left !important; justify-self: start !important; width: 100% !important; }
