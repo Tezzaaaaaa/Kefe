@@ -2547,11 +2547,14 @@
         setExportProgress(97,'Checking the video for problems · up to 20 s');
         const checkStart=performance.now();
         try{
-          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving,budgetMs:20000,onProgress:(f,text)=>{
+          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving,expectSeconds:clip?clip.length:audio.duration,budgetMs:20000,onProgress:(f,text)=>{
             const left=Math.max(0,20-(performance.now()-checkStart)/1000);
             setExportProgress(97+Math.round(f*2),text+(f>=0.35?etaText(checkStart,f):' · up to '+Math.ceil(left/5)*5+' s'));
           }}),problems=[],soft=[];
           if(info.skipped)soft.push('the final check ran out of time, so the picture was not scanned for freezes');
+          const want=clip?clip.length:audio.duration,tol=Math.max(1.5,want*0.05);
+          if(isFinite(info.duration)&&info.duration<want-tol)problems.push('the video is '+info.duration.toFixed(1)+' s but should be '+want.toFixed(1)+' s (it plays sped up or cut short)');
+          else if(info.audioSeconds!=null&&info.audioSeconds<want-tol)problems.push('the audio is '+info.audioSeconds.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
           if(info.audio==='silent')problems.push('the audio is silent');
           if(info.audio==='missing')problems.push('the audio track is missing');
           if(info.motion==='frozen')problems.push('the background video is frozen');

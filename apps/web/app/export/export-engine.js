@@ -519,6 +519,21 @@
       } catch (e) { /* leave unknown */ }
     }
 
+    /* Length check: a sped-up or cut-short file has a video shorter than the song. */
+    out.duration = null;
+    if (o.expectSeconds > 0 && typeof document !== 'undefined') {
+      var lv = document.createElement('video'), lurl = URL.createObjectURL(blob);
+      try {
+        lv.muted = true; lv.preload = 'metadata'; lv.src = lurl;
+        await withTimeout(new Promise(function (resolve, reject) { lv.onloadedmetadata = resolve; lv.onerror = function () { reject(new Error('unreadable')); }; }), 6000, 'x', 'stall');
+        if (!isFinite(lv.duration)) {
+          lv.currentTime = 1e101;
+          await withTimeout(new Promise(function (resolve) { lv.ontimeupdate = function () { if (isFinite(lv.duration)) resolve(); }; }), 4000, 'x', 'stall');
+        }
+        if (isFinite(lv.duration)) out.duration = lv.duration;
+      } catch (e) { /* length unknown here */ } finally { try { URL.revokeObjectURL(lurl); } catch (_) {} lv.removeAttribute('src'); }
+    }
+
     report(0.3, 'Checking the picture');
     if (o.expectMotion && typeof document !== 'undefined' && !over()) {
       var v = document.createElement('video'), url = URL.createObjectURL(blob);
