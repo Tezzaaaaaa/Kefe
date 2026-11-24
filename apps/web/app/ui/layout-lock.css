@@ -627,3 +627,9 @@ html:root .kefe-editor .kefe-upload-zone .shad-upload-browse { grid-area: browse
 html:root .kefe-editor .kefe-upload-zone.shad-dropzone { min-height: 0 !important; height: auto !important; padding: 0 !important; }
 html:root .kefe-editor .kefe-upload-zone .kefe-upload-title,
 html:root .kefe-editor .kefe-upload-zone .kefe-upload-name { text-align: left !important; justify-self: start !important; width: 100% !important; }
+
+@media (max-width: 760px) {
+  html:root .kefe-editor .kefe-panel { padding-top: 0 !important; }
+  html:root .kefe-editor .kefe-panel > .kefe-form { padding-top: 0 !important; }
+  html:root .kefe-editor .kefe-background-effects-heading { padding-top: 6px !important; }
+}

@@ -64,7 +64,7 @@
     const next = $('.kefe-step-next', nav);
     nav.classList.toggle('is-last', last);
     back.disabled = index === 0;
-    back.textContent = last ? 'Back · ' + STEPS[index - 1].short : 'Back';
+    back.textContent = 'Back';
     next.hidden = last;
     if (!last) {
       next.textContent = 'Next · ' + STEPS[index + 1].short;
