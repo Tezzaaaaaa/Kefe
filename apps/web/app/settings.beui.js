@@ -9,7 +9,6 @@
       { key: 'titleCard', label: 'Show title card', hint: 'Apple Music effect only: artwork and details on their own until 1s before the first lyric, then they move up into the header. Included in exports.', type: 'toggle', def: true }
     ]},
     { group: 'Engine', items: [
-      { key: 'fpsTarget', label: 'FPS target', hint: 'Caps how often the visualiser renders in the preview and in exports. Lower it on slower devices.', type: 'range', def: 60, min: 30, max: 120, step: 10, fmt: v => String(v) },
       { key: 'fftPower', label: 'FFT size', hint: 'Audio analysis detail for audio-reactive visuals. Larger is more precise but heavier.', type: 'range', def: 11, min: 9, max: 12, step: 1, fmt: v => String(Math.pow(2, v)) }
     ]},
     { group: 'Defaults', items: [
