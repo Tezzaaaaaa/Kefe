@@ -73,7 +73,7 @@
   const validHex = value => /^#[0-9a-f]{6}$/i.test(String(value || ''));
   Fx.palette = defaults => {
     let state = null;
-    try { state = window.kefeStyle && window.kefeStyle.state ? window.kefeStyle.state() : null; } catch (_) { state = null; }
+    try { state = window.kefeStyle && window.kefeStyle.state ? window.kefeStyle.state(window.kefeStyle.renderingEffect) : null; } catch (_) { state = null; }
     const pick = (key, fallback) => (state && validHex(state[key]) ? state[key] : fallback);
     return {
       text: pick('textColor', defaults.text),
