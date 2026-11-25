@@ -649,7 +649,7 @@
       ? new root.Mp4Muxer.Muxer({ target: target, video: { codec: plan.video.mux, width: width, height: height, frameRate: fps }, audio: { codec: plan.audio.mux, numberOfChannels: channels, sampleRate: sampleRate }, fastStart: 'in-memory', firstTimestampBehavior: 'cross-track-offset' })
       : new root.WebMMuxer.Muxer({ target: target, video: { codec: plan.video.mux, width: width, height: height, frameRate: fps }, audio: { codec: plan.audio.mux, numberOfChannels: channels, sampleRate: sampleRate }, firstTimestampBehavior: 'permissive' });
 
-    var fatal = null;
+    var fatal = null, audioChunks = 0;
     var videoEncoder = null, audioEncoder = null;
     try {
       videoEncoder = new VideoEncoder({
@@ -657,7 +657,7 @@
         error: function (e) { fatal = fatal || e; }
       });
       audioEncoder = new AudioEncoder({
-        output: function (chunk, meta) { try { muxer.addAudioChunk(chunk, meta); } catch (e) { fatal = fatal || e; } },
+        output: function (chunk, meta) { try { muxer.addAudioChunk(chunk, meta); audioChunks++; } catch (e) { fatal = fatal || e; } },
         error: function (e) { fatal = fatal || e; }
       });
       videoEncoder.configure(plan.video.config);
@@ -739,6 +739,7 @@
       await withTimeout(videoEncoder.flush(), 180000, 'The video encoder did not finish.', 'stall');
       await withTimeout(audioEncoder.flush(), 90000, 'The audio encoder did not finish.', 'stall');
       if (fatal) throw fatal;
+      if (!audioChunks) throw tagged('The audio encoder produced no audio packets.', 'render');
       throwIfAborted(signal);
       muxer.finalize();
       var mime = isMp4 ? 'video/mp4' : 'video/webm';
@@ -748,7 +749,7 @@
       var check = await verifyOutput(blob, duration);
       if (!check.ok) throw tagged(check.reason || 'The exported file failed its self-check.', 'verify');
       if (check.warning) notes.push(check.warning);
-      return { blob: blob, ext: isMp4 ? 'mp4' : 'webm', mime: mime, container: container, video: plan.video.label, audio: plan.audio.label, fps: fps, frames: total, duration: duration, start: clipStart, width: width, height: height, notes: notes, bgStats: bgStats };
+      return { blob: blob, ext: isMp4 ? 'mp4' : 'webm', mime: mime, container: container, video: plan.video.label, audio: plan.audio.label, fps: fps, frames: total, duration: duration, start: clipStart, width: width, height: height, notes: notes, bgStats: bgStats, audioVerified: true, audioSeconds: duration, durationVerified: !!check.checked, verifiedDuration: check.duration };
     } finally {
       try { if (videoEncoder && videoEncoder.state !== 'closed') videoEncoder.close(); } catch (_) {}
       try { if (audioEncoder && audioEncoder.state !== 'closed') audioEncoder.close(); } catch (_) {}
