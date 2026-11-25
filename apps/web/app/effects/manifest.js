@@ -80,7 +80,7 @@ window.KEFE_EFFECTS = [
 
   /* Flagship */
   { key: 'sigluminaire', label: 'Luminaire', description: 'Cinematic polished-metal title: extruded type, sheen, lens streak, motes and mirror floor', category: 'Flagship' },
-  { key: 'sigpresscycle', label: 'Press Cycle', description: 'Each sung word flashes through a collage of editorial cover styles, then lands clean', category: 'Flagship' },
+  { key: 'sigpresscycle', label: 'Press Cycle', description: 'The complete lyric line cycles through editorial cover styles as one headline', category: 'Flagship' },
 
   /* 97 treatments adapted from the supplied Shadcn.io typography reference. */
   { key: 'ty-fade-in', label: 'Fade In', description: 'Song-timed entrance animation with per-word and per-character timing.', category: 'Typography — Entrance' },
