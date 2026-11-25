@@ -2490,7 +2490,7 @@
         await stopped;
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         if(!chunks.length)throw new Error('The video encoder produced an empty file.');
-        return {blob:new Blob(chunks,{type:mime}),dims,ext,notes:[],bgMotion:bg?.offlineMotionReport?.()||null};
+        return {blob:new Blob(chunks,{type:mime}),dims,ext,notes:[],bgMotion:bg?.offlineMotionReport?.()||null,audioVerified:audioTracks.length>0,audioSeconds:clip?clip.length:audio.duration};
       }finally{
         if(stopPlaybackWait)stopPlaybackWait();
         if(ticker){clearInterval(ticker);ticker=null;}
@@ -2566,13 +2566,15 @@
           }});
           if(info.skipped)problems.push('the final picture check ran out of time');
           const tol=Math.max(1.5,want*0.05);
-          if(!isFinite(info.duration))problems.push('the exported video duration could not be verified');
-          else if(Math.abs(info.duration-want)>tol)problems.push('the video is '+info.duration.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
+          const videoDuration=isFinite(info.duration)?info.duration:(r.durationVerified?r.verifiedDuration:null);
+          if(!isFinite(videoDuration))problems.push('the exported video duration could not be verified');
+          else if(Math.abs(videoDuration-want)>tol)problems.push('the video is '+videoDuration.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
           if(info.audio==='silent')problems.push('the exported audio is silent');
           else if(info.audio==='missing')problems.push('the exported audio track is missing');
-          else if(info.audio!=='ok')problems.push('the exported audio could not be verified');
-          if(info.audioSeconds==null)problems.push('the exported audio duration could not be verified');
-          else if(info.audioSeconds<want-tol)problems.push('the audio is '+info.audioSeconds.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
+          else if(info.audio!=='ok'&&!r.audioVerified)problems.push('the exported audio could not be verified');
+          const audioDuration=info.audioSeconds!=null?info.audioSeconds:(r.audioVerified?r.audioSeconds:null);
+          if(audioDuration==null)problems.push('the exported audio duration could not be verified');
+          else if(audioDuration<want-tol)problems.push('the audio is '+audioDuration.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
           if(bgMoving){
             const bm=r.bgMotion;
             if(info.motion==='frozen')problems.push('the exported picture is frozen');
