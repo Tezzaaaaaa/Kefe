@@ -4,7 +4,7 @@ KEFE is a browser-based music visualiser and lyric-video editor for creating lyr
 
 ## Open KEFE
 
-**[Launch KEFE Editor](https://tezzaaaaaa.github.io/Kefe/)**
+**[KEFE Home](https://tezzaaaaaa.github.io/Kefe/)** · **[Open Editor](https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html)**
 
 - **Repository:** [Tezzaaaaaa/Kefe](https://github.com/Tezzaaaaaa/Kefe)
 - **Deployment:** GitHub Pages
@@ -74,7 +74,7 @@ Export formats and encoding options depend on browser APIs, codec support, devic
 
 ## Quick start
 
-1. Open [KEFE Editor](https://tezzaaaaaa.github.io/Kefe/). Media, lyrics, effects, visualisers, settings and export are all part of this single workspace.
+1. Open [KEFE Home](https://tezzaaaaaa.github.io/Kefe/) and select **Start creating**, or go directly to the [KEFE Editor](https://tezzaaaaaa.github.io/Kefe/apps/web/editor.html). Media, lyrics, effects, visualisers, settings and export are all part of the same KEFE site.
 2. In **Media**, load an audio or video file.
 3. Use **Find your song** to search for and select the correct track, then check the metadata and artwork.
 4. Load or review the lyrics and correct their timing where needed.
