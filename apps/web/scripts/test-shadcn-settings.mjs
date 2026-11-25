@@ -39,12 +39,13 @@ try {
   assert.equal(window.kefeSettings.get("titleCard"), false);
   assert.equal(toggle.getAttribute("aria-checked"), "false");
   dialog.querySelector('#kefe-settings-engine-trigger').click(); await tick();
-  const slider = dialog.querySelector('[role="slider"][aria-label="FPS target"]');
-  assert.ok(slider, "engine group has a Radix slider");
+  const slider = dialog.querySelector('[role="slider"][aria-label="FFT size"]');
+  assert.ok(slider, "engine group retains the audio-analysis detail control");
+  assert.equal(dialog.querySelector('[role="slider"][aria-label="FPS target"]'), null, "export frame rate is not exposed as a setting");
   slider.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true })); await tick();
-  assert.equal(window.kefeSettings.get("fpsTarget"), 70);
-  window.kefeSettings.set("fpsTarget", 90); await tick();
-  assert.equal(slider.getAttribute("aria-valuenow"), "90");
+  assert.equal(window.kefeSettings.get("fftPower"), 12);
+  window.kefeSettings.set("fftPower", 10); await tick();
+  assert.equal(slider.getAttribute("aria-valuenow"), "10");
   dialog.querySelector('#kefe-settings-defaults-trigger').click(); await tick();
   const select = dialog.querySelector('[data-slot="select-trigger"][aria-label="Aspect ratio"]');
   assert.ok(select, "defaults has a Radix select");
