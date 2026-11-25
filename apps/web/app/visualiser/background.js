@@ -475,6 +475,8 @@
       offlineMotionLast=t;
     }catch(e){offlineMotionError=true;}
   }
+  function beginMotionCheck(){offlineMotionSamples=[];offlineMotionLast=-Infinity;offlineMotionError=false;}
+  function sampleMotion(time){sampleOfflineMotion(time);}
   function offlineMotionReport(){
     var samples=offlineMotionSamples,maxDifference=0,ranges=[],runStart=null,rangeRecorded=false;
     for(var i=1;i<samples.length;i++){
@@ -493,5 +495,5 @@
     syncVideo(true);
     if(cctx&&size())paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
   }
-  window.kefeBackground={sync:function(){syncVideo(false);},offlinePrepare:offlinePrepare,offlineFrame:offlineFrame,offlineMotionReport:offlineMotionReport,offlineEnd:offlineEnd,video:function(){return vid;},paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
+  window.kefeBackground={sync:function(){syncVideo(false);},offlinePrepare:offlinePrepare,offlineFrame:offlineFrame,offlineMotionReport:offlineMotionReport,beginMotionCheck:beginMotionCheck,sampleMotion:sampleMotion,offlineEnd:offlineEnd,video:function(){return vid;},paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
 })();
