@@ -391,7 +391,7 @@
           var shown = Number(meta && meta.mediaTime);
           if (isFinite(shown)) {
             var delta = Math.abs(shown - target);
-            delta = Math.min(delta, Math.max(0, duration - delta));
+            delta = Math.min(delta, Math.abs(duration - delta));
             if (delta <= tol) { finish(meta); return; }
           }
           try { v.requestVideoFrameCallback(onFrame); } catch (_) { finish(null); }
