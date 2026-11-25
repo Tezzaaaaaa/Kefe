@@ -10,9 +10,8 @@
 .kefe-step-nav { display: none; }
 
 @media (max-width: 760px), (pointer: coarse) and (max-height: 520px) {
-  /* Compact preview by default; the Preview button in the step header makes it larger. */
+  /* Keep the existing compact mobile preview size. */
   html:root { --lk-preview-h: clamp(104px, 17dvh, 180px); }
-  html:root.kefe-preview-large { --lk-preview-h: clamp(180px, 40dvh, 360px); }
 
   /* The steps replace the workspace tab row, the section sub-tab row and the workspace title. */
   html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tabs,
@@ -96,21 +95,6 @@
     text-overflow: ellipsis;
   }
   .kefe-step-header.is-auto .kefe-step-title { color: var(--shad-primary, #d92f33); }
-  .kefe-step-preview {
-    flex: 0 0 auto;
-    min-height: 34px;
-    padding: 0 12px;
-    border: 1px solid var(--shad-border, #34353c);
-    border-radius: 999px;
-    background: var(--shad-card, #202126);
-    color: var(--shad-foreground, #f5f5f5);
-    font: inherit;
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .kefe-step-preview[aria-pressed="true"] { border-color: var(--shad-primary, #d92f33); }
 
   /* ── Back / Next bar ── */
   html:root .kefe-editor #kefe-settings-panel > .kefe-step-nav {
