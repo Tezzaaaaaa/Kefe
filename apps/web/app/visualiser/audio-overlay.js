@@ -262,12 +262,10 @@
     setOfflineSource: function (source) { offlineSource = source || null; }
   };
 
-  /* Shared preview render-rate gate. Settings → Engine → FPS target caps how often a visualiser
-     paints the preview. Only the visible visualiser calls this, so the cap stays accurate. */
+  /* Shared preview frame gate. Export bypasses this gate and renders at its requested frame rate. */
   function frameGate(now) {
     if (window.kefeResilience && window.kefeResilience.isOffline && window.kefeResilience.isOffline()) return true;
-    var target = Math.round(Number(window.kefeSettings && window.kefeSettings.get('fpsTarget'))) || 60;
-    target = Math.max(24, Math.min(120, target));
+    var target = 60;
     var step = 1000 / target;
     var last = frameGate.lastPaint || 0;
     if (!last || now - last >= step - 1) {
