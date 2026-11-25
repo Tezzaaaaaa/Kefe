@@ -75,6 +75,15 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => window.kefeStyle.activate('apple'));
       assert.equal(await page.evaluate(() => window.kefeStyle.state().textColor), '#123456', 'changing one effect must not alter another effect');
       assert.equal(await page.evaluate(() => window.kefeStyle.state().offsetX), 0, 'effect placement must remain independent');
+      await page.evaluate(() => {
+        const font = document.getElementById('fontOverride');
+        font.value = 'Arial';
+        font.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      await page.locator('#lyricEffectOptions [data-effect="sigkineticpunch"]').evaluate(node => node.click());
+      assert.equal(await page.locator('#fontOverride').inputValue(), '', 'font override must reset to the selected effect default');
+      await page.locator('#lyricEffectOptions [data-effect="apple"]').evaluate(node => node.click());
+      assert.equal(await page.locator('#fontOverride').inputValue(), 'Arial', 'font override must be restored only for its own effect');
       const layout = await palette.evaluate(el => ({ width: el.getBoundingClientRect().width, scroll: el.scrollWidth, buttons: [...el.children].map(n => [n.getBoundingClientRect().width, n.getBoundingClientRect().height]) }));
       assert.ok(layout.width > 0 && layout.scroll <= layout.width + 1, `palette fits at ${width}px`);
       assert.ok(layout.buttons.every(([w, h]) => w >= 20 && h >= 20), 'colour swatches remain usable');
