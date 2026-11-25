@@ -34,9 +34,10 @@ const server = http.createServer((req, res) => {
       await sw.click();
       assert.equal(await page.evaluate(() => window.kefeSettings.get('titleCard')), false);
       await accordion.filter({ hasText: 'Engine' }).click();
-      const slider = dialog.getByRole('slider', { name: 'FPS target' });
+      const slider = dialog.getByRole('slider', { name: 'FFT size' });
       await slider.focus(); await slider.press('ArrowRight');
-      assert.equal(await page.evaluate(() => window.kefeSettings.get('fpsTarget')), 70);
+      assert.equal(await page.evaluate(() => window.kefeSettings.get('fftPower')), 12);
+      assert.equal(await dialog.getByRole('slider', { name: 'FPS target' }).count(), 0, 'Settings must not expose an export frame-rate cap');
       await accordion.filter({ hasText: 'Defaults' }).click();
       const select = dialog.getByRole('combobox', { name: 'Aspect ratio' });
       await select.click();
@@ -44,7 +45,7 @@ const server = http.createServer((req, res) => {
       await option.click();
       assert.equal(await page.evaluate(() => window.kefeSettings.get('aspect')), '9:16');
       await dialog.getByRole('button', { name: 'Reset all settings' }).click();
-      assert.deepEqual(await page.evaluate(() => [window.kefeSettings.get('titleCard'), window.kefeSettings.get('fpsTarget'), window.kefeSettings.get('aspect')]), [true, 60, '16:9']);
+      assert.deepEqual(await page.evaluate(() => [window.kefeSettings.get('titleCard'), window.kefeSettings.get('fftPower'), window.kefeSettings.get('aspect')]), [true, 11, '16:9']);
       await dialog.getByRole('button', { name: 'Close settings' }).click();
       await dialog.waitFor({ state: 'hidden' });
       await page.waitForFunction(() => document.activeElement?.matches('[data-top-panel="settings"]'));
