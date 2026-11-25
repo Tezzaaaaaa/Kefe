@@ -2574,7 +2574,7 @@
           else if(info.audioSeconds<want-tol)problems.push('the audio is '+info.audioSeconds.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
           if(bgMoving){
             const bm=r.bgMotion;
-            if(bm&&bm.checked>=6){
+            if(bm&&bm.checked>=2){
               if(bm.motion==='frozen')problems.push('the uploaded background video is frozen');
               else if(bm.motion==='stalled'&&bm.frozenRanges?.length){
                 const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
