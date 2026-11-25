@@ -42,6 +42,28 @@ html:root .kefe-editor {
   text-rendering: optimizeLegibility;
 }
 
+/* Settings panels use the same readable type steps in every workspace. */
+html:root .kefe-editor #kefe-settings-panel .kefe-workspace-tab,
+html:root .kefe-editor #kefe-settings-panel .kefe-subtab {
+  font-size: var(--ts-small);
+  line-height: var(--ts-heading-leading);
+  letter-spacing: 0;
+  font-weight: 600;
+}
+html:root .kefe-editor #kefe-settings-panel .section-title-wrap,
+html:root .kefe-editor #kefe-settings-panel .title-group h2 {
+  font-size: var(--ts-h6);
+  line-height: var(--ts-heading-leading);
+  letter-spacing: var(--ts-heading-tracking);
+  font-weight: 650;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] :is(.kefe-btn, .kefe-panel-action:not(.kefe-switch), .shad-upload-browse, .kefe-chip, button[role="tab"]) {
+  font-size: var(--ts-small);
+  line-height: var(--ts-heading-leading);
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
 /* Headings follow the scale. */
 html:root .kefe-editor h1 { font-size: var(--ts-h3); }
 html:root .kefe-editor h2 { font-size: var(--ts-h5); }
