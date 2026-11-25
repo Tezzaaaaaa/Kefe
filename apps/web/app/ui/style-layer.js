@@ -1,6 +1,5 @@
-/* KEFE — lyric style layer.
-   Shared colour, size, placement, outline and glow controls for lyric effects.
-   Settings persist in localStorage. An empty colour means "use the effect's own colour". */
+/* KEFE — independent style settings for each lyric effect.
+   An empty colour means "use the effect's own colour". */
 (function () {
   'use strict';
   var KEY = 'kefe.style.v1';
@@ -22,27 +21,42 @@
     });
     return out;
   }
-  var S = clone(DEFAULT);
-  try { S = merge(DEFAULT, JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (e) { /* storage unavailable */ }
-  function persist() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
+  var activeEffect = 'apple', renderingEffect = '';
+  var effects = {};
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved && saved.version === 2 && saved.effects && typeof saved.effects === 'object') {
+      Object.keys(saved.effects).forEach(function (id) { effects[id] = merge(DEFAULT, saved.effects[id]); });
+    } else if (saved && typeof saved === 'object' && ('scale' in saved || 'textColor' in saved || 'outline' in saved || 'glow' in saved)) {
+      effects.apple = merge(DEFAULT, saved);
+    }
+  } catch (e) { /* storage unavailable */ }
+  var S = clone(effects[activeEffect] || DEFAULT);
+  function persist(id, value) {
+    id = id || activeEffect;
+    effects[id] = clone(value || (id === activeEffect ? S : DEFAULT));
+    try { localStorage.setItem(KEY, JSON.stringify({ version: 2, effects: effects })); } catch (e) { /* ignore */ }
+  }
+  function stateFor(id) { return id === activeEffect ? S : (effects[id] || DEFAULT); }
   function redraw() { try { if (window.kefeLyrics) window.kefeLyrics.redraw(); } catch (e) { /* ignore */ } }
 
   function validColor(v) { return /^#[0-9a-f]{6}$/i.test(String(v || '')); }
 
   /* ---------- effect style ---------- */
   function style(base) {
+    var state = stateFor(base.effect || activeEffect);
     var s = Object.assign({}, base);
-    s.fontSize = (Number(base.fontSize) || 80) * (S.scale / 100);
-    if (validColor(S.textColor)) { s.textColor = S.textColor; s.flipcardsColor = S.textColor; }
-    if (validColor(S.accentColor)) { s.accentColor = S.accentColor; s.flipcardsAccent = S.accentColor; }
-    if (validColor(S.inactiveColor)) s.karaokeInactiveColor = S.inactiveColor;
+    s.fontSize = (Number(base.fontSize) || 80) * (state.scale / 100);
+    if (validColor(state.textColor)) { s.textColor = state.textColor; s.flipcardsColor = state.textColor; }
+    if (validColor(state.accentColor)) { s.accentColor = state.accentColor; s.flipcardsAccent = state.accentColor; }
+    if (validColor(state.inactiveColor)) s.karaokeInactiveColor = state.inactiveColor;
     return s;
   }
 
   /* ---------- post-processing (placement, outline, glow) ---------- */
   var layerA = null, layerB = null;
   function sized(c, w, h) { if (c.width !== w || c.height !== h) { c.width = w; c.height = h; } return c; }
-  function active() { return S.outline.on || S.glow.on || S.offsetX !== 0 || S.offsetY !== 0; }
+  function active(state) { state = state || S; return state.outline.on || state.glow.on || state.offsetX !== 0 || state.offsetY !== 0; }
 
   /* Fill every non-transparent pixel of `src` with `color` (a silhouette). */
   function silhouette(dst, src, color, w, h) {
@@ -53,40 +67,49 @@
     g.globalCompositeOperation = 'source-over';
   }
 
-  function post(ctx, w, h, paint) {
-    if (!active()) { paint(ctx); return; }
+  function post(ctx, w, h, paint, effectId) {
+    var previousEffect = renderingEffect;
+    var id = effectId || activeEffect;
+    var state = stateFor(id);
+    renderingEffect = id;
+    if (!active(state)) {
+      try { paint(ctx); } finally { renderingEffect = previousEffect; }
+      return;
+    }
     layerA = sized(layerA || document.createElement('canvas'), w, h);
     var a = layerA.getContext('2d');
     a.setTransform(1, 0, 0, 1, 0, 0); a.globalAlpha = 1; a.globalCompositeOperation = 'source-over'; a.filter = 'none';
     a.clearRect(0, 0, w, h);
-    paint(a);
-
-    var dx = w * S.offsetX / 100, dy = h * S.offsetY / 100;
-    var u = Math.min(w, h) / 720; /* sliders are tuned at 720px; scale so exports match the preview */
-    ctx.save();
-    ctx.translate(dx, dy);
-    if (S.glow.on) {
-      layerB = sized(layerB || document.createElement('canvas'), w, h);
-      silhouette(layerB, layerA, S.glow.color, w, h);
-      var blur = Math.max(1, S.glow.blur * u);
-      var passes = S.glow.strength > 66 ? 3 : S.glow.strength > 33 ? 2 : 1;
+    try {
+      paint(a);
+      var dx = w * state.offsetX / 100, dy = h * state.offsetY / 100;
+      var u = Math.min(w, h) / 720;
       ctx.save();
-      try { ctx.filter = 'blur(' + blur + 'px)'; } catch (e) { /* filter unsupported: harder edge */ }
-      ctx.globalAlpha = Math.min(1, S.glow.strength / 70);
-      for (var i = 0; i < passes; i++) ctx.drawImage(layerB, 0, 0);
-      ctx.restore();
-    }
-    if (S.outline.on && S.outline.width > 0) {
-      layerB = sized(layerB || document.createElement('canvas'), w, h);
-      silhouette(layerB, layerA, S.outline.color, w, h);
-      var r = Math.max(1, S.outline.width * u), steps = Math.max(12, Math.min(32, Math.round(r * 2.5))); /* capped: each step is a full-canvas draw, per frame */
-      for (var k = 0; k < steps; k++) {
-        var ang = k / steps * Math.PI * 2;
-        ctx.drawImage(layerB, Math.cos(ang) * r, Math.sin(ang) * r);
-      }
-    }
-    ctx.drawImage(layerA, 0, 0);
-    ctx.restore();
+      try {
+        ctx.translate(dx, dy);
+        if (state.glow.on) {
+          layerB = sized(layerB || document.createElement('canvas'), w, h);
+          silhouette(layerB, layerA, state.glow.color, w, h);
+          var blur = Math.max(1, state.glow.blur * u);
+          var passes = state.glow.strength > 66 ? 3 : state.glow.strength > 33 ? 2 : 1;
+          ctx.save();
+          try { ctx.filter = 'blur(' + blur + 'px)'; } catch (e) { /* filter unsupported: harder edge */ }
+          ctx.globalAlpha = Math.min(1, state.glow.strength / 70);
+          for (var i = 0; i < passes; i++) ctx.drawImage(layerB, 0, 0);
+          ctx.restore();
+        }
+        if (state.outline.on && state.outline.width > 0) {
+          layerB = sized(layerB || document.createElement('canvas'), w, h);
+          silhouette(layerB, layerA, state.outline.color, w, h);
+          var r = Math.max(1, state.outline.width * u), steps = Math.max(12, Math.min(32, Math.round(r * 2.5)));
+          for (var k = 0; k < steps; k++) {
+            var ang = k / steps * Math.PI * 2;
+            ctx.drawImage(layerB, Math.cos(ang) * r, Math.sin(ang) * r);
+          }
+        }
+        ctx.drawImage(layerA, 0, 0);
+      } finally { ctx.restore(); }
+    } finally { renderingEffect = previousEffect; }
   }
 
   /* ---------- UI ---------- */
@@ -194,11 +217,31 @@
     syncers.forEach(function (fn) { fn(); });
   }
 
+  function activate(id) {
+    if (!id || id === activeEffect) return clone(S);
+    effects[activeEffect] = clone(S);
+    activeEffect = String(id);
+    S = clone(effects[activeEffect] || DEFAULT);
+    syncers.forEach(function (fn) { fn(); });
+    redraw();
+    return clone(S);
+  }
   window.kefeStyle = {
     style: style, post: post,
-    state: function () { return clone(S); },
-    applyState: function (value) { S = merge(DEFAULT, value); syncers.forEach(function (fn) { fn(); }); persist(); redraw(); return clone(S); },
-    isActive: function () { return active(); }
+    state: function (id) { return clone(stateFor(id || activeEffect)); },
+    applyState: function (value, id) {
+      id = id || activeEffect;
+      var next = merge(DEFAULT, value);
+      effects[id] = clone(next);
+      if (id === activeEffect) { S = next; syncers.forEach(function (fn) { fn(); }); }
+      persist(id, next); redraw(); return clone(next);
+    },
+    activate: activate,
+    isActive: function (id) { return active(stateFor(id || activeEffect)); },
+    get renderingEffect() { return renderingEffect; }
   };
+  window.addEventListener('kefe-effect-change', function (event) {
+    if (event.detail && event.detail.effect) activate(event.detail.effect);
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildUi); else buildUi();
 })();
