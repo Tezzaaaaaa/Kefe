@@ -164,7 +164,8 @@ async function backgroundVideoFixture(page) {
       const complete = page.getByRole('dialog', { name: 'Export complete' });
       await complete.waitFor({ timeout: 30000 });
       assert.equal(await complete.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
-      assert.match(await page.locator('#exportStatus').textContent(), /Export complete/);\n      assert.doesNotMatch(await page.locator('#exportStatus').textContent(), /verification failed|frozen|stopped changing|could not be verified/i, 'the moving background and audio were verified before delivery');
+      assert.match(await page.locator('#exportStatus').textContent(), /Export complete/);
+      assert.doesNotMatch(await page.locator('#exportStatus').textContent(), /verification failed|frozen|stopped changing|could not be verified/i, 'the moving background and audio were verified before delivery');
       if (engineAvailable) assert.match(await page.locator('#exportStatus').textContent(), / fps · /, 'the precise offline renderer produced the video');
       let download;
       if (width === 390) {
