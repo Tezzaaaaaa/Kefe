@@ -48,7 +48,7 @@ const frameworkChecks = {
   "framework announces selection": FRAMEWORK.includes("dispatchEvent(new CustomEvent('kefe-visualiser-select'"),
   "framework stands down on another engine": FRAMEWORK.includes("addEventListener('kefe-visualiser-select'"),
   "framework collapses its panel when yielding": FRAMEWORK.includes("view.hidden = true"),
-  "framework honours the FPS target": FRAMEWORK.includes("kefeFrameGate"),
+  "framework uses the shared preview frame gate": FRAMEWORK.includes("kefeFrameGate"),
   "framework builds per-engine settings controls": FRAMEWORK.includes("def.buildView({"),
 };
 for (const [label, ok] of Object.entries(frameworkChecks)) if (!ok) failures.push(`shader-vis: ${label}`);
@@ -93,7 +93,7 @@ for (const engine of engines) {
   checks.exported = editor.includes("function activeVisualiserLayer")
     && (engine.kind === "registered" ? editor.includes("kefeShaderVis?.current?.()") : editor.includes(`'${engine.canvas}'`));
 
-  /* Honours the FPS target setting in its render loop. */
+  /* Uses the fixed preview frame gate; offline export bypasses it. */
   checks.frameGate = text.includes("kefeFrameGate(");
 
   rows.push({ name: engine.name, checks });
@@ -102,8 +102,8 @@ for (const engine of engines) {
 
 /* Global wiring: settings that claim to drive visualisers must have a consumer. */
 const globalChecks = {
-  "fps target reaches the render loops": audioPlumbing.includes("kefeFrameGate") && audioPlumbing.includes("fpsTarget"),
-  "fps target reaches the exporter": /const exportFps=.*fpsTarget/.test(editor),
+  "preview frame gate is fixed at 60 Hz": audioPlumbing.includes("var target = 60;") && audioPlumbing.includes("kefeFrameGate"),
+  "exports render at 60 fps independently of settings": /const exportFps=60;/.test(editor) && !/fpsTarget/.test(editor),
   "fft size reaches the audio graph": audioPlumbing.includes("fftPower"),
   "no stale visualiser canvas ids in the exporter": !/getElementById\('kefeLiquidFlowCanvas'\)/.test(editor),
   "exporter never double-paints the composited layer": editor.includes("fluidInkComposited"),
@@ -114,7 +114,7 @@ for (const [label, ok] of Object.entries(globalChecks)) if (!ok) failures.push(`
 /* Report */
 const columns = [
   ["loaded", "page"], ["tab", "tab"], ["canvas", "canvas"], ["settings", "settings"], ["power", "power"],
-  ["selects", "selects"], ["yields", "yields"], ["solo", "solo"], ["exported", "export"], ["frameGate", "fps"],
+  ["selects", "selects"], ["yields", "yields"], ["solo", "solo"], ["exported", "export"], ["frameGate", "preview"],
 ];
 const pad = (value, width) => String(value).padEnd(width);
 console.log(pad("visualiser", 14) + columns.map(([, label]) => pad(label, 9)).join(""));
