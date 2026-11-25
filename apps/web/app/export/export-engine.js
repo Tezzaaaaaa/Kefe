@@ -347,13 +347,14 @@
   /* Puts a <video> on the frame for `time` (looping) and resolves when that frame can be drawn.
      Skips the seek when the target still falls inside the frame already on screen. */
   async function seekVideo(v, time) {
-    if (!v) return false;
+    if (!v || typeof v.requestVideoFrameCallback !== 'function') return false;
     var duration = v.duration;
-    if (!(duration > 0) || !isFinite(duration)) return false;
+    if (!(duration > 0) || !isFinite(duration) || typeof document !== 'undefined' && document.visibilityState !== 'visible') return false;
     var want = time % duration;
     if (!(want >= 0)) want = 0;
     if (want > duration - 0.002) want = Math.max(0, duration - 0.002);
     var st = seekState(v);
+    var tol = Math.max(0.06, st.period > 0 ? st.period * 1.5 : 0.08);
     if (st.last >= 0 && st.period > 0 && want >= st.last && want < st.last + st.period * 0.98 && v.readyState >= 2 && !v.seeking) return true;
 
     function seekTo(target) {
@@ -375,75 +376,57 @@
         try { v.currentTime = target; } catch (_) { done(false); }
       });
     }
-    var ok = await seekTo(want);
-    if (!ok) return false;
-
-    /* 'seeked' fires before the compositor has necessarily swapped in the new picture, so drawing straight away
-       can return the previous frame (observed on roughly a third of sequential seeks). Wait until the browser
-       reports the frame it is actually presenting, and check it is the one that was asked for. */
-    var visible = typeof document !== 'undefined' && document.visibilityState === 'visible';
-    async function presented() {
-      var m = null;
-      if (visible && st.rvfc && typeof v.requestVideoFrameCallback === 'function') {
-        m = await new Promise(function (resolve) {
-          var timer = setTimeout(function () { resolve(null); }, 150);
-          v.requestVideoFrameCallback(function (_now, info) { clearTimeout(timer); resolve(info); });
-        });
-        if (m) st.misses = 0;
-        else if (++st.misses >= 8) st.rvfc = false;
-      }
-      if (!m) {
-        /* No presentation report (callback unsupported, already delivered, or tab in the background): give the
-           compositor two frames to take the new picture. */
-        if (visible && typeof requestAnimationFrame === 'function') {
-          await new Promise(function (resolve) {
-            var left = 2, timer = setTimeout(resolve, 120);
-            var tick = function () { if (--left <= 0) { clearTimeout(timer); resolve(); } else requestAnimationFrame(tick); };
-            requestAnimationFrame(tick);
-          });
-        } else {
-          await yieldNow(); await yieldNow();
+    function waitForPresented(target) {
+      return new Promise(function (resolve) {
+        var finished = false;
+        var timer = setTimeout(function () { finish(null); }, 6000);
+        function finish(meta) {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          resolve(meta);
         }
-      }
-      return m;
+        function onFrame(_now, meta) {
+          if (finished) return;
+          var shown = Number(meta && meta.mediaTime);
+          if (isFinite(shown)) {
+            var delta = Math.abs(shown - target);
+            delta = Math.min(delta, Math.max(0, duration - delta));
+            if (delta <= tol) { finish(meta); return; }
+          }
+          try { v.requestVideoFrameCallback(onFrame); } catch (_) { finish(null); }
+        }
+        try { v.requestVideoFrameCallback(onFrame); } catch (_) { finish(null); }
+      });
     }
-    var meta = await presented();
-    var tol = Math.max(0.06, (st.period > 0 ? st.period : 0.034) * 2.5);
-    var unresolved = false;
-    if (meta && typeof meta.mediaTime === 'number') {
-      bgStats.checked++;
-      var attempt = 0, wasStale = false;
-      while (want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5 && attempt < 1) {
-        /* The picture on screen is older than the one requested: ask again instead of drawing it. */
-        wasStale = true; attempt++; bgStats.retried++;
-        if (!(await seekTo(Math.min(duration - 0.002, want + attempt * 0.0007)))) break;
-        var again = await presented();
-        if (!again || typeof again.mediaTime !== 'number') break;
-        meta = again;
-      }
-      unresolved = want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5;
-      if (wasStale) { bgStats.stale++; if (unresolved) bgStats.unresolved++; }
+
+    var alreadyAtTarget = !v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - want) <= 0.0005;
+    var presentedPromise = waitForPresented(want);
+    if (!alreadyAtTarget && !(await seekTo(want))) return false;
+    var meta = await presentedPromise;
+    if (!meta || !isFinite(Number(meta.mediaTime))) return false;
+    var shown = Number(meta.mediaTime), delta = Math.abs(shown - want);
+    delta = Math.min(delta, Math.max(0, duration - delta));
+    if (delta > tol) return false;
+
+    bgStats.checked++;
+    if (st.last >= 0 && shown > st.last + 1e-4 && shown - st.last < 0.25) {
+      var observed = shown - st.last;
+      st.period = st.period > 0 ? Math.min(st.period, observed) : observed;
     }
-    var shown = meta && typeof meta.mediaTime === 'number' ? meta.mediaTime : -1;
-    if (shown >= 0) {
-      if (st.last >= 0 && shown > st.last + 1e-4 && shown - st.last < 0.25) st.period = st.period > 0 ? Math.min(st.period, shown - st.last) : shown - st.last;
-      st.last = shown;
-    } else {
-      st.last = -1;
-    }
-    /* Never report success when the browser confirms it is still presenting an earlier frame. */
-    return !!meta && !unresolved;
+    st.last = shown;
+    return true;
   }
   function resetSeek(v) { if (seekStates && v) seekStates.delete(v); }
 
   /* ------------------------------------------------------- output self-check */
   function verifyOutput(blob, expectedSeconds) {
     return new Promise(function (resolve) {
-      if (typeof document === 'undefined') { resolve({ ok: true, checked: false }); return; }
+      if (typeof document === 'undefined') { resolve({ ok: false, checked: false, reason: 'The exported file could not be verified in this environment.' }); return; }
       var v = document.createElement('video');
       var url = URL.createObjectURL(blob);
       var finished = false;
-      var timer = setTimeout(function () { finish({ ok: true, checked: false }); }, 8000);
+      var timer = setTimeout(function () { finish({ ok: false, checked: false, reason: 'The exported file could not be verified before the playback check timed out.' }); }, 12000);
       function finish(result) {
         if (finished) return;
         finished = true;
@@ -457,9 +440,10 @@
       v.onloadedmetadata = function () {
         var d = v.duration;
         if (isFinite(d) && Math.abs(d - expectedSeconds) > Math.max(1, expectedSeconds * 0.02)) finish({ ok: false, checked: true, duration: d, reason: 'The exported video is ' + d.toFixed(1) + 's long but the track is ' + expectedSeconds.toFixed(1) + 's.' });
-        else finish({ ok: true, checked: true, duration: d });
+        else if (isFinite(d) && d > 0) finish({ ok: true, checked: true, duration: d });
+        else finish({ ok: false, checked: false, reason: 'The exported file has no readable duration.' });
       };
-      v.onerror = function () { finish({ ok: true, checked: false, warning: 'This browser could not preview the exported file.' }); };
+      v.onerror = function () { finish({ ok: false, checked: false, reason: 'The exported file could not be decoded for verification.' }); };
       v.src = url;
     });
   }
