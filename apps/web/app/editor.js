@@ -2596,7 +2596,8 @@
         }
       };
       let check=await inspect(result);
-      if(check.problems.length&&result.fps&&legacyOk){
+      const sourceBackgroundFailure=check.problems.some(problem=>/uploaded background video (is frozen|stopped changing)/i.test(problem));
+      if(check.problems.length&&result.fps&&legacyOk&&!sourceBackgroundFailure){
         const first=check.problems.join(' and ');
         setExportProgress(1,'Problem found ('+first+'). Re-rendering with the compatibility recorder');
         try{
