@@ -5,7 +5,7 @@
    Visualiser layers are composited into video export. */
 (function(){
   'use strict';
-  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidFile=null,offSess=null,offSrc=null,vidUrl='',vidName='',small=null,smallKey='',taintedArt=false,avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
+  var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidFile=null,offSess=null,offSrc=null,offDuration=0,vidUrl='',vidName='',small=null,smallKey='',taintedArt=false,avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
   var syncBackgroundOptionsUI=null,syncBackgroundToggleUI=null,bgLoop=null;
   var work=document.createElement('canvas'),wctx=work.getContext('2d');
   var t0=performance.now();
@@ -387,27 +387,34 @@
   async function offlinePrepare(){
     if(!(enabled&&mode==='video'&&vid))return {video:false};
     try{vid.pause();}catch(e){}
-    var waited=0;
-    while((vid.readyState<2||!(vid.duration>0)||!isFinite(vid.duration))&&waited<15000){
-      if(vid.error)throw new Error('The background video could not be read for export.');
-      await sleep(100);waited+=100;
-    }
-    if(vid.readyState<2||!(vid.duration>0)||!isFinite(vid.duration))throw new Error('The background video is not ready. Re-select it and try again.');
-    offSess=null;offSrc=null;
+    offSess=null;offSrc=null;offDuration=0;
+    /* Try the independent WebCodecs decoder first. It can handle inputs the HTML video element
+       cannot decode, so native element readiness must not gate this path. */
     try{
       if(vidFile&&window.VideoDecoder){
         if(!window.KefeFrames){await withTimeout(new Promise(function(res,rej){var sc=document.createElement('script');sc.src='./app/vendor/mediabunny/kefe-frames.js?v=2';sc.onload=res;sc.onerror=function(){rej(new Error('decoder script failed to load'));};document.head.appendChild(sc);}),10000,'The video decoder did not load.');}
         offSess=await withTimeout(window.KefeFrames.open(vidFile),20000,'The video decoder timed out while opening the background video.');
         var probe=await withTimeout(offSess.at(0),10000,'The video decoder timed out on its first frame.');
         if(!probe)throw new Error('The decoder returned no first frame.');
-        offSrc=probe;
+        offSrc=probe;offDuration=offSess.duration;
+        if(!(offDuration>0)||!isFinite(offDuration))throw new Error('The decoder could not determine the background video duration.');
       }
     }catch(e){
-      console.warn('[KEFE bg] WebCodecs path unavailable; using browser video decoder',e);
+      console.warn('[KEFE bg] WebCodecs path unavailable; checking native video decoder',e);
       if(offSess){try{offSess.close();}catch(_){}}
-      offSess=null;offSrc=null;
+      offSess=null;offSrc=null;offDuration=0;
     }
-    return {video:true,duration:vid.duration,decoder:!!offSess};
+    /* Native HTML video is the fallback, and is only required when the independent decoder failed. */
+    if(!offSess){
+      var waited=0;
+      while((vid.readyState<2||!(vid.duration>0)||!isFinite(vid.duration))&&waited<15000){
+        if(vid.error)throw new Error('The background video could not be decoded by this browser.');
+        await sleep(100);waited+=100;
+      }
+      if(vid.readyState<2||!(vid.duration>0)||!isFinite(vid.duration))throw new Error('Neither the independent nor native decoder could prepare the background video.');
+      offDuration=vid.duration;
+    }
+    return {video:true,duration:offDuration,decoder:!!offSess};
   }
   /* Resolve every export timestamp to a fresh decoded frame. Decoder timeouts and null frames switch
      permanently to the browser's native video decoder for the remainder of this export. */
@@ -428,7 +435,7 @@
       offSrc=null;
       var eng=window.kefeExportEngine;
       if(!eng||typeof eng.seekVideo!=='function')throw new Error('The browser video decoder is unavailable for background export.');
-      var duration=vid.duration,base=((t%duration)+duration)%duration,ok=false;
+      var duration=offDuration||vid.duration,base=((t%duration)+duration)%duration,ok=false;
       /* A failed seek is not retried against the same decoder state. Nudge to a distinct timestamp,
          then return to the requested frame so the media element performs a real decode cycle. */
       for(var attempt=0;attempt<3&&!ok;attempt++){
@@ -447,7 +454,7 @@
     if(cctx&&size())paint(cctx,cv.width,cv.height,t);
   }
   function offlineEnd(){
-    if(offSess){offSess.close();offSess=null;}offSrc=null;
+    if(offSess){offSess.close();offSess=null;}offSrc=null;offDuration=0;
     if(window.kefeExportEngine&&window.kefeExportEngine.resetSeek)window.kefeExportEngine.resetSeek(vid);
     syncVideo(true);
     if(cctx&&size())paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
