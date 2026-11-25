@@ -386,6 +386,7 @@
      cannot return a frame; an unavailable fast path must never turn into a frozen background. */
   async function offlinePrepare(){
     if(!(enabled&&mode==='video'&&vid))return {video:false};
+    if(document.visibilityState!=='visible')throw new Error('Keep KEFE in the foreground while exporting a background video.');
     try{vid.pause();}catch(e){}
     offSess=null;offSrc=null;offDuration=0;
     offlineMotionSamples=[];offlineMotionLast=-Infinity;offlineMotionError=false;offlineMotionCanvas=document.createElement('canvas');offlineMotionCanvas.width=48;offlineMotionCanvas.height=27;offlineMotionCtx=offlineMotionCanvas.getContext('2d',{willReadFrequently:true});
@@ -465,7 +466,8 @@
     if(cctx&&size())paint(cctx,cv.width,cv.height,t);
   }
   function sampleOfflineMotion(t){
-    if(!offlineMotionCtx||t-offlineMotionLast<0.45)return;
+    var sourceDuration=offDuration||(vid&&vid.duration)||0,interval=sourceDuration>0?Math.min(0.45,Math.max(0.04,sourceDuration/4)):0.45;
+    if(!offlineMotionCtx||t-offlineMotionLast<interval)return;
     var source=offSrc||vid;
     if(!source)return;
     try{
