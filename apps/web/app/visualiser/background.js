@@ -394,7 +394,9 @@
     try{
       if(vidFile&&window.VideoDecoder){
         if(!window.KefeFrames){await withTimeout(new Promise(function(res,rej){var sc=document.createElement('script');sc.src='./app/vendor/mediabunny/kefe-frames.js?v=2';sc.onload=res;sc.onerror=function(){rej(new Error('decoder script failed to load'));};document.head.appendChild(sc);}),10000,'The video decoder did not load.');}
-        offSess=await withTimeout(window.KefeFrames.open(vidFile),20000,'The video decoder timed out while opening the background video.');
+        var opening=window.KefeFrames.open(vidFile);
+        try{offSess=await withTimeout(opening,20000,'The video decoder timed out while opening the background video.');}
+        catch(openError){opening.then(function(session){try{session.close();}catch(_){}}).catch(function(){});throw openError;}
         var probe=await withTimeout(offSess.at(0),10000,'The video decoder timed out on its first frame.');
         if(!probe)throw new Error('The decoder returned no first frame.');
         offSrc=probe;offDuration=offSess.duration;
