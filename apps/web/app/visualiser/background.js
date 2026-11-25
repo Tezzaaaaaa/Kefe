@@ -475,7 +475,7 @@
       offlineMotionLast=t;
     }catch(e){offlineMotionError=true;}
   }
-  function beginMotionCheck(){offlineMotionSamples=[];offlineMotionLast=-Infinity;offlineMotionError=false;}
+  function beginMotionCheck(){offlineMotionSamples=[];offlineMotionLast=-Infinity;offlineMotionError=false;if(!offlineMotionCanvas){offlineMotionCanvas=document.createElement('canvas');offlineMotionCanvas.width=48;offlineMotionCanvas.height=27;offlineMotionCtx=offlineMotionCanvas.getContext('2d',{willReadFrequently:true});}}
   function sampleMotion(time){sampleOfflineMotion(time);}
   function offlineMotionReport(){
     var samples=offlineMotionSamples,maxDifference=0,ranges=[],runStart=null,rangeRecorded=false;
