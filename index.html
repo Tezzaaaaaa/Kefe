@@ -17,30 +17,20 @@
 
     .hero{overflow:hidden;background:#050b12}
     .hero:before{z-index:-1;opacity:.22}
-    .hero:after{display:none}
-    .lumina-backdrop{position:absolute;z-index:-2;inset:-12%;overflow:hidden;background:radial-gradient(ellipse at 52% 52%,rgba(3,22,37,.1),#050b12 70%)}
-    .lumina-backdrop i{position:absolute;display:block;width:76vw;height:76vw;max-width:1050px;max-height:1050px;border-radius:50%;filter:blur(64px);mix-blend-mode:screen;opacity:.68;transform:translate3d(0,0,0)}
-    .lumina-backdrop i:nth-child(1){left:28%;top:-45%;background:radial-gradient(ellipse at 45% 60%,rgba(54,220,224,.82),rgba(25,100,154,.4) 28%,transparent 66%);animation:luminaDrift 22s ease-in-out infinite alternate}
-    .lumina-backdrop i:nth-child(2){left:48%;top:16%;background:radial-gradient(ellipse at 40% 50%,rgba(67,133,255,.78),rgba(35,61,155,.3) 34%,transparent 68%);animation:luminaDrift 28s ease-in-out -8s infinite alternate-reverse}
-    .lumina-backdrop i:nth-child(3){left:4%;top:32%;width:60vw;height:60vw;background:radial-gradient(ellipse at 50% 50%,rgba(55,255,196,.45),rgba(20,115,121,.22) 36%,transparent 70%);animation:luminaDrift 25s ease-in-out -4s infinite alternate}
-    .lumina-backdrop:after{position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,9,15,.88),rgba(5,9,15,.35) 56%,rgba(5,9,15,.42)),linear-gradient(0deg,#080b10 0%,transparent 34%,rgba(4,8,14,.12));content:""}
+    .lumina-backdrop{position:absolute;z-index:-2;inset:0;overflow:hidden;background:#050b12}
+    .lumina-backdrop canvas{display:block}
+    .lumina-backdrop:after{position:absolute;z-index:3;inset:0;background:linear-gradient(90deg,rgba(5,9,15,.78),rgba(5,9,15,.12) 58%,rgba(5,9,15,.2)),linear-gradient(0deg,#080b10 0%,transparent 35%);content:"";pointer-events:none}
+    .kefe-demo-runtime{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:none}
     .effect-showcase{padding:90px clamp(22px,8vw,120px) 108px;background:#080b10}
     .effect-showcase .section-head{margin-bottom:34px}
     .effect-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1260px;margin:auto}
     .effect-card{min-width:0;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:#10141a}
-    .effect-stage{position:relative;display:grid;min-height:260px;place-items:center;overflow:hidden;padding:24px;background:radial-gradient(ellipse at 50% 40%,#1c2832,#080b10 72%)}
-    .effect-stage:after{position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,rgba(0,0,0,.28));content:"";pointer-events:none}
+    .effect-stage{position:relative;display:block;min-height:260px;overflow:hidden;padding:0;background:#090c12}
+    .effect-renderer{display:block;width:100%;height:260px}
     .effect-name{padding:17px 20px 19px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;font-weight:700}
     .effect-name span{display:block;margin-top:5px;color:#858b95;font:9px var(--mono);letter-spacing:.12em;text-transform:uppercase}
-    .brat-sample{padding:10px 18px;background:#b8ff00;color:#111;font-family:Arial,sans-serif;font-size:clamp(35px,4vw,58px);font-weight:900;letter-spacing:-.085em;line-height:.9;text-transform:lowercase;transform:rotate(-2deg);box-shadow:0 16px 50px rgba(0,0,0,.28)}
-    .apple-sample{max-width:95%;color:#fff;font-size:clamp(23px,2.8vw,36px);font-weight:700;letter-spacing:-.055em;line-height:1.2;text-align:center;text-shadow:0 0 22px rgba(255,255,255,.25)}
-    .apple-sample span{color:rgba(255,255,255,.42)}
-    .press-sample{max-width:94%;padding:15px 22px;background:#f3eee4;color:#121212;font-family:Georgia,serif;font-size:clamp(26px,3.2vw,43px);font-weight:700;letter-spacing:-.055em;line-height:1.05;text-align:center;box-shadow:0 18px 45px rgba(0,0,0,.38);animation:pressCycleShow 3.2s steps(1,end) infinite}
-    @keyframes luminaDrift{0%{transform:translate3d(-8%,-4%,0) rotate(-10deg) scale(.92)}100%{transform:translate3d(9%,8%,0) rotate(13deg) scale(1.12)}}
-    @keyframes pressCycleShow{0%,19%{background:#f3eee4;color:#121212;font-family:Georgia,serif}20%,39%{background:#ffd400;color:#111;font-family:Impact,sans-serif;text-transform:uppercase}40%,59%{background:#08100c;color:#79ffa0;font-family:monospace;text-transform:uppercase}60%,79%{background:#ff3d8b;color:#fff;font-family:Arial,sans-serif;font-weight:900}80%,100%{background:#0b2c73;color:#fff;font-family:Impact,sans-serif;text-transform:uppercase}}
-    @media(max-width:760px){.lumina-backdrop i{width:125vw;height:125vw;filter:blur(48px)}.effect-showcase{padding:72px 20px}.effect-grid{grid-template-columns:1fr}.effect-stage{min-height:220px}}
-    @media(prefers-reduced-motion:reduce){.lumina-backdrop i,.press-sample{animation:none}}
-
+    @media(max-width:760px){.effect-showcase{padding:72px 20px}.effect-grid{grid-template-columns:1fr}.effect-stage{min-height:220px}.effect-renderer{height:220px}}
+    @media(prefers-reduced-motion:reduce){.lumina-backdrop canvas{animation:none}}
     .section{padding:112px clamp(22px,8vw,120px);}.section-head{display:flex;max-width:1260px;align-items:end;justify-content:space-between;gap:50px;margin:0 auto 46px}.section h2{margin:0;font-size:clamp(42px,6vw,78px);font-weight:600;letter-spacing:-.08em;line-height:.98}.section h2 span{color:#888b94}.section-intro{max-width:390px;margin:0 0 4px;color:var(--muted);font-size:13px;line-height:1.85}.feature-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1260px;margin:auto}.feature{min-height:225px;padding:26px;background:linear-gradient(145deg,#171a20,#101217);border:1px solid var(--line)}.feature-no{color:#ff706d;font:10px var(--mono);letter-spacing:.1em}.feature h3{margin:48px 0 10px;font-size:19px;letter-spacing:-.04em}.feature p{max-width:300px;margin:0;color:var(--muted);font-size:12px;line-height:1.8}
     .workflow{background:#111318}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;max-width:1260px;margin:52px auto 0}.step{padding-top:19px;border-top:1px solid rgba(255,255,255,.22)}.step strong{display:block;margin-bottom:14px;color:#ff7774;font:10px var(--mono);letter-spacing:.13em}.step h3{margin:0 0 9px;font-size:17px}.step p{margin:0;color:var(--muted);font-size:12px;line-height:1.8}
     .closing{display:flex;align-items:center;justify-content:space-between;gap:35px;max-width:1260px;margin:auto;padding:94px 0}.closing h2{max-width:650px;margin:0;font-size:clamp(44px,7vw,88px);letter-spacing:-.085em;line-height:.95}.closing h2 em{color:#ff625f;font-style:normal}.closing-copy{max-width:330px;color:var(--muted);font-size:13px;line-height:1.8}.closing-copy .button{margin-top:14px}
@@ -56,7 +46,7 @@
       <a class="nav-cta" href="./apps/web/editor.html">Open editor <span aria-hidden="true">↗</span></a>
     </header>
     <main id="top">
-      <section class="hero"><div class="lumina-backdrop" data-visualiser="lumina" aria-hidden="true"><i></i><i></i><i></i></div>
+      <section class="hero"><div class="lumina-backdrop kefe-stage" data-visualiser="lumina" aria-hidden="true"></div><div class="kefe-demo-runtime" aria-hidden="true"><div class="kefe-vis-tabs"></div><div class="kefe-visualiser-form"></div></div>
         <div class="hero-copy">
           <p class="eyebrow">The lyric video creator</p>
           <h1>Make every<br><em>lyric</em> visible.</h1>
@@ -68,9 +58,9 @@
       <section class="effect-showcase" aria-labelledby="effect-title">
         <div class="section-head"><div><p class="eyebrow">A few ways to make it yours</p><h2 id="effect-title">Words with<br><span>their own identity.</span></h2></div><p class="section-intro">Three distinct lyric treatments, rendered as examples of the creative range inside KEFE.</p></div>
         <div class="effect-grid">
-          <article class="effect-card"><div class="effect-stage"><div class="brat-sample">it's so<br>confusing</div></div><div class="effect-name">Brat <span>Bold. Minimal. Unmistakable.</span></div></article>
-          <article class="effect-card"><div class="effect-stage"><div class="apple-sample"><span>We found love</span><br>in a hopeless place</div></div><div class="effect-name">Apple Lyrics <span>Soft focus and luminous line emphasis.</span></div></article>
-          <article class="effect-card"><div class="effect-stage"><div class="press-sample">THE NIGHT<br>IS STILL YOUNG</div></div><div class="effect-name">Press Cycle <span>One complete lyric line, cycling through editorial looks.</span></div></article>
+          <article class="effect-card"><div class="effect-stage"><canvas class="effect-renderer" data-effect="sigbrat" aria-label="Live Brat lyric effect preview"></canvas></div><div class="effect-name">Brat <span>Bold. Minimal. Unmistakable.</span></div></article>
+          <article class="effect-card"><div class="effect-stage"><canvas class="effect-renderer" data-effect="apple" aria-label="Live Apple Lyrics effect preview"></canvas></div><div class="effect-name">Apple Lyrics <span>Soft focus and luminous line emphasis.</span></div></article>
+          <article class="effect-card"><div class="effect-stage"><canvas class="effect-renderer" data-effect="sigpresscycle" aria-label="Live Press Cycle lyric effect preview"></canvas></div><div class="effect-name">Press Cycle <span>One complete lyric line, cycling through editorial looks.</span></div></article>
         </div>
       </section>
       <section class="section" id="features">
@@ -96,5 +86,62 @@
     </main>
     <footer><a class="brand" href="#top">KEFE</a><span>LYRIC VIDEO CREATOR</span><span>© KEFE</span></footer>
   </div>
+
+<script src="./apps/web/app/ui/resilience.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/ui/typography.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/effects/core.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/effects/lyric-premium-kit.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/effects/lyric-apple.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/effects/lyric-signature-four.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/effects/lyric-signature-pack.js?v=press-cycle-line-20261126-1"></script>
+<script src="./apps/web/app/visualiser/shader-vis.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/visualiser/silk-road.js?v=shader-vis-20261029-1"></script>
+<script>
+(() => {
+  'use strict';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const samples = {
+    sigbrat: [{time:0,endTime:3.6,text:"it's so confusing",words:[{text:"it's",time:0,endTime:.8},{text:"so",time:.8,endTime:1.5},{text:"confusing",time:1.5,endTime:3.6}]}],
+    apple: [
+      {time:0,endTime:3.4,text:"We found love",words:[{text:"We",time:0,endTime:.45},{text:"found",time:.45,endTime:1.35},{text:"love",time:1.35,endTime:3.4}]},
+      {time:3.4,endTime:7,text:"in a hopeless place",words:[{text:"in",time:3.4,endTime:3.75},{text:"a",time:3.75,endTime:4},{text:"hopeless",time:4,endTime:5.5},{text:"place",time:5.5,endTime:7}]}
+    ],
+    sigpresscycle: [
+      {time:0,endTime:3.5,text:"THE NIGHT IS YOUNG"},
+      {time:3.5,endTime:7,text:"WE OWN THE MOMENT"},
+      {time:7,endTime:10.5,text:"MAKE IT LAST"}
+    ]
+  };
+  const styles = {sigbrat:{effect:'sigbrat',fontSize:116},apple:{effect:'apple'},sigpresscycle:{effect:'sigpresscycle',fontSize:104}};
+  const canvases = [...document.querySelectorAll('.effect-renderer')];
+  const started = performance.now();
+  function render(now) {
+    const t = reduceMotion ? 2.2 : ((now-started)/1000)%10.5;
+    canvases.forEach(canvas => {
+      const effect=canvas.dataset.effect, draw=window.kefeEffects?.[effect];
+      if(typeof draw!=='function') return;
+      const rect=canvas.getBoundingClientRect();
+      if(rect.width<2||rect.height<2) return;
+      const dpr=Math.min(window.devicePixelRatio||1,2),width=Math.round(rect.width*dpr),height=Math.round(rect.height*dpr);
+      if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
+      const ctx=canvas.getContext('2d'); if(!ctx)return;
+      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
+      if(effect==='apple'){const bg=ctx.createLinearGradient(0,0,rect.width,rect.height);bg.addColorStop(0,'#253344');bg.addColorStop(.55,'#111a26');bg.addColorStop(1,'#080c12');ctx.fillStyle=bg;ctx.fillRect(0,0,rect.width,rect.height);}
+      else if(effect==='sigpresscycle'){ctx.fillStyle='#0b1017';ctx.fillRect(0,0,rect.width,rect.height);}
+      try{draw(ctx,rect.width,rect.height,styles[effect],samples[effect],t);}catch(error){console.error('[KEFE landing preview]',effect,error);}
+    });
+    if(!reduceMotion)requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
+  const lumina=()=>{
+    const inst=window.kefeShaderVis?.instances?.get('silk-road');
+    if(!inst){requestAnimationFrame(lumina);return;}
+    const preset=document.querySelector('#kefesilk-roadPresetSet [data-preset="lumina"]');
+    if(preset)preset.click();
+    inst.setActive(true);inst.setEnabled(true);
+  };
+  requestAnimationFrame(lumina);
+})();
+</script>
 </body>
 </html>
