@@ -474,14 +474,14 @@
     }catch(e){offlineMotionError=true;}
   }
   function offlineMotionReport(){
-    var samples=offlineMotionSamples,maxDifference=0,ranges=[],runStart=null;
+    var samples=offlineMotionSamples,maxDifference=0,ranges=[],runStart=null,rangeRecorded=false;
     for(var i=1;i<samples.length;i++){
       var diff=samples[i].difference||0;
       if(diff>maxDifference)maxDifference=diff;
       if(diff<0.15){
-        if(runStart===null)runStart=samples[i-1].time;
-        if(samples[i].time-runStart>=3)ranges.push([runStart,samples[i].time]);
-      }else runStart=null;
+        if(runStart===null){runStart=samples[i-1].time;rangeRecorded=false;}
+        if(!rangeRecorded&&samples[i].time-runStart>=3){ranges.push([runStart,samples[i].time]);rangeRecorded=true;}
+      }else{runStart=null;rangeRecorded=false;}
     }
     return {checked:samples.length,motion:offlineMotionError||samples.length<2?'unknown':maxDifference<0.15?'frozen':ranges.length?'stalled':'ok',frozenRanges:ranges};
   }
