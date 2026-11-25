@@ -21,8 +21,8 @@ function audioFixture() {
   for (let i = 0; i < samples; i++) buffer.writeInt16LE(Math.round(Math.sin(2 * Math.PI * 440 * i / sampleRate) * 9000), 44 + i * 2);
   return buffer;
 }
-async function backgroundVideoFixture(page) {
-  const bytes = await page.evaluate(async () => {
+async function backgroundVideoFixture(page, moving = true) {
+  const bytes = await page.evaluate(async moving => {
     const canvas = document.createElement('canvas');
     canvas.width = 320; canvas.height = 180;
     const ctx = canvas.getContext('2d');
@@ -31,21 +31,26 @@ async function backgroundVideoFixture(page) {
     const chunks = [];
     recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
     const stopped = new Promise(resolve => { recorder.onstop = resolve; });
+    ctx.fillStyle = '#101820'; ctx.fillRect(0, 0, 320, 180);
+    ctx.fillStyle = '#f5d547'; ctx.fillRect(40, 48, 40, 84);
+    ctx.fillStyle = '#31b6a5'; ctx.beginPath(); ctx.arc(160, 90, 30, 0, Math.PI * 2); ctx.fill();
     recorder.start();
     const start = performance.now();
     let frame = 0;
     while (performance.now() - start < 4200) {
-      ctx.fillStyle = '#101820'; ctx.fillRect(0, 0, 320, 180);
-      ctx.fillStyle = '#f5d547'; ctx.fillRect((frame * 7) % 360 - 40, 48, 40, 84);
-      ctx.fillStyle = '#31b6a5'; ctx.beginPath(); ctx.arc(160, 90, 24 + (frame % 12), 0, Math.PI * 2); ctx.fill();
-      frame++;
+      if (moving) {
+        ctx.fillStyle = '#101820'; ctx.fillRect(0, 0, 320, 180);
+        ctx.fillStyle = '#f5d547'; ctx.fillRect((frame * 7) % 360 - 40, 48, 40, 84);
+        ctx.fillStyle = '#31b6a5'; ctx.beginPath(); ctx.arc(160, 90, 24 + (frame % 12), 0, Math.PI * 2); ctx.fill();
+        frame++;
+      }
       await new Promise(resolve => setTimeout(resolve, 1000 / 15));
     }
     recorder.stop();
     await stopped;
     stream.getTracks().forEach(track => track.stop());
     return Array.from(new Uint8Array(await new Blob(chunks, { type: 'video/webm' }).arrayBuffer()));
-  });
+  }, moving);
   return Buffer.from(bytes);
 }
 (async () => {
@@ -167,6 +172,18 @@ async function backgroundVideoFixture(page) {
       await complete.getByRole('button', { name: 'Close' }).click();
       await page.waitForFunction(() => document.activeElement?.id === 'exportButton');
       assert.deepEqual(errors, [], `no page errors at ${width}px`);
+      await page.locator('#bgVideoInput').setInputFiles({ name: 'frozen-background.webm', mimeType: 'video/webm', buffer: await backgroundVideoFixture(page, false) });
+      await page.waitForFunction(() => document.getElementById('bgVideoFileStatus')?.textContent === 'Ready to use' && window.kefeBackground?.mode?.() === 'video', null, { timeout: 20000 });
+      await exportButton.click();
+      const frozenOutcome = await Promise.race([
+        exportFailed.waitFor({ state: 'visible', timeout: 120000 }).then(() => 'failed'),
+        complete.waitFor({ state: 'visible', timeout: 120000 }).then(() => 'complete')
+      ]);
+      assert.equal(frozenOutcome, 'failed', 'a frozen background must be rejected instead of delivered');
+      const frozenReason = await exportFailed.locator('#kefeExportFootnote').textContent();
+      assert.match(frozenReason, /frozen|stopped changing|motion could not be verified/i, 'the rejection must identify the background-motion failure');
+      await exportFailed.getByRole('button', { name: 'Close' }).click();
+      await page.waitForFunction(() => document.activeElement?.id === 'exportButton');
       await context.close();
     }
     console.log('PASS: shadcn export dialog, moving background-video export, audio verification and real video delivery in desktop and mobile Chromium');
