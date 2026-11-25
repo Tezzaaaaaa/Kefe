@@ -60,6 +60,11 @@ jobs:
           node apps/web/scripts/smoke-native-upload.mjs
           node apps/web/scripts/smoke-mobile-sidebar.mjs
           node apps/web/scripts/smoke-mobile-sidebar-groups.mjs
+      - name: Install Playwright Chromium and run real export regression
+        run: |
+          npm install --prefix /tmp/kefe-playwright --no-save playwright@1.56.1
+          /tmp/kefe-playwright/node_modules/.bin/playwright install --with-deps chromium
+          NODE_PATH=/tmp/kefe-playwright/node_modules node apps/web/scripts/browser-shadcn-export.cjs
       - name: Publish generated editor assets to Pages source
         run: |
           cp apps/web/dist-beui/editor.html apps/web/editor.html
