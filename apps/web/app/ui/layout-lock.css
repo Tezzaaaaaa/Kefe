@@ -29,6 +29,10 @@
   --lk-strip-h: 36px;      /* the open toolbar strip */
   --lk-preview-h: clamp(180px, 32dvh, 440px); /* locked preview box; fixed across aspect ratios */
   --lk-radius: 12px;
+  --lk-font-xs: 12px;
+  --lk-font-sm: 13px;
+  --lk-font-base: 14px;
+  --lk-font-title: 18px;
 }
 
 /* Mobile preview + timeline should occupy approximately the upper half of the viewport. */
@@ -369,6 +373,56 @@ html:root .kefe-editor .kefe-subtabs > .kefe-subtab {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+}
+
+/* Shared section rhythm and type hierarchy across every workspace. */
+html:root .kefe-editor #kefe-settings-panel .section-header {
+  min-height: 48px !important;
+  gap: var(--lk-gap-s) !important;
+  padding: 10px var(--lk-pad) !important;
+}
+html:root .kefe-editor #kefe-settings-panel .section-title-wrap,
+html:root .kefe-editor #kefe-settings-panel .title-group h2 {
+  font-size: var(--lk-font-title) !important;
+  line-height: 1.2 !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.02em !important;
+}
+html:root .kefe-editor #kefe-settings-panel .section-content {
+  font-size: var(--lk-font-base) !important;
+  line-height: 1.5 !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] .kefe-panel-head h2 {
+  font-size: var(--lk-font-sm) !important;
+  line-height: 1.25 !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] :is(.kefe-label, .setting-label) {
+  font-size: var(--lk-font-xs) !important;
+  line-height: 1.35 !important;
+  letter-spacing: 0 !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-panel[data-panel-view] :is(.kefe-btn, .kefe-panel-action:not(.kefe-switch), .shad-upload-browse, .kefe-chip, button[role="tab"]) {
+  font-size: var(--lk-font-sm) !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-section-tabs-list,
+html:root .kefe-editor #kefe-settings-panel .kefe-vis-tabs {
+  gap: var(--lk-gap-s) !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-section-tabs-list {
+  height: 32px !important;
+}
+html:root .kefe-editor #kefe-settings-panel .kefe-section-tabs-trigger,
+html:root .kefe-editor #kefe-settings-panel .kefe-vis-tabs > button {
+  min-height: 32px !important;
+  height: 32px !important;
+  font-size: var(--lk-font-xs) !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
 }
 
 /* Structural flex/grid containment down to embedded panels. */
