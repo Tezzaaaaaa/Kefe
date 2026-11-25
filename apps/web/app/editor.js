@@ -727,7 +727,10 @@
     return parseLrcText(lyrics);
   }
   const effectDefaultsKey='kefe.effect-defaults.v1';
+  const effectFontsKey='kefe.effect-fonts.v1';
   function readEffectDefaults(){try{const saved=JSON.parse(localStorage.getItem(effectDefaultsKey)||'{}');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
+  function readEffectFonts(){try{const saved=JSON.parse(localStorage.getItem(effectFontsKey)||'{}');return saved&&typeof saved==='object'?saved:{};}catch(_){return {};}}
+  function saveEffectFont(id,value){const fonts=readEffectFonts();if(value)fonts[id]=value;else delete fonts[id];try{localStorage.setItem(effectFontsKey,JSON.stringify(fonts));}catch(_){}}
   function applyEffectDefault(id){
     const saved=readEffectDefaults()[id];if(!saved)return false;
     if(saved.style&&window.kefeStyle?.applyState)window.kefeStyle.applyState(saved.style);
@@ -757,13 +760,18 @@
     state.effect=id;
     window.kefeStyle?.activate?.(id);
     applyEffectDefault(id);
-    /* Each lyric effect starts in conventional whole-line display, regardless
-       of a different mode saved with that effect's previous style settings. */
+    const savedDefaults=readEffectDefaults()[id];
     const lyricStudio=window.kefeLyricStudio;
-    if(lyricStudio?.settings&&lyricStudio?.applySettings){
-      const settings=lyricStudio.settings();
-      if(settings.mode!=='line')lyricStudio.applySettings({...settings,mode:'line'});
+    if(lyricStudio?.applySettings){
+      if(savedDefaults?.lyricStudio){
+        const settings=lyricStudio.settings();
+        if(settings.mode!=='line')lyricStudio.applySettings({...settings,mode:'line'});
+      }else{
+        lyricStudio.applySettings({mode:'line',chunk:3,caseMode:'asis',alignment:'justify'});
+      }
     }
+    fontSelect.value=readEffectFonts()[id]||'';
+    fontSelect.dispatchEvent(new Event('change',{bubbles:true}));
     document.querySelectorAll('#lyricEffectOptions .kefe-lyric-effect-option').forEach(b=>{const active=b.dataset.effect===id;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
     const c=window.KEFE_TYPE?.effects?.[id]||{};
     document.getElementById('fontName').textContent=c.family||'System UI';
@@ -1800,6 +1808,7 @@
   lyricsInput.addEventListener('input',parseLyrics);
   fontSelect.addEventListener('change',()=>{
     state.fontOverride=fontSelect.value;
+    saveEffectFont(state.effect,state.fontOverride);
     const effectFont=window.KEFE_TYPE?.effects?.[state.effect]?.family||'System UI';
     document.getElementById('fontMeta').textContent=fontSelect.value?'Selected font · '+fontSelect.value:'Effect font · '+effectFont;
     draw();syncFontOptions();
