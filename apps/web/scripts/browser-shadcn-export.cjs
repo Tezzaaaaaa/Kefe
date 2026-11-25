@@ -79,8 +79,6 @@ async function backgroundVideoFixture(page) {
       assert.equal(await page.evaluate(() => document.getElementById('bgVideoInput') === window.__originalBackgroundInput), true, 'background-video file input identity retained after UI startup');
       await page.locator('#mediaInput').setInputFiles({ name: 'export-test.wav', mimeType: 'audio/wav', buffer: audioFixture() });
       await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 3.5);
-      await page.locator('#bgVideoInput').setInputFiles({ name: 'moving-background.webm', mimeType: 'video/webm', buffer: await backgroundVideoFixture(page) });
-      await page.waitForFunction(() => document.getElementById('bgVideoFileStatus')?.textContent === 'Ready to use' && window.kefeBackground?.mode?.() === 'video', null, { timeout: 20000 });
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       const gradientTab = page.locator('.shad-vis-tabs-host .kv-tab[data-visualiser="gradient"]');
       await gradientTab.waitFor({ state: 'visible' });
@@ -106,6 +104,8 @@ async function backgroundVideoFixture(page) {
         throw new Error(`Fluid Ink did not become active: ${JSON.stringify(visualiserState)}; ${error.message}`);
       }
       await page.waitForFunction(() => document.querySelector('.kv-card[data-visualiser="gradient"] [role="switch"]')?.getAttribute('aria-checked') === 'true');
+      await page.locator('#bgVideoInput').setInputFiles({ name: 'moving-background.webm', mimeType: 'video/webm', buffer: await backgroundVideoFixture(page) });
+      await page.waitForFunction(() => document.getElementById('bgVideoFileStatus')?.textContent === 'Ready to use' && window.kefeBackground?.mode?.() === 'video', null, { timeout: 20000 });
       await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
       await page.locator('#kefe-subtab-export').evaluate(node => node.click());
       await page.evaluate(() => { const select = document.getElementById('exportResolution'); select.value = '720'; select.dispatchEvent(new Event('change', { bubbles: true })); });
