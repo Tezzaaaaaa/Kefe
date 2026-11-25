@@ -355,7 +355,6 @@
     if (want > duration - 0.002) want = Math.max(0, duration - 0.002);
     var st = seekState(v);
     if (st.last >= 0 && st.period > 0 && want >= st.last && want < st.last + st.period * 0.98 && v.readyState >= 2 && !v.seeking) return true;
-    if (Math.abs(v.currentTime - want) < 1e-6 && v.readyState >= 2 && !v.seeking) return true;
 
     function seekTo(target) {
       return new Promise(function (resolve) {
@@ -433,7 +432,7 @@
       st.last = -1;
     }
     /* Never report success when the browser confirms it is still presenting an earlier frame. */
-    return !unresolved;
+    return !!meta && !unresolved;
   }
   function resetSeek(v) { if (seekStates && v) seekStates.delete(v); }
 
