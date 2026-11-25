@@ -2565,7 +2565,7 @@
             setExportProgress(97+Math.round(f*2),text+(f>=0.35?etaText(checkStart,f):' · up to '+Math.ceil(left/5)*5+' s'));
           }});
           if(info.skipped)problems.push('the final picture check ran out of time');
-          const tol=Math.max(1.5,want*0.05);
+          const tol=Math.max(0.1,want*0.01);
           const videoDuration=isFinite(info.duration)?info.duration:(r.durationVerified?r.verifiedDuration:null);
           if(!isFinite(videoDuration))problems.push('the exported video duration could not be verified');
           else if(Math.abs(videoDuration-want)>tol)problems.push('the video is '+videoDuration.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
@@ -2574,7 +2574,7 @@
           else if(info.audio!=='ok'&&!r.audioVerified)problems.push('the exported audio could not be verified');
           const audioDuration=info.audioSeconds!=null?info.audioSeconds:(r.audioVerified?r.audioSeconds:null);
           if(audioDuration==null)problems.push('the exported audio duration could not be verified');
-          else if(audioDuration<want-tol)problems.push('the audio is '+audioDuration.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
+          else if(Math.abs(audioDuration-want)>tol)problems.push('the audio is '+audioDuration.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
           if(bgMoving){
             const bm=r.bgMotion;
             if(info.motion==='frozen')problems.push('the exported picture is frozen');
