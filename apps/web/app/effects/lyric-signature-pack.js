@@ -2238,114 +2238,87 @@
     { family: 'Archivo Narrow', weight: 900, bg: '#0b2c73', ink: '#ffffff', upper: true, stripes: true, fit: .92, tag: 'MATCHDAY' },
   ];
 
-  E.sigpresscycle = lineLoop((ctx, w, h, style, time) => ({ words, lay, phase }) => {
+  /* Press Cycle — the complete lyric line cycles as one editorial headline.
+     No per-word karaoke layer and no fallback to the base font between styles. */
+  E.sigpresscycle = lineLoop((ctx, w, h, style, time) => ({ lay, phase }) => {
     setFont(ctx, style.effect, lay.size, style);
-    const pal = Fx.palette({ text: '#ffffff', accent: '#ffffff', inactive: 'rgba(255,255,255,.24)' });
-    const rows = Fx.rows(ctx, lay, w, h);
-    const items = Fx.words(ctx, rows, words);
-    const size = lay.size;
-    const lift = (phase.leave || 0) * size * .25;
-    const baseFont = ctx.font, baseSpacing = ctx.letterSpacing;
-    ctx.save();
-    ctx.translate(0, -lift);
-    ctx.shadowColor = 'rgba(0,0,0,.35)';
-    ctx.shadowBlur = size * .08;
-    ctx.shadowOffsetY = size * .025;
-    Fx.sung(ctx, items, time, pal.text, pal.inactive, .3);
-    ctx.shadowColor = 'transparent';
-    const tile = (st, text, cx, cy, tw, th, rot, scale, seed, alpha) => {
-      const label = st.upper ? text.toUpperCase() : st.lower ? text.toLowerCase() : text;
+    const rows = rowsOf(ctx, lay, w, h);
+    const elapsed = Math.max(0, phase.t || 0);
+    const cadence = .22;
+    const cycleIndex = Math.floor(elapsed / cadence) % PRESS_STYLES.length;
+    const cycleProgress = (elapsed % cadence) / cadence;
+    const st = PRESS_STYLES[cycleIndex];
+    const alpha = Math.max(0, Math.min(1, phase.alpha == null ? 1 : phase.alpha));
+    const settle = .985 + .015 * Math.sin(cycleProgress * Math.PI);
+    rows.forEach((row, index) => {
+      const tileH = lay.size * 1.18;
+      const pad = lay.size * .3;
+      const tileW = Math.min(w * .94, row.width + pad * 2);
+      const cx = w / 2;
+      const cy = row.y;
+      const label = st.upper ? row.text.toUpperCase() : st.lower ? row.text.toLowerCase() : row.text;
       ctx.save();
       ctx.globalAlpha *= alpha;
       ctx.translate(cx, cy);
-      ctx.rotate(rot);
-      ctx.scale(scale, scale);
-      ctx.shadowColor = 'rgba(0,0,0,.5)';
-      ctx.shadowBlur = size * .14;
-      ctx.shadowOffsetY = size * .05;
-      /* paper stock */
-      ctx.beginPath();
-      if (st.torn) {
-        const n = 14;
-        for (let i = 0; i <= n; i += 1) ctx.lineTo(-tw / 2 + tw * i / n, -th / 2 + (Fx.hash(seed + i) - .5) * th * .09);
-        for (let i = 0; i <= 5; i += 1) ctx.lineTo(tw / 2 + (Fx.hash(seed + 30 + i) - .5) * tw * .03, -th / 2 + th * i / 5);
-        for (let i = n; i >= 0; i -= 1) ctx.lineTo(-tw / 2 + tw * i / n, th / 2 + (Fx.hash(seed + 60 + i) - .5) * th * .09);
-        for (let i = 5; i >= 0; i -= 1) ctx.lineTo(-tw / 2 + (Fx.hash(seed + 90 + i) - .5) * tw * .03, -th / 2 + th * i / 5);
-      } else ctx.rect(-tw / 2, -th / 2, tw, th);
-      ctx.closePath();
-      ctx.fillStyle = Array.isArray(st.bg) ? Fx.lineGradient(ctx, -tw / 2, -th / 2, tw / 2, th / 2, [[0, st.bg[0]], [1, st.bg[1]]]) : st.bg;
-      ctx.fill();
+      ctx.rotate(Math.sin(elapsed * 1.7 + index * .35) * .008);
+      ctx.scale(settle, settle);
+      ctx.shadowColor = 'rgba(0,0,0,.48)';
+      ctx.shadowBlur = lay.size * .16;
+      ctx.shadowOffsetY = lay.size * .055;
+      ctx.fillStyle = Array.isArray(st.bg)
+        ? Fx.lineGradient(ctx, -tileW / 2, -tileH / 2, tileW / 2, tileH / 2, [[0, st.bg[0]], [1, st.bg[1]]])
+        : st.bg;
+      ctx.fillRect(-tileW / 2, -tileH / 2, tileW, tileH);
       ctx.shadowColor = 'transparent';
       ctx.save();
+      ctx.beginPath();
+      ctx.rect(-tileW / 2, -tileH / 2, tileW, tileH);
       ctx.clip();
       if (st.halftone) {
         ctx.fillStyle = 'rgba(0,0,0,.13)';
-        for (let y = -th / 2 + 3; y < th / 2; y += 6) for (let x = -tw / 2 + 3 + ((y / 6) % 2) * 3; x < tw / 2; x += 6) {
-          ctx.beginPath(); ctx.arc(x, y, 1.15 + (y + th / 2) / th * 1.2, 0, TAU); ctx.fill();
+        for (let y = -tileH / 2 + 3; y < tileH / 2; y += 6) {
+          for (let x = -tileW / 2 + 3 + ((y / 6) % 2) * 3; x < tileW / 2; x += 6) {
+            ctx.beginPath(); ctx.arc(x, y, 1.1 + (y + tileH / 2) / tileH, 0, TAU); ctx.fill();
+          }
         }
       }
-      if (st.scan) { ctx.fillStyle = 'rgba(121,255,160,.08)'; for (let y = -th / 2; y < th / 2; y += 3) ctx.fillRect(-tw / 2, y, tw, 1); }
-      if (st.stripes) { ctx.fillStyle = 'rgba(255,255,255,.08)'; for (let x = -tw; x < tw; x += th * .38) { ctx.beginPath(); ctx.moveTo(x, th / 2); ctx.lineTo(x + th * .2, th / 2); ctx.lineTo(x + th * .2 + th, -th / 2); ctx.lineTo(x + th, -th / 2); ctx.fill(); } }
-      if (st.rule) { ctx.fillStyle = st.rule; ctx.fillRect(-tw / 2 + th * .08, -th / 2 + th * .09, tw - th * .16, Math.max(1, th * .014)); ctx.fillRect(-tw / 2 + th * .08, th / 2 - th * .1, tw - th * .16, Math.max(1, th * .014)); }
+      if (st.scan) {
+        ctx.fillStyle = 'rgba(121,255,160,.08)';
+        for (let y = -tileH / 2; y < tileH / 2; y += 3) ctx.fillRect(-tileW / 2, y, tileW, 1);
+      }
+      if (st.stripes) {
+        ctx.fillStyle = 'rgba(255,255,255,.08)';
+        for (let x = -tileW; x < tileW; x += tileH * .38) {
+          ctx.beginPath(); ctx.moveTo(x, tileH / 2); ctx.lineTo(x + tileH * .2, tileH / 2);
+          ctx.lineTo(x + tileH * .2 + tileH, -tileH / 2); ctx.lineTo(x + tileH, -tileH / 2); ctx.fill();
+        }
+      }
+      if (st.rule) {
+        ctx.fillStyle = st.rule;
+        ctx.fillRect(-tileW / 2 + tileH * .08, -tileH / 2 + tileH * .09, tileW - tileH * .16, Math.max(1, tileH * .014));
+        ctx.fillRect(-tileW / 2 + tileH * .08, tileH / 2 - tileH * .1, tileW - tileH * .16, Math.max(1, tileH * .014));
+      }
       ctx.restore();
-      /* headline, fitted to the tile */
-      const probe = th * .72;
+      const probe = tileH * .64;
       U.setFont(ctx, st.family, probe, Fx.fontWeight(st.family, st.weight));
       Fx.letterSpacing(ctx, 0);
-      const mw = Math.max(1, ctx.measureText(label).width);
-      const px = Math.min(probe * 1.25, probe * (tw * st.fit) / mw);
-      U.setFont(ctx, st.family, px, Fx.fontWeight(st.family, st.weight));
+      const measured = Math.max(1, ctx.measureText(label).width);
+      const fontSize = Math.min(probe, probe * (tileW * st.fit) / measured);
+      U.setFont(ctx, st.family, fontSize, Fx.fontWeight(st.family, st.weight));
       Fx.letterSpacing(ctx, 0);
       const tx = -ctx.measureText(label).width / 2;
-      if (st.shadow) { ctx.fillStyle = st.shadow; ctx.fillText(label, tx + px * .05, px * .02 + px * .05); }
+      if (st.shadow) { ctx.fillStyle = st.shadow; ctx.fillText(label, tx + fontSize * .05, fontSize * .025 + fontSize * .05); }
       ctx.fillStyle = st.ink;
-      ctx.fillText(label, tx, px * .02);
-      /* micro tag */
-      U.setFont(ctx, 'Courier Prime', Math.max(7, th * .11), 700);
+      ctx.textAlign = 'left';
+      ctx.fillText(label, tx, fontSize * .025);
+      U.setFont(ctx, 'Courier Prime', Math.max(7, tileH * .09), 700);
       Fx.letterSpacing(ctx, 1);
+      ctx.globalAlpha *= .58;
       ctx.fillStyle = st.ink;
-      ctx.globalAlpha *= .55;
-      ctx.fillText(st.tag, -tw / 2 + th * .08, th / 2 - th * .09);
-      if (st.tape) {
-        ctx.globalAlpha = alpha / .55 * .9;
-        ctx.fillStyle = 'rgba(255,230,150,.75)';
-        ctx.save();
-        ctx.translate(tw * .3, -th / 2);
-        ctx.rotate(.12);
-        ctx.fillRect(-th * .3, -th * .08, th * .6, th * .16);
-        ctx.restore();
-      }
+      ctx.fillText(st.tag, -tileW / 2 + tileH * .08, tileH / 2 - tileH * .09);
       ctx.restore();
-    };
-    items.forEach(item => {
-      const count = Math.max(4, Math.min(8, Math.round((item.word.endTime - item.word.time) / .11)));
-      const cad = Math.min(.085, Math.max(.05, (item.word.endTime - item.word.time) * .7 / count));
-      const t0 = item.word.time, burstEnd = t0 + count * cad;
-      const tEnd = burstEnd + .16;
-      if (time < t0 || time > tEnd + .14) return;
-      const exit = time > tEnd ? clamp((time - tEnd) / .14) : 0;
-      const start = Math.floor(Fx.hash(item.index * 4.7 + 3) * PRESS_STYLES.length);
-      for (let k = 0; k < count; k += 1) {
-        const born = t0 + k * cad;
-        if (time < born) break;
-        const age = time - born;
-        const pop = 1 + .22 * Math.exp(-age / .035);
-        const seed = item.index * 17 + k * 5;
-        const st = PRESS_STYLES[(start + k * 3) % PRESS_STYLES.length];
-        const tw = item.width + size * .6, th = size * 1.12;
-        tile(
-          st, item.text,
-          item.cx + (Fx.hash(seed) - .5) * item.width * .2 + exit * (Fx.hash(seed + 2) - .5) * size * 1.5,
-          item.y + (Fx.hash(seed + 1) - .5) * size * .2 - exit * size * .9,
-          tw, th, (Fx.hash(seed + 3) - .5) * .13 + exit * (Fx.hash(seed + 4) - .5) * .5,
-          pop * (1 - exit * .2), seed, clamp(age / .02) * (1 - exit),
-        );
-      }
     });
-    ctx.font = baseFont;
-    Fx.letterSpacing(ctx, 0);
-    ctx.restore();
-  }, { width: .76, height: .66 });
+  }, { width: .86, height: .74 });
 
   /* ------------------------------------------------------------------ */
   /* 43–50  Dimensional Depth                                           */
