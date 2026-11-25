@@ -7,7 +7,7 @@
   'use strict';
   var stage,cv,cctx,sel,audio,mode='off',lastMode='apple',enabled=false,vid=null,vidFile=null,offSess=null,offSrc=null,offDuration=0,vidUrl='',vidName='',small=null,smallKey='',taintedArt=false,avg=[20,22,30],palette=['#18212d','#30485b','#597c8b','#a7c3c9'];
   var syncBackgroundOptionsUI=null,syncBackgroundToggleUI=null,bgLoop=null;
-  var work=document.createElement('canvas'),wctx=work.getContext('2d');
+  var work=document.createElement('canvas'),wctx=work.getContext('2d'),offlineMotionCanvas=null,offlineMotionCtx=null,offlineMotionSamples=[],offlineMotionLast=-Infinity,offlineMotionError=false;
   var t0=performance.now();
 
   function artImage(){var f=window.kefeGetAlbumArt;var i=f&&f();return i&&i.complete&&i.naturalWidth>0?i:null;}
@@ -388,6 +388,7 @@
     if(!(enabled&&mode==='video'&&vid))return {video:false};
     try{vid.pause();}catch(e){}
     offSess=null;offSrc=null;offDuration=0;
+    offlineMotionSamples=[];offlineMotionLast=-Infinity;offlineMotionError=false;offlineMotionCanvas=document.createElement('canvas');offlineMotionCanvas.width=48;offlineMotionCanvas.height=27;offlineMotionCtx=offlineMotionCanvas.getContext('2d',{willReadFrequently:true});
     /* Try the independent WebCodecs decoder first. It can handle inputs the HTML video element
        cannot decode, so native element readiness must not gate this path. */
     try{
@@ -424,11 +425,15 @@
       try{
         var c=await withTimeout(offSess.at(t),10000,'The background decoder stopped returning frames.');
         if(!c)throw new Error('The background decoder returned an empty frame.');
+        var expected=((t%offDuration)+offDuration)%offDuration,actual=Number(c.__kefeMediaTime),frameDuration=Number(c.__kefeFrameDuration)||0.04;
+        if(!isFinite(actual))throw new Error('The background decoder did not report the decoded frame timestamp.');
+        var frameDelta=Math.abs(actual-expected);frameDelta=Math.min(frameDelta,Math.abs(offDuration-frameDelta));
+        if(frameDelta>Math.max(0.12,frameDuration*1.75))throw new Error('The background decoder returned a frame from the wrong timestamp.');
         offSrc=c;
       }catch(e){
         console.warn('[KEFE bg] WebCodecs frame decode failed; switching to browser video decoder',e);
         try{offSess.close();}catch(_){}
-        offSess=null;offSrc=null;
+        offSess=null;offSrc=null;offDuration=0;
       }
     }
     if(!offSess){
@@ -451,7 +456,34 @@
         if(!(await eng.seekVideo(vid,base)))throw new Error('The background video could not return to the requested export frame.');
       }
     }
+    sampleOfflineMotion(t);
     if(cctx&&size())paint(cctx,cv.width,cv.height,t);
+  }
+  function sampleOfflineMotion(t){
+    if(!offlineMotionCtx||t-offlineMotionLast<0.45)return;
+    var source=offSrc||vid;
+    if(!source)return;
+    try{
+      offlineMotionCtx.drawImage(source,0,0,48,27);
+      var rgba=offlineMotionCtx.getImageData(0,0,48,27).data,gray=new Uint8Array(48*27);
+      for(var i=0;i<gray.length;i++)gray[i]=Math.round((rgba[i*4]+rgba[i*4+1]+rgba[i*4+2])/3);
+      var difference=null,previous=offlineMotionSamples[offlineMotionSamples.length-1];
+      if(previous){var sum=0;for(var j=0;j<gray.length;j++)sum+=Math.abs(gray[j]-previous.pixels[j]);difference=sum/gray.length;}
+      offlineMotionSamples.push({time:t,pixels:gray,difference:difference});
+      offlineMotionLast=t;
+    }catch(e){offlineMotionError=true;}
+  }
+  function offlineMotionReport(){
+    var samples=offlineMotionSamples,maxDifference=0,ranges=[],runStart=null;
+    for(var i=1;i<samples.length;i++){
+      var diff=samples[i].difference||0;
+      if(diff>maxDifference)maxDifference=diff;
+      if(diff<0.15){
+        if(runStart===null)runStart=samples[i-1].time;
+        if(samples[i].time-runStart>=3)ranges.push([runStart,samples[i].time]);
+      }else runStart=null;
+    }
+    return {checked:samples.length,motion:offlineMotionError||samples.length<2?'unknown':maxDifference<0.15?'frozen':ranges.length?'stalled':'ok',frozenRanges:ranges};
   }
   function offlineEnd(){
     if(offSess){offSess.close();offSess=null;}offSrc=null;offDuration=0;
@@ -459,5 +491,5 @@
     syncVideo(true);
     if(cctx&&size())paint(cctx,cv.width,cv.height,(performance.now()-t0)/1000);
   }
-  window.kefeBackground={sync:function(){syncVideo(false);},offlinePrepare:offlinePrepare,offlineFrame:offlineFrame,offlineEnd:offlineEnd,video:function(){return vid;},paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
+  window.kefeBackground={sync:function(){syncVideo(false);},offlinePrepare:offlinePrepare,offlineFrame:offlineFrame,offlineMotionReport:offlineMotionReport,offlineEnd:offlineEnd,video:function(){return vid;},paint:paint,paintTransparency:paintTransparency,setMode:setMode,mode:function(){return mode;},blend:function(){return !enabled?'source-over':'screen';},hasVideo:function(){return !!vid;},isArtTainted:function(){return taintedArt;}};
 })();
