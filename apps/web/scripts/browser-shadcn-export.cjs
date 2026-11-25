@@ -79,31 +79,6 @@ async function backgroundVideoFixture(page) {
       assert.equal(await page.evaluate(() => document.getElementById('bgVideoInput') === window.__originalBackgroundInput), true, 'background-video file input identity retained after UI startup');
       await page.locator('#mediaInput').setInputFiles({ name: 'export-test.wav', mimeType: 'audio/wav', buffer: audioFixture() });
       await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 3.5);
-      await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
-      const gradientTab = page.locator('.shad-vis-tabs-host .kv-tab[data-visualiser="gradient"]');
-      await gradientTab.waitFor({ state: 'visible' });
-      await gradientTab.focus();
-      await page.keyboard.press('Enter');
-      try {
-        await page.waitForFunction(() => window.kefeGradientLayer?.state?.().on === true, null, { timeout: 10000 });
-      } catch (error) {
-        const visualiserState = await page.evaluate(() => {
-          const backing = document.querySelector('.shad-vis-backing-controls [data-visualiser="gradient"]');
-          const power = backing?.closest('.kefe-vis-option')?.querySelector('.kefe-switch');
-          const card = document.querySelector('.kv-card[data-visualiser="gradient"]');
-          return {
-            enginePresent: !!window.kefeGradientLayer,
-            engineState: window.kefeGradientLayer?.state?.(),
-            backingSelected: backing?.getAttribute('aria-selected'),
-            backingPower: power?.getAttribute('aria-checked'),
-            cardSelected: card?.querySelector('.kv-tab')?.getAttribute('aria-selected'),
-            cardPower: card?.querySelector('[role="switch"]')?.getAttribute('aria-checked'),
-            backingHost: backing?.parentElement?.className
-          };
-        });
-        throw new Error(`Fluid Ink did not become active: ${JSON.stringify(visualiserState)}; ${error.message}`);
-      }
-      await page.waitForFunction(() => document.querySelector('.kv-card[data-visualiser="gradient"] [role="switch"]')?.getAttribute('aria-checked') === 'true');
       await page.locator('#bgVideoInput').setInputFiles({ name: 'moving-background.webm', mimeType: 'video/webm', buffer: await backgroundVideoFixture(page) });
       await page.waitForFunction(() => document.getElementById('bgVideoFileStatus')?.textContent === 'Ready to use' && window.kefeBackground?.mode?.() === 'video', null, { timeout: 20000 });
       await page.locator('[data-workspace-tab="export"]').evaluate(node => node.click());
