@@ -444,7 +444,7 @@
       v.muted = true; v.preload = 'metadata';
       v.onloadedmetadata = function () {
         var d = v.duration;
-        if (isFinite(d) && Math.abs(d - expectedSeconds) > Math.max(1, expectedSeconds * 0.02)) finish({ ok: false, checked: true, duration: d, reason: 'The exported video is ' + d.toFixed(1) + 's long but the track is ' + expectedSeconds.toFixed(1) + 's.' });
+        if (isFinite(d) && Math.abs(d - expectedSeconds) > Math.max(0.1, expectedSeconds * 0.01)) finish({ ok: false, checked: true, duration: d, reason: 'The exported video is ' + d.toFixed(1) + 's long but the track is ' + expectedSeconds.toFixed(1) + 's.' });
         else if (isFinite(d) && d > 0) finish({ ok: true, checked: true, duration: d });
         else finish({ ok: false, checked: false, reason: 'The exported file has no readable duration.' });
       };
