@@ -109,7 +109,8 @@
     document.documentElement.classList.toggle('kefe-preview-large', large);
     const button = $('.kefe-step-preview', header);
     button.setAttribute('aria-pressed', String(large));
-    button.textContent = large ? 'Smaller preview' : 'Bigger preview';
+    button.textContent = 'Bigger preview';
+    button.hidden = large;
     window.dispatchEvent(new Event('resize'));
     window.dispatchEvent(new Event('kefe-stage-resize'));
   }
