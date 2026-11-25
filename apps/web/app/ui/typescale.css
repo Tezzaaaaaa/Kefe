@@ -1,0 +1,93 @@
+/* KEFE — type scale.
+
+   Modelled on the Typescale.ai defaults: 14px base, 1.250 (Major Third) ratio, sizes snapped to a
+   2px grid, heading leading 1.20 / tracking -0.02em, body leading 1.50 / tracking 0, headings Bold,
+   body Regular. Computed steps: 12 · 14 · 18 · 22 · 28 · 34 · 42 · 54.
+
+   Loaded last. It only sets type tokens and text rhythm; layout stays with layout-lock.css and
+   mobile-steps.css. Use the --ts-* tokens for any new UI text instead of raw pixel sizes. */
+
+html:root:root:root {
+  /* Scale (px values on the 2px grid). */
+  --ts-small: 12px;
+  --ts-body: 14px;
+  --ts-h6: 18px;
+  --ts-h5: 22px;
+  --ts-h4: 28px;
+  --ts-h3: 34px;
+  --ts-h2: 42px;
+  --ts-h1: 54px;
+
+  /* Rhythm. */
+  --ts-heading-leading: 1.2;
+  --ts-heading-tracking: -0.02em;
+  --ts-heading-weight: 700;
+  --ts-body-leading: 1.5;
+  --ts-body-tracking: 0;
+  --ts-body-weight: 400;
+
+  /* Existing KEFE size tokens now resolve to scale steps. */
+  --font-xs: var(--ts-small);
+  --font-sm: var(--ts-body);
+  --font-base: var(--ts-body);
+  --font-lg: var(--ts-h6);
+  --font-xl: var(--ts-h5);
+}
+
+html:root .kefe-editor {
+  font-size: var(--ts-body);
+  line-height: var(--ts-body-leading);
+  letter-spacing: var(--ts-body-tracking);
+  font-feature-settings: "cv11", "ss03";
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings follow the scale. */
+html:root .kefe-editor h1 { font-size: var(--ts-h3); }
+html:root .kefe-editor h2 { font-size: var(--ts-h5); }
+html:root .kefe-editor h3 { font-size: var(--ts-h6); }
+html:root .kefe-editor h4,
+html:root .kefe-editor h5,
+html:root .kefe-editor h6 { font-size: var(--ts-body); }
+
+html:root .kefe-editor h1,
+html:root .kefe-editor h2,
+html:root .kefe-editor h3,
+html:root .kefe-editor h4,
+html:root .kefe-editor h5,
+html:root .kefe-editor h6,
+html:root .kefe-editor .kefe-step-title,
+html:root .kefe-editor .kefe-empty strong {
+  line-height: var(--ts-heading-leading);
+  letter-spacing: var(--ts-heading-tracking);
+  font-weight: var(--ts-heading-weight) !important;
+}
+
+/* Section / step titles sit between body and H6. */
+html:root .kefe-editor .kefe-step-title { font-size: var(--ts-h6); }
+
+/* Small text: captions, hints, timestamps. */
+html:root .kefe-editor small,
+html:root .kefe-editor .kefe-meta,
+html:root .kefe-editor .kefe-hint,
+html:root .kefe-editor .kefe-time {
+  font-size: var(--ts-small);
+  line-height: var(--ts-body-leading);
+  letter-spacing: var(--ts-body-tracking);
+}
+
+/* Tabular figures wherever numbers change live (sliders, timecodes). */
+html:root .kefe-editor .kefe-time,
+html:root .kefe-editor output,
+html:root .kefe-editor input[type="number"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Export aspect picker: ratio on the body step, name on the small step, names wrap instead of clipping. */
+html:root .kefe-editor .kefe-export-aspect-ratio { font-size: var(--ts-body); font-weight: 600; }
+html:root .kefe-editor .kefe-export-aspect-name {
+  font-size: var(--ts-small);
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
