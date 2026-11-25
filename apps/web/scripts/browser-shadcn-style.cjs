@@ -65,7 +65,16 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => window.kefeStyle.applyState({...window.kefeStyle.state(), accentColor:'#77c7a5', glow:{color:'#a88be8'}}));
       assert.equal(await rows.nth(1).locator('button[title="#77c7a5"]').getAttribute('aria-pressed'), 'true');
       assert.equal(await rows.nth(4).locator('input').inputValue(), '#a88be8');
-      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('kefe.style.v1')).textColor), '#123456');
+      assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('kefe.style.v1')).effects.apple.textColor), '#123456');
+      await page.evaluate(() => {
+        window.kefeStyle.activate('sigkineticpunch');
+        window.kefeStyle.applyState({ ...window.kefeStyle.state(), textColor: '#f16a67', offsetX: 12 });
+      });
+      assert.equal(await page.evaluate(() => window.kefeStyle.state().textColor), '#f16a67');
+      assert.equal(await page.evaluate(() => window.kefeStyle.style({ effect: 'sigkineticpunch', fontSize: 80 }).textColor), '#f16a67');
+      await page.evaluate(() => window.kefeStyle.activate('apple'));
+      assert.equal(await page.evaluate(() => window.kefeStyle.state().textColor), '#123456', 'changing one effect must not alter another effect');
+      assert.equal(await page.evaluate(() => window.kefeStyle.state().offsetX), 0, 'effect placement must remain independent');
       const layout = await palette.evaluate(el => ({ width: el.getBoundingClientRect().width, scroll: el.scrollWidth, buttons: [...el.children].map(n => [n.getBoundingClientRect().width, n.getBoundingClientRect().height]) }));
       assert.ok(layout.width > 0 && layout.scroll <= layout.width + 1, `palette fits at ${width}px`);
       assert.ok(layout.buttons.every(([w, h]) => w >= 20 && h >= 20), 'colour swatches remain usable');
@@ -82,6 +91,8 @@ const server = http.createServer((req, res) => {
       await page.evaluate(() => window.kefeProjectAutosave.ready);
       assert.equal(await page.evaluate(() => window.kefeStyle.state().textColor), '#234567', 'toolbar colour persisted');
       assert.equal(await page.evaluate(() => window.kefeStyle.state().outline.color), '#f0a35e', 'outline persisted');
+      assert.equal(await page.evaluate(() => window.kefeStyle.state('sigkineticpunch').textColor), '#f16a67', 'other effect style persisted independently');
+      assert.equal(await page.evaluate(() => window.kefeStyle.state('sigkineticpunch').offsetX), 12, 'other effect placement persisted independently');
       assert.equal(await rows.nth(4).locator('input').inputValue(), '#a88be8', 'API state persisted');
       assert.deepEqual(errors, [], `no page or hydration errors at ${width}px`);
       await context.close();
