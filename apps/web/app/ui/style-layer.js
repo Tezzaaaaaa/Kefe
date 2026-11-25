@@ -21,20 +21,27 @@
     });
     return out;
   }
+  function normalise(value) {
+    var out = merge(DEFAULT, value);
+    out.scale = Math.max(50, Math.min(160, Number(out.scale) || 100));
+    out.offsetX = Math.max(-2, Math.min(2, Number(out.offsetX) || 0));
+    out.offsetY = Math.max(-7, Math.min(7, Number(out.offsetY) || 0));
+    return out;
+  }
   var activeEffect = 'apple', renderingEffect = '';
   var effects = {};
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (saved && saved.version === 2 && saved.effects && typeof saved.effects === 'object') {
-      Object.keys(saved.effects).forEach(function (id) { effects[id] = merge(DEFAULT, saved.effects[id]); });
+      Object.keys(saved.effects).forEach(function (id) { effects[id] = normalise(saved.effects[id]); });
     } else if (saved && typeof saved === 'object' && ('scale' in saved || 'textColor' in saved || 'outline' in saved || 'glow' in saved)) {
-      effects.apple = merge(DEFAULT, saved);
+      effects.apple = normalise(saved);
     }
   } catch (e) { /* storage unavailable */ }
-  var S = clone(effects[activeEffect] || DEFAULT);
+  var S = normalise(effects[activeEffect] || DEFAULT);
   function persist(id, value) {
     id = id || activeEffect;
-    effects[id] = clone(value || (id === activeEffect ? S : DEFAULT));
+    effects[id] = normalise(value || (id === activeEffect ? S : DEFAULT));
     try { localStorage.setItem(KEY, JSON.stringify({ version: 2, effects: effects })); } catch (e) { /* ignore */ }
   }
   function stateFor(id) { return id === activeEffect ? S : (effects[id] || DEFAULT); }
@@ -183,8 +190,8 @@
     var place = group('Size and placement');
     place.append(
       reg(slider('Text size', function () { return S.scale; }, function (v) { S.scale = v; }, 50, 160, 1, function (v) { return v + '%'; })),
-      reg(slider('Horizontal', function () { return S.offsetX; }, function (v) { S.offsetX = v; }, -40, 40, 1, function (v) { return (v > 0 ? '+' : '') + v + '%'; })),
-      reg(slider('Vertical', function () { return S.offsetY; }, function (v) { S.offsetY = v; }, -40, 40, 1, function (v) { return (v > 0 ? '+' : '') + v + '%'; }))
+      reg(slider('Horizontal', function () { return S.offsetX; }, function (v) { S.offsetX = v; }, -2, 2, 1, function (v) { return (v > 0 ? '+' : '') + v + '%'; })),
+      reg(slider('Vertical', function () { return S.offsetY; }, function (v) { S.offsetY = v; }, -7, 7, 1, function (v) { return (v > 0 ? '+' : '') + v + '%'; }))
     );
 
     var out = group('Outline');
@@ -231,7 +238,7 @@
     state: function (id) { return clone(stateFor(id || activeEffect)); },
     applyState: function (value, id) {
       id = id || activeEffect;
-      var next = merge(DEFAULT, value);
+      var next = normalise(value);
       effects[id] = clone(next);
       if (id === activeEffect) { S = next; syncers.forEach(function (fn) { fn(); }); }
       persist(id, next); redraw(); return clone(next);
