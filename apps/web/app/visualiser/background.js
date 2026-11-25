@@ -393,7 +393,7 @@
        cannot decode, so native element readiness must not gate this path. */
     try{
       if(vidFile&&window.VideoDecoder){
-        if(!window.KefeFrames){await withTimeout(new Promise(function(res,rej){var sc=document.createElement('script');sc.src='./app/vendor/mediabunny/kefe-frames.js?v=2';sc.onload=res;sc.onerror=function(){rej(new Error('decoder script failed to load'));};document.head.appendChild(sc);}),10000,'The video decoder did not load.');}
+        if(!window.KefeFrames){await withTimeout(new Promise(function(res,rej){var sc=document.createElement('script');sc.src='./app/vendor/mediabunny/kefe-frames.js?v=3';sc.onload=res;sc.onerror=function(){rej(new Error('decoder script failed to load'));};document.head.appendChild(sc);}),10000,'The video decoder did not load.');}
         var opening=window.KefeFrames.open(vidFile);
         try{offSess=await withTimeout(opening,20000,'The video decoder timed out while opening the background video.');}
         catch(openError){opening.then(function(session){try{session.close();}catch(_){}}).catch(function(){});throw openError;}
