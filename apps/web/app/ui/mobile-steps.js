@@ -105,6 +105,15 @@
     }
   }
 
+  function setPreviewLarge(large) {
+    document.documentElement.classList.toggle('kefe-preview-large', large);
+    const button = $('.kefe-step-preview', header);
+    button.setAttribute('aria-pressed', String(large));
+    button.textContent = large ? 'Smaller preview' : 'Bigger preview';
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('kefe-stage-resize'));
+  }
+
   function build() {
     header = document.createElement('div');
     header.className = 'kefe-step-header';
@@ -117,6 +126,7 @@
       '<div class="kefe-step-progress">' + dots + '</div>' +
       '<div class="kefe-step-line">' +
         '<div class="kefe-step-text"><span class="kefe-step-count"></span><strong class="kefe-step-title" aria-live="polite"></strong></div>' +
+        '<button type="button" class="kefe-step-preview" aria-pressed="false">Bigger preview</button>' +
       '</div>';
 
     nav = document.createElement('div');
@@ -133,6 +143,9 @@
     header.addEventListener('click', event => {
       const dot = event.target.closest('.kefe-step-dot');
       if (dot) { goTo(Number(dot.dataset.step)); return; }
+      if (event.target.closest('.kefe-step-preview')) {
+        setPreviewLarge(!document.documentElement.classList.contains('kefe-preview-large'));
+      }
     });
     nav.addEventListener('click', event => {
       if (event.target.closest('.kefe-step-back')) goTo(index - 1);
