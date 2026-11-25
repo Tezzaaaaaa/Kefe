@@ -2387,6 +2387,7 @@
           }
         });
         result.dims=dims;
+        result.bgMotion=bg?.offlineMotionReport?.()||null;
         return result;
       }finally{
         window.kefeAudioGraph?.setOfflineSource?.(null);
@@ -2553,28 +2554,43 @@
       let sourcePeak=0;
       if(decoded){const cd=decoded.getChannelData(0);for(let i=0;i<cd.length;i+=97){const v=Math.abs(cd[i]);if(v>sourcePeak)sourcePeak=v;}}
       const inspect=async r=>{
-        if(typeof engine?.inspectOutput!=='function')return {problems:[]};
+        const problems=[],soft=[],want=clip?clip.length:audio.duration;
+        if(typeof engine?.inspectOutput!=='function')return {problems:['KEFE could not verify the exported file.'],soft};
         setExportProgress(97,'Checking the video for problems · up to 20 s');
         const checkStart=performance.now();
         try{
-          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving,expectSeconds:clip?clip.length:audio.duration,budgetMs:20000,onProgress:(f,text)=>{
+          const info=await engine.inspectOutput(r.blob,{sourcePeak,expectMotion:bgMoving,expectSeconds:want,budgetMs:20000,onProgress:(f,text)=>{
             const left=Math.max(0,20-(performance.now()-checkStart)/1000);
             setExportProgress(97+Math.round(f*2),text+(f>=0.35?etaText(checkStart,f):' · up to '+Math.ceil(left/5)*5+' s'));
-          }}),problems=[],soft=[];
-          if(info.skipped)soft.push('the final check ran out of time, so the picture was not scanned for freezes');
-          const want=clip?clip.length:audio.duration,tol=Math.max(1.5,want*0.05);
-          if(isFinite(info.duration)&&info.duration<want-tol)problems.push('the video is '+info.duration.toFixed(1)+' s but should be '+want.toFixed(1)+' s (it plays sped up or cut short)');
-          else if(info.audioSeconds!=null&&info.audioSeconds<want-tol)problems.push('the audio is '+info.audioSeconds.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
-          if(info.audio==='silent')problems.push('the audio is silent');
-          if(info.audio==='missing')problems.push('the audio track is missing');
-          if(info.motion==='frozen')problems.push('the background video is frozen');
-          const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
-          if(info.motion==='stalled'&&info.frozenRanges?.length)soft.push('nothing on screen moves between '+info.frozenRanges.slice(0,3).map(r=>fmt(r[0])+' and '+fmt(r[1])).join(', ')+' (the background video may have stalled)');
+          }});
+          if(info.skipped)problems.push('the final picture check ran out of time');
+          const tol=Math.max(1.5,want*0.05);
+          if(!isFinite(info.duration))problems.push('the exported video duration could not be verified');
+          else if(Math.abs(info.duration-want)>tol)problems.push('the video is '+info.duration.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
+          if(info.audio==='silent')problems.push('the exported audio is silent');
+          else if(info.audio==='missing')problems.push('the exported audio track is missing');
+          else if(info.audio!=='ok')problems.push('the exported audio could not be verified');
+          if(info.audioSeconds==null)problems.push('the exported audio duration could not be verified');
+          else if(info.audioSeconds<want-tol)problems.push('the audio is '+info.audioSeconds.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
+          if(bgMoving){
+            const bm=r.bgMotion;
+            if(bm&&bm.checked>=6){
+              if(bm.motion==='frozen')problems.push('the uploaded background video is frozen');
+              else if(bm.motion==='stalled'&&bm.frozenRanges?.length){
+                const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+                problems.push('the uploaded background video stopped changing between '+bm.frozenRanges.slice(0,3).map(r=>fmt(r[0])+' and '+fmt(r[1])).join(', '));
+              }else if(bm.motion!=='ok')problems.push('the uploaded background video motion could not be verified');
+            }else if(info.motion==='frozen')problems.push('the exported background video is frozen');
+            else if(info.motion==='stalled')problems.push('the exported background video contains a prolonged freeze');
+            else if(info.motion!=='ok')problems.push('the exported background video motion could not be verified');
+          }
           const bs=r.bgStats;
-          if(bs&&bs.unresolved>0)problems.push('the background video skipped frames ('+bs.unresolved+')');
-          else if(bs&&bs.checked&&bs.stale/bs.checked>0.02)soft.push('the background video needed '+bs.stale+' frame corrections');
+          if(bs&&bs.unresolved>0)problems.push('the browser video decoder could not produce '+bs.unresolved+' requested background frames');
+          else if(bs&&bs.checked&&bs.stale/bs.checked>0.02)soft.push('the browser corrected '+bs.stale+' stale background frames');
           return {problems,soft,info};
-        }catch(_){return {problems:[],soft:[]};}
+        }catch(error){
+          return {problems:['the exported file could not be fully verified: '+(error?.message||'unknown verification error')],soft};
+        }
       };
       let check=await inspect(result);
       if(check.problems.length&&result.fps&&legacyOk){
@@ -2587,8 +2603,8 @@
           }
         }catch(error){if(error?.name==='AbortError')throw error;console.warn('[KEFE export re-render]',error);}
       }
-      if(check.soft?.length)notes.push('⚠ Worth a look: '+check.soft.join('; ')+'.');
-      if(check.problems.length)notes.push('⚠ Check this video before using it: '+check.problems.join(' and ')+'. Retry the export; if it happens again, tell me your browser and device.');
+      if(check.soft?.length)notes.push('⚠ Background recovery: '+check.soft.join('; ')+'.');
+      if(check.problems.length)throw new Error('Export verification failed: '+check.problems.join('; ')+'. The file was not delivered.');
       const {blob,dims,ext}=result;
       (result.notes||[]).forEach(n=>notes.push(n));
       const formatNote=wantMp4&&ext!=='mp4'?' MP4 is not supported by this browser, so this is WebM.':'';
