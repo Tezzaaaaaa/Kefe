@@ -401,9 +401,14 @@
     }
 
     var alreadyAtTarget = !v.seeking && v.readyState >= 2 && Math.abs(v.currentTime - want) <= 0.0005;
+    var wasPaused = v.paused;
     var presentedPromise = waitForPresented(want);
     if (!alreadyAtTarget && !(await seekTo(want))) return false;
+    if (wasPaused) {
+      try { await v.play(); } catch (_) { return false; }
+    }
     var meta = await presentedPromise;
+    if (wasPaused) v.pause();
     if (!meta || !isFinite(Number(meta.mediaTime))) return false;
     var shown = Number(meta.mediaTime), delta = Math.abs(shown - want);
     delta = Math.min(delta, Math.max(0, duration - delta));
