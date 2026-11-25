@@ -68,7 +68,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('kefe.style.v1')).effects.apple.textColor), '#123456');
       await page.evaluate(() => {
         window.kefeStyle.activate('sigkineticpunch');
-        window.kefeStyle.applyState({ ...window.kefeStyle.state(), textColor: '#f16a67', offsetX: 12 });
+        window.kefeStyle.applyState({ ...window.kefeStyle.state(), textColor: '#f16a67', offsetX: 40 });
       });
       assert.equal(await page.evaluate(() => window.kefeStyle.state().textColor), '#f16a67');
       assert.equal(await page.evaluate(() => window.kefeStyle.style({ effect: 'sigkineticpunch', fontSize: 80 }).textColor), '#f16a67');
@@ -101,7 +101,7 @@ const server = http.createServer((req, res) => {
       assert.equal(await page.evaluate(() => window.kefeStyle.state().textColor), '#234567', 'toolbar colour persisted');
       assert.equal(await page.evaluate(() => window.kefeStyle.state().outline.color), '#f0a35e', 'outline persisted');
       assert.equal(await page.evaluate(() => window.kefeStyle.state('sigkineticpunch').textColor), '#f16a67', 'other effect style persisted independently');
-      assert.equal(await page.evaluate(() => window.kefeStyle.state('sigkineticpunch').offsetX), 12, 'other effect placement persisted independently');
+      assert.equal(await page.evaluate(() => window.kefeStyle.state('sigkineticpunch').offsetX), 2, 'other effect placement persisted independently');
       assert.equal(await rows.nth(4).locator('input').inputValue(), '#a88be8', 'API state persisted');
       assert.deepEqual(errors, [], `no page or hydration errors at ${width}px`);
       await context.close();
