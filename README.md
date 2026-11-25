@@ -35,7 +35,7 @@ The preview combines the lyric/title-card canvas with a dedicated visualiser can
 - Import enhanced LRC files with word-level timing tags.
 - Download lyrics as LRC, SRT or timed JSON.
 - Choose a lyric display mode: Line, Word or Chunk.
-- Apply capitalisation options and a shared lyric style layer across effects.
+- Apply capitalisation options and independent style settings to each lyric effect.
 
 ### Lyric effects
 
