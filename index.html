@@ -3,71 +3,127 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#08090b">
+  <meta name="theme-color" content="#0a0a0a">
   <meta name="description" content="Create expressive lyric videos with KEFE. Shape the words, set the atmosphere and export for any screen.">
   <title>KEFE — Lyric video, reimagined</title>
   <link rel="icon" href="./apps/web/assets/favicon-BWppFTml.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./apps/web/app/ui/shadcn-theme.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
-    :root{color-scheme:dark;--bg:#08090b;--surface:#0d0f12;--ink:#f1f0ec;--muted:#92949a;--line:rgba(255,255,255,.11);--accent:#d7d2c8;--sans:Manrope,Arial,sans-serif;--mono:'DM Mono',monospace}
-    *{box-sizing:border-box}html{scroll-behavior:smooth;background:var(--bg)}body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button{font:inherit}
-    .shell{overflow:hidden}.nav{position:absolute;z-index:5;top:0;left:0;display:flex;width:100%;height:76px;align-items:center;justify-content:space-between;padding:0 clamp(22px,6vw,88px)}.brand{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;letter-spacing:.2em}.brand img{width:27px;height:27px}.nav-links{display:flex;align-items:center;gap:32px;color:#b0b1b5;font-size:11px}.nav-links a:hover,.quiet-link:hover{color:#fff}.nav-cta{display:inline-flex;min-height:38px;align-items:center;gap:12px;padding:0 14px;border:1px solid rgba(255,255,255,.25);font-size:11px;transition:background .2s,border-color .2s}.nav-cta:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.55)}
-    .hero{position:relative;display:flex;min-height:min(820px,100svh);align-items:center;padding:132px clamp(24px,11vw,160px) 110px;isolation:isolate;overflow:hidden;background:#080b10}.lumina-backdrop{position:absolute;z-index:-2;inset:0;overflow:hidden;background:#080b10}.lumina-backdrop canvas{display:block}.lumina-backdrop:after{position:absolute;z-index:1;inset:0;background:linear-gradient(90deg,rgba(7,9,12,.82) 0%,rgba(7,9,12,.55) 44%,rgba(7,9,12,.2) 100%),linear-gradient(0deg,#08090b 0%,transparent 28%,rgba(7,9,12,.15) 100%);content:"";pointer-events:none}.kefe-demo-runtime{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:none}
-    .hero-copy{position:relative;z-index:2;max-width:680px}.eyebrow{margin:0 0 24px;color:#b9b2a7;font:10px var(--mono);letter-spacing:.16em;text-transform:uppercase}.hero h1{margin:0;font-size:clamp(58px,8.8vw,116px);font-weight:500;letter-spacing:-.085em;line-height:.94}.hero h1 em{color:#c9c3b9;font-style:normal}.lead{max-width:440px;margin:27px 0 0;color:#c0c0c0;font-size:14px;line-height:1.85}.hero-actions{display:flex;align-items:center;gap:25px;margin-top:32px}.button{display:inline-flex;min-height:44px;align-items:center;gap:14px;padding:0 17px;background:#eeece6;color:#101114;font-size:11px;font-weight:700;transition:background .2s}.button:hover{background:#fff}.quiet-link{color:#c3c3c3;font-size:11px}.hero-foot{position:absolute;z-index:2;right:clamp(24px,6vw,88px);bottom:27px;left:clamp(24px,6vw,88px);display:flex;justify-content:space-between;color:#92949a;font:9px var(--mono);letter-spacing:.12em}
-    .effect-showcase{padding:92px clamp(22px,8vw,120px) 104px;background:var(--bg)}.section-head{display:flex;max-width:1260px;align-items:end;justify-content:space-between;gap:40px;margin:0 auto 35px}.section-kicker{margin:0 0 15px;color:#aaa69d;font:9px var(--mono);letter-spacing:.15em;text-transform:uppercase}.section-head h2{margin:0;font-size:clamp(37px,5vw,62px);font-weight:500;letter-spacing:-.075em;line-height:1}.section-head h2 span{color:#85878b}.section-intro{max-width:340px;margin:0 0 3px;color:var(--muted);font-size:12px;line-height:1.8}
-    .effect-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;max-width:1260px;margin:auto}.effect-card{min-width:0}.effect-stage{position:relative;display:block;min-height:270px;overflow:hidden;background:#0d1015}.effect-renderer{display:block;width:100%;height:270px}.effect-name{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 0 0;border-top:1px solid var(--line);font-size:12px;font-weight:600}.effect-name span{color:#85878b;font:9px var(--mono);letter-spacing:.04em;text-align:right}
-    .capabilities{padding:35px clamp(22px,8vw,120px) 40px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#0b0c0f}.capability-grid{display:grid;grid-template-columns:repeat(3,1fr);max-width:1260px;margin:auto}.capability{padding:4px 28px 4px 0}.capability+.capability{padding-left:28px;border-left:1px solid var(--line)}.capability small{color:#898b90;font:9px var(--mono);letter-spacing:.12em}.capability h3{margin:10px 0 5px;font-size:14px;font-weight:600}.capability p{max-width:280px;margin:0;color:var(--muted);font-size:11px;line-height:1.7}
-    footer{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:23px clamp(22px,6vw,88px);color:#777a80;font:9px var(--mono);letter-spacing:.1em}footer .brand{color:#d8d7d2}
-    @media(max-width:760px){.nav{height:68px;padding-inline:19px}.nav-links{display:none}.brand img{width:24px;height:24px}.nav-cta{min-height:36px;padding:0 11px;font-size:10px}.hero{min-height:760px;min-height:94svh;padding:112px 22px 88px}.lumina-backdrop:after{background:linear-gradient(90deg,rgba(7,9,12,.74),rgba(7,9,12,.34)),linear-gradient(0deg,#08090b 0%,transparent 36%)}.hero h1{font-size:clamp(58px,14vw,90px)}.lead{max-width:390px;font-size:13px}.hero-foot{right:20px;left:20px;font-size:7px}.effect-showcase{padding:72px 20px 76px}.section-head{align-items:flex-start;flex-direction:column;gap:17px;margin-bottom:25px}.section-head h2{font-size:clamp(40px,11vw,56px)}.effect-grid{grid-template-columns:1fr;gap:24px}.effect-stage{min-height:220px}.effect-renderer{height:220px}.effect-name{padding-top:11px}.capabilities{padding:25px 20px}.capability-grid{grid-template-columns:1fr;gap:18px}.capability,.capability+.capability{padding:0;border:0}.capability h3{margin:5px 0 3px}footer{padding:19px 20px;font-size:7px}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
+    :root {
+      color-scheme: dark;
+      --shad-background: #0a0a0a;
+      --shad-foreground: #fafafa;
+      --shad-card: #111111;
+      --shad-muted: #171717;
+      --shad-muted-foreground: #a1a1a1;
+      --shad-border: rgba(255,255,255,.1);
+      --shad-border-strong: rgba(255,255,255,.18);
+      --shad-primary: #d92f33;
+      --shad-primary-foreground: #fff;
+      --shad-radius-md: 8px;
+      --shad-radius-lg: 10px;
+      --shad-shadow-xs: 0 1px 2px rgba(0,0,0,.28);
+      --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;background:var(--shad-background)}
+    body{margin:0;background:var(--shad-background);color:var(--shad-foreground);font-family:var(--font-ui);-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}
+    .site-shell{min-height:100svh}
+    .topbar{position:absolute;z-index:5;top:0;left:0;display:flex;width:100%;height:68px;align-items:center;justify-content:space-between;padding:0 clamp(20px,6vw,84px);border-bottom:1px solid rgba(255,255,255,.08)}
+    .wordmark{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:700;letter-spacing:.16em}
+    .wordmark img{width:24px;height:24px}
+    .topbar-right{display:flex;align-items:center;gap:28px}
+    .top-link{color:var(--shad-muted-foreground);font-size:12px;transition:color .16s}
+    .top-link:hover{color:var(--shad-foreground)}
+    .shad-btn{display:inline-flex;min-height:36px;align-items:center;justify-content:center;gap:9px;padding:0 14px;border:1px solid transparent;border-radius:var(--shad-radius-md);font:500 12px/1 var(--font-ui);white-space:nowrap;transition:background .16s,border-color .16s,color .16s}
+    .shad-btn--primary{background:var(--shad-primary);color:var(--shad-primary-foreground);box-shadow:var(--shad-shadow-xs)}
+    .shad-btn--primary:hover{background:#c6282c}
+    .shad-btn--outline{border-color:var(--shad-border-strong);background:transparent;color:var(--shad-foreground)}
+    .shad-btn--outline:hover{background:var(--shad-muted)}
+    .hero{position:relative;display:grid;min-height:min(760px,100svh);grid-template-columns:minmax(0,1fr) minmax(260px,.82fr);align-items:center;gap:clamp(30px,7vw,100px);padding:130px clamp(24px,11vw,156px) 90px;isolation:isolate;overflow:hidden}
+    .lumina-backdrop{position:absolute;z-index:-2;inset:0;overflow:hidden;background:#0a0a0a}
+    .lumina-backdrop canvas{display:block}
+    .lumina-backdrop:after{position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,10,10,.97) 0%,rgba(10,10,10,.9) 36%,rgba(10,10,10,.48) 72%,rgba(10,10,10,.68) 100%),linear-gradient(0deg,#0a0a0a 0%,transparent 26%,rgba(10,10,10,.25) 100%);content:"";pointer-events:none}
+    .kefe-demo-runtime{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:none}
+    .hero-copy{position:relative;z-index:2;max-width:590px}
+    .eyebrow,.section-label{margin:0 0 18px;color:#a1a1a1;font-size:10px;font-weight:500;letter-spacing:.13em;text-transform:uppercase}
+    .hero h1{margin:0;font-size:clamp(56px,7.5vw,96px);font-weight:600;letter-spacing:-.075em;line-height:.98}
+    .hero h1 span{color:#a1a1a1}
+    .hero-copy p.lead{max-width:420px;margin:24px 0 0;color:#a1a1a1;font-size:14px;line-height:1.8}
+    .hero-actions{display:flex;align-items:center;gap:18px;margin-top:30px}
+    .hero-note{position:relative;z-index:2;justify-self:end;align-self:end;margin:0 0 20px;color:#a1a1a1;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+    .showcase{padding:88px clamp(22px,8vw,116px) 96px;background:var(--shad-background)}
+    .showcase-head{display:flex;max-width:1240px;align-items:end;justify-content:space-between;gap:28px;margin:0 auto 30px}
+    .showcase-head h2{margin:0;font-size:clamp(32px,4.2vw,52px);font-weight:600;letter-spacing:-.065em;line-height:1.04}
+    .showcase-head p:last-child{max-width:330px;margin:0 0 2px;color:var(--shad-muted-foreground);font-size:12px;line-height:1.75}
+    .effect-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:1240px;margin:0 auto}
+    .effect-card{min-width:0;overflow:hidden;border:1px solid var(--shad-border);border-radius:var(--shad-radius-lg);background:var(--shad-card)}
+    .effect-renderer{display:block;width:100%;height:260px;background:#111}
+    .effect-caption{display:flex;min-height:48px;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;border-top:1px solid var(--shad-border)}
+    .effect-caption strong{font-size:12px;font-weight:600}
+    .effect-caption span{color:var(--shad-muted-foreground);font-size:10px}
+    .closing{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:28px clamp(22px,8vw,116px);border-top:1px solid var(--shad-border)}
+    .closing p{margin:0;color:var(--shad-muted-foreground);font-size:11px}
+    @media(max-width:760px){
+      .topbar{height:62px;padding-inline:19px}.topbar-right{gap:14px}.top-link{display:none}
+      .hero{min-height:720px;min-height:92svh;grid-template-columns:1fr;gap:0;padding:120px 22px 78px}
+      .lumina-backdrop:after{background:linear-gradient(90deg,rgba(10,10,10,.91),rgba(10,10,10,.56)),linear-gradient(0deg,#0a0a0a 0%,transparent 45%)}
+      .hero h1{font-size:clamp(58px,13.5vw,84px)}.hero-copy p.lead{font-size:13px}
+      .hero-note{justify-self:start;align-self:end;margin:45px 0 0;font-size:9px}
+      .showcase{padding:68px 18px 72px}.showcase-head{align-items:flex-start;flex-direction:column;gap:14px;margin-bottom:22px}
+      .showcase-head h2{font-size:clamp(36px,10vw,48px)}.effect-grid{grid-template-columns:1fr;gap:14px}
+      .effect-renderer{height:230px}.closing{padding:22px 18px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="nav">
-      <a class="brand" href="#top" aria-label="KEFE home"><img src="./apps/web/assets/favicon-BWppFTml.svg" alt="">KEFE</a>
-      <nav class="nav-links" aria-label="Main navigation"><a href="#effects">Effects</a><a href="#create">The process</a></nav>
-      <a class="nav-cta" href="./apps/web/editor.html">Open editor <span aria-hidden="true">↗</span></a>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="wordmark" href="#top" aria-label="KEFE home"><img src="./apps/web/assets/favicon-BWppFTml.svg" alt="">KEFE</a>
+      <nav class="topbar-right" aria-label="Main navigation">
+        <a class="top-link" href="#effects">Effects</a>
+        <a class="shad-btn shad-btn--outline" data-slot="button" href="./apps/web/editor.html">Open editor <span aria-hidden="true">↗</span></a>
+      </nav>
     </header>
     <main id="top">
       <section class="hero">
         <div class="lumina-backdrop kefe-stage" data-visualiser="lumina" aria-hidden="true"></div>
         <div class="kefe-demo-runtime" aria-hidden="true"><div class="kefe-vis-tabs"></div><div id="kefeVisualiserPresetRow" class="kefe-visualiser-preset-row"></div><div class="kefe-visualiser-form"></div></div>
         <div class="hero-copy">
-          <p class="eyebrow">A considered space for lyric video</p>
-          <h1>Let the lyrics<br><em>take shape.</em></h1>
-          <p class="lead">Bring your track, find its visual language and create a lyric video with its own point of view.</p>
-          <div class="hero-actions"><a class="button" href="./apps/web/editor.html">Create with KEFE <span aria-hidden="true">↗</span></a><a class="quiet-link" href="#effects">Explore the effects ↓</a></div>
+          <p class="eyebrow">Lyric video creation</p>
+          <h1>Make the words<br><span>move you.</span></h1>
+          <p class="lead">A focused creative studio for turning music and lyrics into considered visual experiences.</p>
+          <div class="hero-actions">
+            <a class="shad-btn shad-btn--primary" data-slot="button" href="./apps/web/editor.html">Create with KEFE <span aria-hidden="true">↗</span></a>
+            <a class="top-link" href="#effects">Explore effects ↓</a>
+          </div>
         </div>
-        <div class="hero-foot"><span>TYPE · MOTION · SOUND</span><span>KEFE CREATIVE STUDIO</span></div>
+        <p class="hero-note">Type · Motion · Sound</p>
       </section>
-      <section class="effect-showcase" id="effects" aria-labelledby="effect-title">
-        <div class="section-head"><div><p class="section-kicker">Selected treatments</p><h2 id="effect-title">The words set<br><span>the atmosphere.</span></h2></div><p class="section-intro">A small selection of lyric treatments. Each brings a different character to the same essential element: the words.</p></div>
+      <section class="showcase" id="effects" aria-labelledby="effects-title">
+        <div class="showcase-head">
+          <div><p class="section-label">A few ways to shape a lyric</p><h2 id="effects-title">Let the words<br>set the tone.</h2></div>
+          <p>Three distinct treatments, rendered with KEFE’s own lyric effects.</p>
+        </div>
         <div class="effect-grid">
-          <article class="effect-card"><div class="effect-stage"><canvas class="effect-renderer" data-effect="sigbrat" aria-label="Live Brat lyric effect preview"></canvas></div><div class="effect-name">Brat <span>Direct / raw</span></div></article>
-          <article class="effect-card"><div class="effect-stage"><canvas class="effect-renderer" data-effect="apple" aria-label="Live Apple Lyrics effect preview"></canvas></div><div class="effect-name">Apple Lyrics <span>Fluid / luminous</span></div></article>
-          <article class="effect-card"><div class="effect-stage"><canvas class="effect-renderer" data-effect="sigpresscycle" aria-label="Live Press Cycle lyric effect preview"></canvas></div><div class="effect-name">Press Cycle <span>Editorial / composed</span></div></article>
-        </div>
-      </section>
-      <section class="capabilities" id="create">
-        <div class="capability-grid">
-          <article class="capability"><small>01 — SYNC</small><h3>Bring the words into time</h3><p>Load your track and shape the lyric timing.</p></article>
-          <article class="capability"><small>02 — DIRECT</small><h3>Build the visual language</h3><p>Combine type, visualisers, backgrounds and artwork.</p></article>
-          <article class="capability"><small>03 — FINISH</small><h3>Make it ready to share</h3><p>Compose for your format and export the video.</p></article>
+          <article class="effect-card" data-slot="card"><canvas class="effect-renderer" data-effect="sigbrat" aria-label="Live Brat lyric effect preview"></canvas><div class="effect-caption"><strong>Brat</strong><span>Raw / direct</span></div></article>
+          <article class="effect-card" data-slot="card"><canvas class="effect-renderer" data-effect="apple" aria-label="Live Apple Lyrics effect preview"></canvas><div class="effect-caption"><strong>Apple Lyrics</strong><span>Fluid / luminous</span></div></article>
+          <article class="effect-card" data-slot="card"><canvas class="effect-renderer" data-effect="sigpresscycle" aria-label="Live Press Cycle lyric effect preview"></canvas><div class="effect-caption"><strong>Press Cycle</strong><span>Editorial / composed</span></div></article>
         </div>
       </section>
     </main>
-    <footer><a class="brand" href="#top">KEFE</a><span>LYRIC VIDEO CREATOR</span><span>© KEFE</span></footer>
+    <footer class="closing"><a class="wordmark" href="#top">KEFE</a><p>Lyric video, made yours.</p></footer>
   </div>
-
-<script src="./apps/web/app/ui/resilience.js?v=landing-live-demo-20261126-1"></script>
-<script src="./apps/web/app/ui/typography.js?v=landing-live-demo-20261126-1"></script>
-<script src="./apps/web/app/effects/core.js?v=landing-live-demo-20261126-1"></script>
-<script src="./apps/web/app/effects/lyric-premium-kit.js?v=landing-live-demo-20261126-1"></script>
-<script src="./apps/web/app/effects/lyric-apple.js?v=landing-live-demo-20261126-1"></script>
-<script src="./apps/web/app/effects/lyric-signature-four.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/ui/resilience.js?v=landing-shadcn-20261126-1"></script>
+<script src="./apps/web/app/ui/typography.js?v=landing-shadcn-20261126-1"></script>
+<script src="./apps/web/app/effects/core.js?v=landing-shadcn-20261126-1"></script>
+<script src="./apps/web/app/effects/lyric-premium-kit.js?v=landing-shadcn-20261126-1"></script>
+<script src="./apps/web/app/effects/lyric-apple.js?v=landing-shadcn-20261126-1"></script>
+<script src="./apps/web/app/effects/lyric-signature-four.js?v=landing-shadcn-20261126-1"></script>
 <script src="./apps/web/app/effects/lyric-signature-pack.js?v=press-cycle-line-20261126-1"></script>
-<script src="./apps/web/app/visualiser/shader-vis.js?v=landing-live-demo-20261126-1"></script>
+<script src="./apps/web/app/visualiser/shader-vis.js?v=landing-shadcn-20261126-1"></script>
 <script src="./apps/web/app/visualiser/silk-road.js?v=shader-vis-20261029-1"></script>
 <script>
 (() => {
