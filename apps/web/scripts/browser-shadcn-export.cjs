@@ -186,6 +186,6 @@ async function backgroundVideoFixture(page, moving = true) {
       await page.waitForFunction(() => document.activeElement?.id === 'exportButton');
       await context.close();
     }
-    console.log('PASS: shadcn export dialog, moving background-video export, audio verification and real video delivery in desktop and mobile Chromium');
+    console.log('PASS: moving background export delivery, audio verification and frozen-background rejection in desktop and mobile Chromium');
   } finally { if (browser) await browser.close(); server.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
