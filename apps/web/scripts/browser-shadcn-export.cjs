@@ -12,13 +12,41 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 });
 function audioFixture() {
-  const sampleRate = 8000, samples = sampleRate;
+  const sampleRate = 8000, samples = sampleRate * 4;
   const buffer = Buffer.alloc(44 + samples * 2);
   buffer.write('RIFF', 0); buffer.writeUInt32LE(36 + samples * 2, 4);
   buffer.write('WAVEfmt ', 8); buffer.writeUInt32LE(16, 16); buffer.writeUInt16LE(1, 20); buffer.writeUInt16LE(1, 22);
   buffer.writeUInt32LE(sampleRate, 24); buffer.writeUInt32LE(sampleRate * 2, 28); buffer.writeUInt16LE(2, 32); buffer.writeUInt16LE(16, 34);
   buffer.write('data', 36); buffer.writeUInt32LE(samples * 2, 40);
+  for (let i = 0; i < samples; i++) buffer.writeInt16LE(Math.round(Math.sin(2 * Math.PI * 440 * i / sampleRate) * 9000), 44 + i * 2);
   return buffer;
+}
+async function backgroundVideoFixture(page) {
+  const bytes = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 320; canvas.height = 180;
+    const ctx = canvas.getContext('2d');
+    const stream = canvas.captureStream(15);
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
+    const chunks = [];
+    recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
+    const stopped = new Promise(resolve => { recorder.onstop = resolve; });
+    recorder.start();
+    const start = performance.now();
+    let frame = 0;
+    while (performance.now() - start < 4200) {
+      ctx.fillStyle = '#101820'; ctx.fillRect(0, 0, 320, 180);
+      ctx.fillStyle = '#f5d547'; ctx.fillRect((frame * 7) % 360 - 40, 48, 40, 84);
+      ctx.fillStyle = '#31b6a5'; ctx.beginPath(); ctx.arc(160, 90, 24 + (frame % 12), 0, Math.PI * 2); ctx.fill();
+      frame++;
+      await new Promise(resolve => setTimeout(resolve, 1000 / 15));
+    }
+    recorder.stop();
+    await stopped;
+    stream.getTracks().forEach(track => track.stop());
+    return Array.from(new Uint8Array(await new Blob(chunks, { type: 'video/webm' }).arrayBuffer()));
+  });
+  return Buffer.from(bytes);
 }
 (async () => {
   let browser;
@@ -50,7 +78,9 @@ function audioFixture() {
       assert.equal(await page.evaluate(() => document.getElementById('mediaInput') === window.__originalMediaInput), true, 'primary file input identity retained after UI startup');
       assert.equal(await page.evaluate(() => document.getElementById('bgVideoInput') === window.__originalBackgroundInput), true, 'background-video file input identity retained after UI startup');
       await page.locator('#mediaInput').setInputFiles({ name: 'export-test.wav', mimeType: 'audio/wav', buffer: audioFixture() });
-      await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 1);
+      await page.waitForFunction(() => document.getElementById('kefeAudio')?.duration >= 3.5);
+      await page.locator('#bgVideoInput').setInputFiles({ name: 'moving-background.webm', mimeType: 'video/webm', buffer: await backgroundVideoFixture(page) });
+      await page.waitForFunction(() => document.getElementById('bgVideoFileStatus')?.textContent === 'Ready to use' && window.kefeBackground?.mode?.() === 'video', null, { timeout: 20000 });
       await page.locator('[data-workspace-tab="audio-visuals"]').evaluate(node => node.click());
       const gradientTab = page.locator('.shad-vis-tabs-host .kv-tab[data-visualiser="gradient"]');
       await gradientTab.waitFor({ state: 'visible' });
@@ -134,7 +164,7 @@ function audioFixture() {
       const complete = page.getByRole('dialog', { name: 'Export complete' });
       await complete.waitFor({ timeout: 30000 });
       assert.equal(await complete.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
-      assert.match(await page.locator('#exportStatus').textContent(), /Export complete/);
+      assert.match(await page.locator('#exportStatus').textContent(), /Export complete/);\n      assert.doesNotMatch(await page.locator('#exportStatus').textContent(), /verification failed|frozen|stopped changing|could not be verified/i, 'the moving background and audio were verified before delivery');
       if (engineAvailable) assert.match(await page.locator('#exportStatus').textContent(), / fps · /, 'the precise offline renderer produced the video');
       let download;
       if (width === 390) {
@@ -155,6 +185,6 @@ function audioFixture() {
       assert.deepEqual(errors, [], `no page errors at ${width}px`);
       await context.close();
     }
-    console.log('PASS: shadcn export dialog and progress, error and real video export in desktop and mobile Chromium');
+    console.log('PASS: shadcn export dialog, moving background-video export, audio verification and real video delivery in desktop and mobile Chromium');
   } finally { if (browser) await browser.close(); server.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
