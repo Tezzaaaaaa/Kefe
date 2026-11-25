@@ -377,7 +377,10 @@
   /* ── offline (video export) ── */
   function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
   function withTimeout(promise,ms,message){
-    return Promise.race([promise,new Promise(function(_,reject){setTimeout(function(){reject(new Error(message));},ms);})]);
+    return new Promise(function(resolve,reject){
+      var timer=setTimeout(function(){reject(new Error(message));},ms);
+      Promise.resolve(promise).then(function(value){clearTimeout(timer);resolve(value);},function(error){clearTimeout(timer);reject(error);});
+    });
   }
   /* Validate the source before export. The browser element remains the recovery decoder if WebCodecs
      cannot return a frame; an unavailable fast path must never turn into a frozen background. */
@@ -429,16 +432,13 @@
       /* A failed seek is not retried against the same decoder state. Nudge to a distinct timestamp,
          then return to the requested frame so the media element performs a real decode cycle. */
       for(var attempt=0;attempt<3&&!ok;attempt++){
-        var target=attempt===0?base:(base+Math.min(.12,.04*attempt))%duration;
+        var target=attempt===0?base:(base+Math.min(.08,.04*attempt))%duration;
+        if(attempt&&typeof eng.resetSeek==='function')eng.resetSeek(vid);
         ok=await eng.seekVideo(vid,target);
-        if(!ok&&attempt<2){
-          if(typeof eng.resetSeek==='function')eng.resetSeek(vid);
-          try{vid.currentTime=(target+.25)%duration;}catch(_){}
-          await sleep(40);
-        }
       }
       if(!ok)throw new Error('The background video decoder failed to produce a frame during export.');
-      /* Return to the exact requested timestamp after a recovery nudge. */
+      /* Recovery seeks deliberately move off the failed timestamp; always restore the exact frame
+         requested by the export clock before painting the output frame. */
       if(Math.abs(vid.currentTime-base)>.001){
         if(typeof eng.resetSeek==='function')eng.resetSeek(vid);
         if(!(await eng.seekVideo(vid,base)))throw new Error('The background video could not return to the requested export frame.');
