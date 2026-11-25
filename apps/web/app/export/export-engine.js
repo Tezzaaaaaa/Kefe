@@ -410,6 +410,7 @@
     }
     var meta = await presented();
     var tol = Math.max(0.06, (st.period > 0 ? st.period : 0.034) * 2.5);
+    var unresolved = false;
     if (meta && typeof meta.mediaTime === 'number') {
       bgStats.checked++;
       var attempt = 0, wasStale = false;
@@ -421,7 +422,8 @@
         if (!again || typeof again.mediaTime !== 'number') break;
         meta = again;
       }
-      if (wasStale) { bgStats.stale++; if (want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5) bgStats.unresolved++; }
+      unresolved = want - meta.mediaTime > tol && want - meta.mediaTime < duration * 0.5;
+      if (wasStale) { bgStats.stale++; if (unresolved) bgStats.unresolved++; }
     }
     var shown = meta && typeof meta.mediaTime === 'number' ? meta.mediaTime : -1;
     if (shown >= 0) {
@@ -430,7 +432,8 @@
     } else {
       st.last = -1;
     }
-    return true;
+    /* Never report success when the browser confirms it is still presenting an earlier frame. */
+    return !unresolved;
   }
   function resetSeek(v) { if (seekStates && v) seekStates.delete(v); }
 
