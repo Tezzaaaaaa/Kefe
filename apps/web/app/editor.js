@@ -615,7 +615,7 @@
           const lc=lyricLayer.getContext('2d');
           if(lc){
             lc.setTransform(1,0,0,1,0,0);lc.clearRect(0,0,W,H);
-            if(styler)styler.post(lc,W,H,paintEffect);else paintEffect(lc);
+            if(styler)styler.post(lc,W,H,paintEffect,state.effect);else paintEffect(lc);
             if(state.effect==='apple'){
               // Soft-fade lyrics out at the top/bottom safe edges so a line dissolves instead of being sliced flat.
               // The effect already fades lines under the pinned title header itself, so nothing else masks the layer.
@@ -755,6 +755,7 @@
   }
   function setEffect(id){
     state.effect=id;
+    window.kefeStyle?.activate?.(id);
     applyEffectDefault(id);
     /* Each lyric effect starts in conventional whole-line display, regardless
        of a different mode saved with that effect's previous style settings. */
@@ -819,7 +820,7 @@
     const style=styler?.style?styler.style(base):base;
     const lines=[effectPreviewLine(EFFECT_PREVIEW_PHRASE)];
     try{
-      if(styler?.post)styler.post(ctx,W,H,target=>fn(target,W,H,style,lines,time,null));
+      if(styler?.post)styler.post(ctx,W,H,target=>fn(target,W,H,style,lines,time,null),id);
       else fn(ctx,W,H,style,lines,time,null);
       return true;
     }catch(error){
@@ -2268,7 +2269,7 @@
     const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
     const requestedRes=Number(document.getElementById('exportResolution').value)||720;
     const aspect=previewAspectRatio||'16:9';
-    const exportFps=Math.max(24,Math.min(60,Math.round(Number(window.kefeSettings?.get('fpsTarget')))||60));
+    const exportFps=60;
     /* Optional clip (Quick reel): render only [start, start+length] of the track. Plain exports leave window.kefeExportClip unset. */
     const clipReq=window.kefeExportClip;
     const clip=clipReq&&Number(clipReq.length)>0?(()=>{const start=Math.max(0,Math.min(Number(clipReq.start)||0,audio.duration-1));return {start,length:Math.max(1,Math.min(Number(clipReq.length),audio.duration-start))};})():null;
