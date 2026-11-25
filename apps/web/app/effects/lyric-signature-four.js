@@ -15,7 +15,7 @@
   const setFont = (ctx, key, size) => {
     const c = FONTS[key];
     U.setFont(ctx, c.family, size, c.weight);
-    if ('letterSpacing' in ctx) ctx.letterSpacing = (c.tracking || 0) * size + 'px';
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
   };
   function background(ctx, w, h, key, time) {
     ctx.save();
@@ -69,6 +69,7 @@
       lineHeight:c.lineHeight,maxLines:3,tracking:c.tracking
     });
     setFont(ctx,key,lay.size);
+    if ('letterSpacing' in ctx) ctx.letterSpacing = (c.tracking || 0) * lay.size + 'px';
     ctx.save();
     ctx.globalAlpha*=clamp(item.alpha);
     ctx.textAlign='center';ctx.textBaseline='middle';
