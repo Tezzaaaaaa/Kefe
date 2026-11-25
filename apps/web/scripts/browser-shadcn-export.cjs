@@ -137,7 +137,15 @@ async function backgroundVideoFixture(page) {
       const downloadPromise = width === 390 ? null : page.waitForEvent('download', { timeout: 30000 });
       await exportButton.click();
       const complete = page.getByRole('dialog', { name: 'Export complete' });
-      await complete.waitFor({ timeout: 30000 });
+      const exportFailed = page.getByRole('dialog', { name: 'Export failed' });
+      const outcome = await Promise.race([
+        complete.waitFor({ state: 'visible', timeout: 120000 }).then(() => 'complete'),
+        exportFailed.waitFor({ state: 'visible', timeout: 120000 }).then(() => 'failed')
+      ]);
+      if (outcome === 'failed') {
+        const reason = await exportFailed.locator('#kefeExportFootnote').textContent();
+        throw new Error('Moving-background export was rejected: ' + reason);
+      }
       assert.equal(await complete.getByRole('progressbar').getAttribute('aria-valuenow'), '100');
       assert.match(await page.locator('#exportStatus').textContent(), /Export complete/);
       assert.doesNotMatch(await page.locator('#exportStatus').textContent(), /verification failed|frozen|stopped changing|could not be verified/i, 'the moving background and audio were verified before delivery');
