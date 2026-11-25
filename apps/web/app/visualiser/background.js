@@ -442,7 +442,10 @@
       offSrc=null;
       var eng=window.kefeExportEngine;
       if(!eng||typeof eng.seekVideo!=='function')throw new Error('The browser video decoder is unavailable for background export.');
-      var duration=offDuration||vid.duration,base=((t%duration)+duration)%duration,ok=false;
+      var duration=vid.duration;
+      if(!(duration>0)||!isFinite(duration))throw new Error('The native background video duration is unavailable.');
+      offDuration=duration;
+      var base=((t%duration)+duration)%duration,ok=false;
       /* A failed seek is not retried against the same decoder state. Nudge to a distinct timestamp,
          then return to the requested frame so the media element performs a real decode cycle. */
       for(var attempt=0;attempt<3&&!ok;attempt++){
