@@ -376,8 +376,11 @@
   function paintTransparency(g,w,h){var amount=Math.max(0,Math.min(100,Number(document.getElementById('backgroundTransparency')?.value)||0))/100;if(amount>0){g.save();g.fillStyle='rgba(0,0,0,'+amount+')';g.fillRect(0,0,w,h);g.restore();}}
   /* ── offline (video export) ── */
   function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
-  /* Makes sure an uploaded background video is decoded and seekable before export starts, so it can never be
-     silently replaced by the fallback art. */
+  function withTimeout(promise,ms,message){
+    return Promise.race([promise,new Promise(function(_,reject){setTimeout(function(){reject(new Error(message));},ms);})]);
+  }
+  /* Validate the source before export. The browser element remains the recovery decoder if WebCodecs
+     cannot return a frame; an unavailable fast path must never turn into a frozen background. */
   async function offlinePrepare(){
     if(!(enabled&&mode==='video'&&vid))return {video:false};
     try{vid.pause();}catch(e){}
@@ -386,31 +389,59 @@
       if(vid.error)throw new Error('The background video could not be read for export.');
       await sleep(100);waited+=100;
     }
-    if(vid.readyState<2||!(vid.duration>0))throw new Error('The background video is not ready. Re-select it and try again.');
-    /* Preferred path: decode the clip in order with WebCodecs (Mediabunny) instead of seeking an element per frame. */
+    if(vid.readyState<2||!(vid.duration>0)||!isFinite(vid.duration))throw new Error('The background video is not ready. Re-select it and try again.');
     offSess=null;offSrc=null;
     try{
       if(vidFile&&window.VideoDecoder){
-        if(!window.KefeFrames){await new Promise(function(res,rej){var sc=document.createElement('script');sc.src='./app/vendor/mediabunny/kefe-frames.js?v=1';sc.onload=res;sc.onerror=function(){rej(new Error('decoder script'));};document.head.appendChild(sc);});}
-        offSess=await window.KefeFrames.open(vidFile);
-        var probe=await offSess.at(0);if(!probe)throw new Error('no first frame');
+        if(!window.KefeFrames){await withTimeout(new Promise(function(res,rej){var sc=document.createElement('script');sc.src='./app/vendor/mediabunny/kefe-frames.js?v=2';sc.onload=res;sc.onerror=function(){rej(new Error('decoder script failed to load'));};document.head.appendChild(sc);}),10000,'The video decoder did not load.');}
+        offSess=await withTimeout(window.KefeFrames.open(vidFile),20000,'The video decoder timed out while opening the background video.');
+        var probe=await withTimeout(offSess.at(0),10000,'The video decoder timed out on its first frame.');
+        if(!probe)throw new Error('The decoder returned no first frame.');
+        offSrc=probe;
       }
-    }catch(e){console.warn('[KEFE bg] sequential decoder unavailable, using element seeking',e);if(offSess){offSess.close();}offSess=null;offSrc=null;}
+    }catch(e){
+      console.warn('[KEFE bg] WebCodecs path unavailable; using browser video decoder',e);
+      if(offSess){try{offSess.close();}catch(_){}}
+      offSess=null;offSrc=null;
+    }
     return {video:true,duration:vid.duration,decoder:!!offSess};
   }
-  /* Puts the background on exact media time t: seeks the video (looping) and repaints the preview canvas that the
-     glass visualisers sample as their texture. Throws if the video cannot be positioned. */
+  /* Resolve every export timestamp to a fresh decoded frame. Decoder timeouts and null frames switch
+     permanently to the browser's native video decoder for the remainder of this export. */
   async function offlineFrame(t){
-    if(enabled&&mode==='video'&&vid&&offSess){
-      try{var c=await offSess.at(t);if(c)offSrc=c;else throw new Error('no frame');}
-      catch(e){console.warn('[KEFE bg] decoder failed, falling back to seeking',e);offSess.close();offSess=null;offSrc=null;}
+    if(!(enabled&&mode==='video'&&vid)){if(cctx&&size())paint(cctx,cv.width,cv.height,t);return;}
+    if(offSess){
+      try{
+        var c=await withTimeout(offSess.at(t),10000,'The background decoder stopped returning frames.');
+        if(!c)throw new Error('The background decoder returned an empty frame.');
+        offSrc=c;
+      }catch(e){
+        console.warn('[KEFE bg] WebCodecs frame decode failed; switching to browser video decoder',e);
+        try{offSess.close();}catch(_){}
+        offSess=null;offSrc=null;
+      }
     }
-    if(enabled&&mode==='video'&&vid&&!offSess){
+    if(!offSess){
+      offSrc=null;
       var eng=window.kefeExportEngine;
-      if(eng&&typeof eng.seekVideo==='function'){
-        var ok=await eng.seekVideo(vid,t);
-        if(!ok)ok=await eng.seekVideo(vid,t);
-        if(!ok)throw new Error('The background video stopped responding while exporting.');
+      if(!eng||typeof eng.seekVideo!=='function')throw new Error('The browser video decoder is unavailable for background export.');
+      var duration=vid.duration,base=((t%duration)+duration)%duration,ok=false;
+      /* A failed seek is not retried against the same decoder state. Nudge to a distinct timestamp,
+         then return to the requested frame so the media element performs a real decode cycle. */
+      for(var attempt=0;attempt<3&&!ok;attempt++){
+        var target=attempt===0?base:(base+Math.min(.12,.04*attempt))%duration;
+        ok=await eng.seekVideo(vid,target);
+        if(!ok&&attempt<2){
+          if(typeof eng.resetSeek==='function')eng.resetSeek(vid);
+          try{vid.currentTime=(target+.25)%duration;}catch(_){}
+          await sleep(40);
+        }
+      }
+      if(!ok)throw new Error('The background video decoder failed to produce a frame during export.');
+      /* Return to the exact requested timestamp after a recovery nudge. */
+      if(Math.abs(vid.currentTime-base)>.001){
+        if(typeof eng.resetSeek==='function')eng.resetSeek(vid);
+        if(!(await eng.seekVideo(vid,base)))throw new Error('The background video could not return to the requested export frame.');
       }
     }
     if(cctx&&size())paint(cctx,cv.width,cv.height,t);
