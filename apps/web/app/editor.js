@@ -2405,7 +2405,7 @@
       if(!mime)throw new Error('No supported video format in this browser.');
       const ext=mime.startsWith('video/mp4')?'mp4':'webm';
       const dims=dimsForRes(res);
-      const compositeFrame=makeCompositor(dims);
+      const compositeFrame=makeCompositor(dims),bg=window.kefeBackground;
       let recorder=null,ticker=null,frameTicker=null,stream=null,bufferTap=null;
       const ownedTracks=[];
       let stopPlaybackWait=null;
@@ -2429,10 +2429,11 @@
         const tapCtx=bufferTap?bufferTap.ac:(window.kefeAudioGraph?.context()||exportTap?.ac);
         const audioResume=tapCtx&&tapCtx.state==='suspended'?tapCtx.resume():Promise.resolve();
         compositeFrame();
+        bg?.beginMotionCheck?.();
         stream=compositeCanvas.captureStream(exportFps);
         stream.getTracks().forEach(t=>ownedTracks.push(t));
         let syncTick=0;
-        frameTicker=setInterval(()=>{if(signal.aborted)return;compositeFrame();if(++syncTick%Math.max(1,Math.round(exportFps/2))===0)window.kefeBackground?.sync?.();},1000/exportFps);
+        frameTicker=setInterval(()=>{if(signal.aborted)return;compositeFrame();bg?.sampleMotion?.(audio.currentTime);if(++syncTick%Math.max(1,Math.round(exportFps/2))===0)bg?.sync?.();},1000/exportFps);
         const audioTracks=audioStream?.getAudioTracks()||[];
         if(!audioTracks.length)throw new Error('KEFE could not capture an audio track on this device. Resume audio playback and retry; no silent video will be exported.');
         audioTracks.forEach(t=>{
@@ -2489,7 +2490,7 @@
         await stopped;
         if(signal.aborted)throw new DOMException('Export cancelled','AbortError');
         if(!chunks.length)throw new Error('The video encoder produced an empty file.');
-        return {blob:new Blob(chunks,{type:mime}),dims,ext,notes:[]};
+        return {blob:new Blob(chunks,{type:mime}),dims,ext,notes:[],bgMotion:bg?.offlineMotionReport?.()||null};
       }finally{
         if(stopPlaybackWait)stopPlaybackWait();
         if(ticker){clearInterval(ticker);ticker=null;}
@@ -2574,15 +2575,15 @@
           else if(info.audioSeconds<want-tol)problems.push('the audio is '+info.audioSeconds.toFixed(1)+' s but should be '+want.toFixed(1)+' s');
           if(bgMoving){
             const bm=r.bgMotion;
-            if(bm&&bm.checked>=2){
-              if(bm.motion==='frozen')problems.push('the uploaded background video is frozen');
-              else if(bm.motion==='stalled'&&bm.frozenRanges?.length){
-                const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
-                problems.push('the uploaded background video stopped changing between '+bm.frozenRanges.slice(0,3).map(r=>fmt(r[0])+' and '+fmt(r[1])).join(', '));
-              }else if(bm.motion!=='ok')problems.push('the uploaded background video motion could not be verified');
-            }else if(info.motion==='frozen')problems.push('the exported background video is frozen');
-            else if(info.motion==='stalled')problems.push('the exported background video contains a prolonged freeze');
-            else if(info.motion!=='ok')problems.push('the exported background video motion could not be verified');
+            if(info.motion==='frozen')problems.push('the exported picture is frozen');
+            else if(info.motion==='stalled')problems.push('the exported picture contains a prolonged freeze');
+            else if(info.motion!=='ok')problems.push('the exported picture motion could not be verified');
+            if(!bm||bm.checked<2)problems.push('the uploaded background video motion could not be independently verified');
+            else if(bm.motion==='frozen')problems.push('the uploaded background video is frozen');
+            else if(bm.motion==='stalled'&&bm.frozenRanges?.length){
+              const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+              problems.push('the uploaded background video stopped changing between '+bm.frozenRanges.slice(0,3).map(r=>fmt(r[0])+' and '+fmt(r[1])).join(', '));
+            }else if(bm.motion!=='ok')problems.push('the uploaded background video motion could not be verified');
           }
           const bs=r.bgStats;
           if(bs&&bs.unresolved>0)problems.push('the browser video decoder could not produce '+bs.unresolved+' requested background frames');
