@@ -3,16 +3,18 @@ import { dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "dist-beui");
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const root = resolve(scriptDir, "..", "dist-beui");
+const repoRoot = resolve(scriptDir, "../../..");
 const pages = ["index.html", "editor.html", "legal/privacy.html", "legal/terms.html", "apple-lyrics-standalone.html"];
 const failures = [];
 
-function checkLocalRef(pagePath, page, ref) {
+function checkLocalRef(pagePath, page, ref, assetRoot = root) {
   if (/^(?:https?:|data:|mailto:|tel:|#|javascript:)/i.test(ref)) return;
   const clean = decodeURIComponent(ref.split(/[?#]/, 1)[0]);
-  const target = clean.startsWith("/") ? resolve(root, `.${clean}`) : resolve(dirname(pagePath), clean);
-  if (!target.startsWith(root + sep) && target !== root) {
-    failures.push(`Path escapes build output in ${page}: ${ref}`);
+  const target = clean.startsWith("/") ? resolve(assetRoot, `.${clean}`) : resolve(dirname(pagePath), clean);
+  if (!target.startsWith(assetRoot + sep) && target !== assetRoot) {
+    failures.push(`Path escapes asset root in ${page}: ${ref}`);
     return;
   }
   if (!existsSync(target)) failures.push(`Missing asset from ${page}: ${ref}`);
@@ -27,6 +29,23 @@ for (const page of pages) {
   const html = readFileSync(pagePath, "utf8");
   const refs = [...html.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)].map((m) => m[1]);
   for (const ref of refs) checkLocalRef(pagePath, page, ref);
+}
+
+/* The root landing page is outside the Vite output. Check its local scripts, styles and links
+   against the repository root so landing-page-only changes receive the same asset-integrity gate. */
+{
+  const pagePath = resolve(repoRoot, "index.html");
+  if (!existsSync(pagePath)) {
+    failures.push("Missing root landing page: index.html");
+  } else {
+    const html = readFileSync(pagePath, "utf8");
+    const refs = [...html.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)].map((m) => m[1]);
+    for (const ref of refs) checkLocalRef(pagePath, "index.html", ref, repoRoot);
+    if (!html.includes('data-visualiser="lumina"')) failures.push("Landing page is missing its live Lumina visualiser stage.");
+    for (const effect of ["sigbrat", "apple", "sigpresscycle"]) {
+      if (!html.includes(`data-effect="${effect}"`)) failures.push(`Landing page is missing its live ${effect} lyric preview.`);
+    }
+  }
 }
 
 /* The PWA manifest must keep its stable, root-relative URL. A fingerprinted copy under

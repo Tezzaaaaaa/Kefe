@@ -13,6 +13,7 @@ on:
       - "apps/web/beui.vite.config.ts"
       - "apps/web/package.json"
       - "apps/web/scripts/**"
+      - "index.html"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/beui-publish.yml"
