@@ -9,6 +9,7 @@
  */
 window.KEFE_EFFECTS = [
   { key: 'apple', label: 'Apple', description: 'Apple Music-style focus-line animation', category: 'Core' },
+  { key: 'dotmatrix', label: 'Dot Matrix', description: 'Bold lyric letterforms constructed from a reactive grid of white circles and squares', category: 'Core' },
   { key: 'textswap', label: 'Text Swap', description: 'Cinematic line transitions with six selectable motion presets', category: 'Core' },
   { key: 'lyricpull', label: 'Lyric Pull', description: 'Cinematic word-by-word focus pull with motion blur and atmospheric colour', category: 'Core' },
   { key: 'sigfrost', label: 'Frost', description: 'Translucent illuminated lettering with a soft moving highlight', category: 'Signature Treatments' },
