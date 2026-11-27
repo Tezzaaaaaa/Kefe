@@ -266,7 +266,7 @@ html:root .kefe-editor #kefe-settings-panel .kefe-lyric-effect-name { font-size:
 
 /* ── Visualisers: gallery fills its row; presets never break mid-word; checkboxes stay 16px ── */
 html:root .kefe-editor #kefe-settings-panel .kv-grid.kv-gallery {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+  /* Gallery column count is owned by section-layout.css. */
 }
 html:root .kefe-editor #kefe-settings-panel .kefe-visualiser-form :is([role="tab"], .kefe-visualiser-preset-row .kefe-btn),
 html:root .kefe-editor #kefe-settings-panel .kefe-visualiser-preset-row .kefe-btn {
