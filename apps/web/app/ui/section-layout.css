@@ -1,213 +1,289 @@
-/* KEFE — section layout layer for Lyric Effects, Background and Visualisers.
-
-   One scoped, final layer that makes the three gallery sections read the same way on
-   every screen: full-width, edge-to-edge justified grids, a live example on every card,
-   and settings rows that always span the column.
-
-   Scope: the desktop settings shell (#kefe-settings-panel) and the mobile sheet host
-   (.kefe-ms-host). Loaded after styles.css, panels-compact.css and the shadcn layer, so it
-   wins by order and by the ID-level specificity of the :is() scope below. */
+/* KEFE — unified editor section layout.
+   One authoritative layer for gallery geometry, control rhythm and responsive cards.
+   The editor shell and workspace scrolling remain owned by layout-lock.css. */
 
 :is(#kefe-settings-panel, .kefe-ms-host) {
   --sl-gap: 8px;
-  --sl-card-radius: var(--r2, 8px);
-  --sl-card-border: var(--line, rgba(255, 255, 255, .12));
-  --sl-card-bg: var(--surface, #1f2026);
-  --sl-card-active: var(--effect-accent, var(--accent, #d92f33));
+  --sl-border: var(--shad-border, var(--line, rgba(255,255,255,.12)));
+  --sl-surface: var(--shad-card, var(--surface, #202126));
+  --sl-text: var(--shad-foreground, var(--text, #f5f5f5));
+  --sl-muted: var(--shad-muted-foreground, var(--muted, #9295a0));
+  --sl-accent: var(--shad-primary, var(--accent, #d92f33));
 }
 
-/* ── Shared alignment: every control column spans the section edge to edge ───────── */
 :is(#kefe-settings-panel, .kefe-ms-host) :is(.kefe-form, .kefe-visualiser-form) {
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  box-sizing: border-box;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) :is(.kefe-form, .kefe-visualiser-form) > * {
   min-width: 0;
   max-width: 100%;
 }
+
+/* Controls share one predictable label/value/track rhythm. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+}
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span > output {
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field :is(.shad-slider-host, .shad-slider) {
-  width: 100%;
+  min-width: 0;
 }
 
-/* ── Lyric Effects: every effect visible in one justified grid, no carousel ───────── */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span > b {
+  min-width: 0;
+  color: var(--sl-text);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span > output {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--sl-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.shad-slider-host, .shad-slider) {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Lyric effects: six readable previews in view, with the full library scrolling inside. */
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-lyric-effect-carousel {
   display: block;
   position: static;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
+  overflow: visible;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-lyric-effect-carousel-nav,
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-carousel-dots,
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-lyric-effects-control + .kefe-carousel-dots {
-  display: none !important;
+  display: none;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) #lyricEffectOptions {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)) !important;
-  grid-auto-rows: auto;
-  gap: var(--sl-gap);
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
+.kefe-editor .kefe-ms-host #lyricEffectOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: row;
+  grid-auto-rows: 112px;
   align-content: start;
-  flex-flow: initial;
+  align-items: stretch;
+  gap: var(--sl-gap);
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: 0;
+  height: 232px;
+  min-height: 232px;
+  max-height: 232px;
+  padding: 4px 8px 4px 2px;
   overflow-x: hidden;
-  overflow-y: visible;
-  scroll-snap-type: none;
-}
-#kefe-settings-panel #lyricEffectOptions {
-  max-height: min(460px, 58vh);
   overflow-y: auto;
-  padding: 2px 6px 2px 2px;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) #lyricEffectOptions > .kefe-lyric-effect-option {
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions > .kefe-lyric-effect-option,
+.kefe-editor .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
+  display: flex;
   flex: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  margin: 0;
+  padding: 6px;
+  overflow: hidden;
+  border: 1px solid var(--sl-border);
+  border-radius: 8px;
+  background: var(--sl-surface);
+  color: var(--sl-text);
+  opacity: 1;
+  visibility: visible;
+  scroll-snap-align: none;
+}
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions > .kefe-lyric-effect-option:is(.active, [aria-pressed="true"]),
+.kefe-editor .kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option:is(.active, [aria-pressed="true"]) {
+  border-color: var(--sl-accent);
+  background: color-mix(in srgb, var(--sl-accent) 12%, var(--sl-surface));
+}
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions .kefe-lyric-effect-sample,
+.kefe-editor .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-sample {
+  display: grid;
+  flex: 0 0 64px;
+  place-items: center;
+  width: 100%;
+  height: 64px;
+  min-height: 64px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 18%);
+}
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions .kefe-lyric-effect-canvas,
+.kefe-editor .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions .kefe-lyric-effect-name,
+.kefe-editor .kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-name {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: 1.3em;
+  margin: 0;
+  overflow: hidden;
+  color: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar,
+.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar {
+  width: 8px;
+}
+
+.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar-thumb,
+.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--sl-muted) padding-box;
+}
+
+/* Background-effect cards use the same grid and selection language. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sl-gap);
+  width: 100%;
+  min-width: 0;
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-options > .kefe-background-effect-card {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
   width: 100%;
   min-width: 0;
-  min-height: 0 !important;
-  height: auto !important;
-  margin: 0;
-  padding: 6px 6px 7px;
-  border-radius: var(--sl-card-radius);
-  scroll-snap-align: none;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) #lyricEffectOptions .kefe-lyric-effect-sample {
-  display: grid;
-  place-items: center;
-  width: 100%;
+  max-width: none;
   height: auto;
-  aspect-ratio: 2 / 1;
-  min-height: 0;
   margin: 0;
-  overflow: hidden;
-  border-radius: calc(var(--sl-card-radius) - 2px);
+  padding: 7px;
+  border: 1px solid var(--sl-border);
+  border-radius: 8px;
+  background: var(--sl-surface);
+  color: var(--sl-text);
+  text-align: center;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) #lyricEffectOptions .kefe-lyric-effect-canvas {
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-card:is(.is-active, .active, [aria-pressed="true"]) {
+  border-color: var(--sl-accent);
+  background: color-mix(in srgb, var(--sl-accent) 12%, var(--sl-surface));
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-card .kefe-background-effect-preview {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: 68px;
+  min-height: 0;
+  aspect-ratio: auto;
+  border-radius: 6px;
+  overflow: hidden;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) #lyricEffectOptions .kefe-lyric-effect-name {
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-card .kefe-background-effect-name {
   display: block;
   min-width: 0;
+  margin: 0;
   overflow: hidden;
-  flex: none;
-  min-height: 0 !important;
-  height: auto !important;
+  color: inherit;
   font-size: 12px;
   font-weight: 650;
-  line-height: 1.2;
+  line-height: 1.25;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ── Background: uniform cards, each with its own example thumbnail ──────────────── */
-@media (min-width: 361px) {
-  :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-options {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)) !important;
-    gap: var(--sl-gap) !important;
-    width: 100%;
-  }
-  :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-options > .kefe-background-effect-card {
-    display: flex !important;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 6px !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: auto !important;
-    margin: 0;
-    padding: 6px 6px 7px !important;
-    border-radius: var(--sl-card-radius) !important;
-    text-align: center;
-  }
-  :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-card .kefe-background-effect-preview {
-    display: block;
-    width: 100% !important;
-    height: 60px !important;
-    min-height: 0 !important;
-    aspect-ratio: auto !important;
-    border-radius: calc(var(--sl-card-radius) - 2px) !important;
-  }
-  :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-card .kefe-background-effect-name {
-    display: block;
-    min-width: 0;
-    overflow: hidden;
-    flex: none;
-    min-height: 0 !important;
-    height: auto !important;
-    font-size: 12px !important;
-    font-weight: 650;
-    line-height: 1.2 !important;
-    text-align: center;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-@media (min-width: 1024px) {
-  :is(#kefe-settings-panel) .kefe-background-effect-card .kefe-background-effect-preview {
-    height: 84px !important;
-  }
-}
-
-/* ── Visualisers: one justified gallery — every row fills the full width ─────────── */
+/* Visualiser gallery: two clear columns, live preview first, no redundant descriptions. */
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-vis-tabs {
-  display: block !important;
-  width: 100% !important;
+  display: block;
+  width: 100%;
   max-width: 100%;
-  margin: 0 !important;
-  padding: 0 !important;
-  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   background: transparent;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-vis-tabs[hidden] {
-  display: none !important;
+  display: none;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .shad-vis-tabs-host {
   width: 100%;
   min-width: 0;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kv-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sl-gap);
   width: 100%;
   min-width: 0;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kv-gallery > .kv-card {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   min-width: 0;
   max-width: none;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kv-card .kv-desc {
-  display: none !important;
+  display: none;
 }
 
-#kefe-settings-panel .kv-card .kv-preview {
+:is(#kefe-settings-panel, .kefe-ms-host) .kv-card .kv-preview {
+  width: 100%;
   aspect-ratio: 16 / 9;
 }
 
-/* Settings area under the gallery: a header that names the engine being edited. */
+/* The selected visualiser's settings remain visibly connected to its gallery card. */
 .kefe-vis-settings-head {
   display: flex;
   align-items: baseline;
@@ -216,46 +292,42 @@
   width: 100%;
   margin: 12px 0 4px;
   padding: 0 2px 6px;
-  border-bottom: 1px solid var(--line-soft, rgba(255, 255, 255, .08));
+  border-bottom: 1px solid var(--line-soft, rgba(255,255,255,.08));
   box-sizing: border-box;
 }
+
 .kefe-vis-settings-head[hidden] {
   display: none;
 }
+
 .kefe-vis-settings-title {
   min-width: 0;
   overflow: hidden;
+  color: var(--text);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: .04em;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--text);
 }
+
 .kefe-vis-settings-hint {
   margin: 0;
-  font-size: 12px;
   color: var(--muted, #8b8e99);
+  font-size: 12px;
   text-align: right;
 }
 
-/* ── Mobile sheet: hide empty single-group tab strip ───────── */
-@media (max-width: 1023px) {
-  /* The empty tab strip (one group only) must not leave a blank bar. */
-  .kefe-ms-surface-head [data-slot="tabs"][hidden] {
-    display: none !important;
-  }
+#kefe-settings-panel .kefe-vis-settings-head {
+  scroll-margin-top: 76px;
 }
 
-/* Tablet widths on the desktop shell: three across. */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  #kefe-settings-panel .kv-gallery > .kv-card {
-    flex-basis: calc((100% - 20px) / 3);
-  }
+#kefe-settings-panel .kefe-visualiser-panel-head {
+  display: none;
 }
 
-/* ── Visualiser settings: justified mode buttons and stacked, untruncated sliders ── */
+/* Gallery controls and presets remain full-width and easy to scan. */
 :is(#kefe-settings-panel, .kefe-ms-host) :is(
   .kefe-liquid-glass-modes,
   .kefe-slow-light-scenes,
@@ -267,6 +339,7 @@
   gap: 6px;
   width: 100%;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) :is(
   .kefe-liquid-glass-modes,
   .kefe-slow-light-scenes,
@@ -277,82 +350,22 @@
   justify-content: center;
   text-align: center;
 }
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  width: 100%;
-  min-width: 0;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span {
-  min-width: 0;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span > b {
-  min-width: 0;
-  overflow: visible;
-  text-overflow: clip;
-  white-space: normal;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field {
-  grid-template-columns: minmax(0, 1fr) !important;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(span, .shad-slider-host, .shad-slider-host) {
-  grid-column: 1 / -1 !important;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.shad-slider-host, .shad-slider-host) {
-  width: 100% !important;
-  min-width: 0;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span { order: 0 !important; }
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.shad-slider-host, .shad-slider-host) { order: 1 !important; }
-/* Stacked slider rows: label and value on one line, full-width track beneath. */
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span {
-  display: flex !important;
-  grid-row: 1 !important;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > span > :is(b, output) {
-  grid-column: auto !important;
-  grid-row: auto !important;
-  white-space: normal !important;
-  overflow: visible !important;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-visualiser-field > :is(.shad-slider-host, .shad-slider-host) {
-  grid-row: 2 !important;
-}
 
-/* Fetched lyric alignment and compact three-way control. */
+/* Three-way lyric alignment control. */
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-lyric-alignment {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
   width: 100%;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-lyric-alignment > button {
-  min-width: 0;
   width: 100%;
+  min-width: 0;
   justify-content: center;
 }
 
-
-/* Keep the Lyric Effects gallery independently scrollable so the preview stage
-   remains in view while users browse the complete effect list. */
-:is(#kefe-settings-panel, .kefe-ms-host) #lyricEffectOptions {
-  max-height: min(420px, 48vh);
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  scrollbar-gutter: stable;
-  -webkit-overflow-scrolling: touch;
-}
-#kefe-settings-panel #lyricEffectOptions {
-  max-height: min(460px, 52vh);
-}
-.kefe-ms-host #lyricEffectOptions {
-  max-height: min(340px, 38vh);
-}
-
-/* Previous/next controls stay beside the Lyrics power switch in Appearance.
-   They change the effect rendered in the preview without covering the canvas. */
+/* Previous/next controls sit beside the Lyrics power switch, not over the preview. */
 .kefe-lyrics-power > .kefe-lyric-effect-preview-nav {
   position: static;
   z-index: auto;
@@ -370,312 +383,8 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-.kefe-lyric-effect-preview-button {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--inner);
-  font: inherit;
-  font-size: 21px;
-  line-height: 1;
-  cursor: pointer;
-}
-.kefe-lyric-effect-preview-button:hover:not(:disabled) {
-  background: var(--surface-hi);
-  box-shadow: var(--lift);
-}
-.kefe-lyric-effect-preview-button:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.kefe-lyric-effect-preview-button:disabled { opacity: .35; cursor: default; }
-.kefe-lyric-effect-preview-count {
-  min-width: 38px;
-  color: var(--muted);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-@media (max-width: 700px) {
-  .kefe-lyrics-power > .kefe-lyric-effect-preview-nav { gap: 3px; margin-right: 0; }
-  .kefe-lyric-effect-preview-button { width: 26px; height: 26px; }
-  .kefe-lyric-effect-preview-count { min-width: 32px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .kefe-lyric-effect-preview-button { transition: none; }
-}
 
-/* Text Swap exposes its motion presets only while that lyric effect is selected. */
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-text-swap-settings {
-  display:grid; grid-template-columns:minmax(0,1fr); gap:6px; width:100%; margin:10px 0 2px;
-}
-.kefe-text-swap-settings[hidden] { display:none !important; }
-.kefe-text-swap-settings > span { color:var(--muted,#9295a0); font-size:11px; font-weight:650; }
-.kefe-text-swap-settings > select { width:100%; min-width:0; }
-
-
-/* Lyric Effects gallery: six complete, readable cards in a fixed viewport.
-   Explicit card rows prevent fractional grid sizing from squeezing previews and labels. */
-.kefe-lyric-effect-carousel {
-  display: block !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  overflow: visible !important;
-}
-.kefe-lyric-effect-carousel > .kefe-lyric-effect-carousel-nav {
-  display: none !important;
-}
-#kefe-settings-panel #lyricEffectOptions,
-#kefe-settings-panel .kefe-workspace #lyricEffectOptions,
-.kefe-ms-host #lyricEffectOptions {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  grid-template-rows: none !important;
-  grid-auto-flow: row !important;
-  grid-auto-rows: 112px !important;
-  align-content: start !important;
-  align-items: stretch !important;
-  gap: 8px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  height: 232px !important;
-  min-height: 232px !important;
-  max-height: 232px !important;
-  padding: 4px 8px 4px 2px !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  overscroll-behavior-y: contain;
-  scrollbar-gutter: stable;
-  -webkit-overflow-scrolling: touch;
-}
-#kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option,
-#kefe-settings-panel .kefe-workspace #lyricEffectOptions > .kefe-lyric-effect-option,
-.kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option {
-  display: flex !important;
-  flex: none !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  justify-content: flex-start !important;
-  gap: 6px !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  height: auto !important;
-  max-height: none !important;
-  margin: 0 !important;
-  padding: 6px !important;
-  overflow: hidden !important;
-  border: 1px solid var(--sl-card-border, rgba(255,255,255,.16)) !important;
-  border-radius: var(--sl-card-radius, 8px) !important;
-  background: var(--sl-card-bg, #1f2026) !important;
-  color: var(--text-primary, var(--text, #f5f5f5)) !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-#kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option.active,
-#kefe-settings-panel #lyricEffectOptions > .kefe-lyric-effect-option[aria-pressed="true"],
-.kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option.active,
-.kefe-ms-host #lyricEffectOptions > .kefe-lyric-effect-option[aria-pressed="true"] {
-  border-color: var(--sl-card-active, var(--accent, #d92f33)) !important;
-  background: color-mix(in srgb, var(--sl-card-active, var(--accent, #d92f33)) 12%, var(--sl-card-bg, #1f2026)) !important;
-}
-#kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-sample,
-.kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-sample {
-  display: grid !important;
-  place-items: center !important;
-  flex: 0 0 64px !important;
-  width: 100% !important;
-  height: 64px !important;
-  min-height: 64px !important;
-  aspect-ratio: auto !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  border-radius: 5px !important;
-  background: rgba(0,0,0,.18) !important;
-}
-#kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-canvas,
-.kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-canvas {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  object-fit: contain !important;
-}
-#kefe-settings-panel #lyricEffectOptions .kefe-lyric-effect-name,
-.kefe-ms-host #lyricEffectOptions .kefe-lyric-effect-name {
-  display: block !important;
-  flex: 0 0 auto !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  height: auto !important;
-  max-height: 1.3em !important;
-  overflow: hidden !important;
-  color: inherit !important;
-  font-size: 12px !important;
-  font-weight: 650 !important;
-  line-height: 1.25 !important;
-  text-align: center !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-@media (max-width: 1023px) {
-  #kefe-settings-panel #lyricEffectOptions,
-  #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
-  .kefe-ms-host #lyricEffectOptions {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-rows: 112px !important;
-    height: 336px !important;
-    min-height: 336px !important;
-    max-height: 336px !important;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  #kefe-settings-panel #lyricEffectOptions,
-  .kefe-ms-host #lyricEffectOptions {
-    scroll-behavior: auto;
-  }
-}
-
-
-/* Final mobile workspace override: panel.css otherwise disables gallery scrolling. */
-.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
-.kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel #lyricEffectOptions,
-.kefe-editor .kefe-ms-host #lyricEffectOptions {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  grid-auto-flow: row !important;
-  grid-auto-rows: 112px !important;
-  align-content: start !important;
-  height: 232px !important;
-  min-height: 232px !important;
-  max-height: 232px !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  overscroll-behavior-y: contain !important;
-  -webkit-overflow-scrolling: touch !important;
-  touch-action: pan-y !important;
-  scrollbar-width: auto !important;
-  scrollbar-gutter: stable;
-  scroll-behavior: smooth;
-}
-.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar,
-.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar {
-  width: 9px;
-}
-.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar-thumb,
-.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar-thumb {
-  border: 2px solid transparent;
-  border-radius: 9px;
-  background: var(--text-secondary, #888) padding-box;
-}
-.kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions::-webkit-scrollbar-track,
-.kefe-editor .kefe-ms-host #lyricEffectOptions::-webkit-scrollbar-track {
-  background: transparent;
-}
-@media (max-width: 1023px) {
-  .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
-  .kefe-editor #kefe-settings-panel .kefe-workspace .kefe-lyric-effect-carousel #lyricEffectOptions,
-  .kefe-editor .kefe-ms-host #lyricEffectOptions {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-rows: 112px !important;
-    height: 336px !important;
-    min-height: 336px !important;
-    max-height: 336px !important;
-  }
-}
-
-/* Visualisers: the gallery stays compact so the chosen engine's settings sit right under it. */
-#kefe-settings-panel .kefe-vis-settings-head { scroll-margin-top: 76px; }
-#kefe-settings-panel .kefe-visualiser-panel-head { display: none; }
-@media (max-width: 420px) {
-  #kefe-settings-panel .kv-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #kefe-settings-panel .kv-tab { flex-direction: column; }
-  #kefe-settings-panel .kv-preview { flex: none; width: 100%; aspect-ratio: 16 / 9; }
-}
-
-/* Media panel: Audio/video and Background video cards are the same size, top-aligned, with no empty space around them. */
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  grid-auto-rows: auto !important;
-  align-items: start !important;
-  gap: 10px !important;
-}
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > #kefeUploadZone,
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap {
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  align-self: start !important;
-}
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeUploadZone,
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row #kefeBgVideoZone {
-  display: block !important;
-  box-sizing: border-box !important;
-  width: 100% !important;
-  height: 96px !important;
-  min-height: 96px !important;
-  max-height: 96px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  grid-column: auto !important;
-}
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-card {
-  display: grid !important;
-  place-items: center;
-  box-sizing: border-box;
-  width: 100% !important;
-  height: 100% !important;
-  padding: 5px 4px !important;
-}
-:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap > .shad-upload-file:not([hidden]) {
-  margin-top: 8px;
-}
-@media (max-width: 359px) {
-  :is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-}
-
-
-/* Background controls mirror the Lyric Effects power row: label, switch and
-   previous/current/next navigation share one aligned control line. */
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > h3 {
-  flex: 1 1 auto;
-  min-width: 0;
-  margin: 0;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > .kefe-background-effect-toggle {
-  flex: 0 0 auto;
-  order: 2;
-}
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > .kefe-background-effect-preview-nav {
-  flex: 0 0 auto;
-  order: 3;
-  margin: 0 2px 0 0;
-}
+.kefe-lyric-effect-preview-button,
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button {
   display: grid;
   place-items: center;
@@ -692,20 +401,126 @@
   line-height: 1;
   cursor: pointer;
 }
+
+.kefe-lyric-effect-preview-button:hover:not(:disabled),
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button:hover:not(:disabled) {
+  background: var(--surface-hi);
+  box-shadow: var(--lift);
+}
+
+.kefe-lyric-effect-preview-button:focus-visible,
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.kefe-lyric-effect-preview-button:disabled,
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button:disabled {
   opacity: .35;
   cursor: default;
 }
-@media (max-width: 700px) {
-  :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button {
-    width: 26px;
-    height: 26px;
-  }
+
+.kefe-lyric-effect-preview-count {
+  min-width: 38px;
+  color: var(--muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
 
-/* ── Identified track: reserve a dedicated artwork column ─────────────────────────
-   Keep the metadata copy in its own shrinkable column so long titles and artist names
-   wrap or truncate beside the cover instead of painting over it. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > .kefe-background-effect-toggle {
+  flex: 0 0 auto;
+  order: 2;
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effects-heading > .kefe-background-effect-preview-nav {
+  flex: 0 0 auto;
+  order: 3;
+  margin: 0 2px 0 0;
+}
+
+/* Text Swap controls appear only when their effect is selected. */
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-text-swap-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  width: 100%;
+  margin: 10px 0 2px;
+}
+
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-text-swap-settings[hidden] {
+  display: none;
+}
+
+.kefe-text-swap-settings > span {
+  color: var(--muted, #9295a0);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.kefe-text-swap-settings > select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Upload targets align as a pair and retain their own file-state details. */
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 10px;
+}
+
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > :is(#kefeUploadZone, .shad-upload-wrap) {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  align-self: start;
+}
+
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row :is(#kefeUploadZone, #kefeBgVideoZone) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 96px;
+  min-height: 96px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row .kefe-upload-card {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 5px 4px;
+}
+
+:is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row > .shad-upload-wrap > .shad-upload-file:not([hidden]) {
+  margin-top: 8px;
+}
+
+/* Identified track: artwork and metadata occupy separate, shrink-safe columns. */
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details > .kefe-song-details-track {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -713,6 +528,7 @@
   column-gap: 10px;
   min-width: 0;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details-track .kefe-media-track-art {
   grid-column: 1;
   grid-row: 1 / -1;
@@ -724,14 +540,80 @@
   min-height: 40px;
   object-fit: cover;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details-track > :not(.kefe-media-track-art) {
   grid-column: 2;
   min-width: 0;
   max-width: 100%;
 }
+
 :is(#kefe-settings-panel, .kefe-ms-host) .kefe-song-details-track :is(h3, h4, p, span, small, strong, b) {
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
 }
 
+/* Avoid an empty tab row when a workspace has only one group. */
+@media (max-width: 1023px) {
+  .kefe-ms-surface-head [data-slot="tabs"][hidden] {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
+  .kefe-editor .kefe-ms-host #lyricEffectOptions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: 336px;
+    min-height: 336px;
+    max-height: 336px;
+  }
+
+  :is(#kefe-settings-panel, .kefe-ms-host) .kv-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :is(#kefe-settings-panel, .kefe-ms-host) .kv-tab {
+    flex-direction: column;
+  }
+
+  :is(#kefe-settings-panel, .kefe-ms-host) .kv-preview {
+    flex: none;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 700px) {
+  .kefe-lyrics-power > .kefe-lyric-effect-preview-nav {
+    gap: 3px;
+    margin-right: 0;
+  }
+
+  .kefe-lyric-effect-preview-button,
+  :is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-preview-button {
+    width: 26px;
+    height: 26px;
+  }
+
+  .kefe-lyric-effect-preview-count {
+    min-width: 32px;
+  }
+}
+
+@media (max-width: 359px) {
+  :is(.kefe-editor, .kefe-ms-host) .kefe-panel[data-panel-view="media"] .kefe-media-upload-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kefe-lyric-effect-preview-button {
+    transition: none;
+  }
+
+  .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions,
+  .kefe-editor .kefe-ms-host #lyricEffectOptions {
+    scroll-behavior: auto;
+  }
+}
