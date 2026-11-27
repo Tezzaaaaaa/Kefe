@@ -40,7 +40,7 @@
     const cols=Math.ceil(w/spacing),rows=Math.ceil(h/spacing),beat=Math.sin(time*8.8)*.5+.5;
     for(let gy=0;gy<rows;gy++)for(let gx=0;gx<cols;gx++){
       const x=gx*spacing+spacing/2,y=gy*spacing+spacing/2;
-      const ix=Math.min(mask.width-1,Math.max(0,Math.round(x))),iy=Math.min(mask.height-1,Math.max(0,Math.round(y))));
+      const ix=Math.min(mask.width-1,Math.max(0,Math.round(x))),iy=Math.min(mask.height-1,Math.max(0,Math.round(y)));
       if(data[(iy*mask.width+ix)*4+3]<90)continue;
       const cellProgress=(gx/Math.max(1,cols-1));
       const wave=(Math.sin(gy*.32-time*3.4)+1)*.5;
