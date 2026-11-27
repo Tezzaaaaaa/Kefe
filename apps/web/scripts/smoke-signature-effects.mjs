@@ -61,7 +61,7 @@ for (const [category,key] of TYPOGRAPHY) {
  assert.equal(entry.category, `Typography — ${category}`, `${key} must retain its reference category`);
  assert.ok(entry.label&&entry.description, `${key} needs a label and description`);
 }
-const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && key !== "lyricpull" && !key.startsWith("sig") && !key.startsWith("ty-") && !key.startsWith("lf-"));
+const legacy = Array.from(manifestKeys).filter(key => key !== "apple" && key !== "textswap" && key !== "lyricpull" && key !== "dotmatrix" && !key.startsWith("sig") && !key.startsWith("ty-") && !key.startsWith("lf-"));
 assert.deepEqual(legacy, [], `legacy effects must be removed from the roster: ${legacy.join(", ")}`);
 
 /* ---- page wiring ------------------------------------------------- */
@@ -71,6 +71,9 @@ assert.match(editor, /<meta name="kefe-typography-effects" content="97">/, "the 
 assert.match(editor, /<meta name="kefe-lyricfx-effects" content="50">/, "the editor must declare the LyricFX pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
 assert.match(editor, /lyric-dot-matrix\.js/, "Dot Matrix renderer must be loaded by the editor");
+const dotMatrix = read("app/effects/lyric-dot-matrix.js");
+assert.match(dotMatrix, /E\.dotmatrix\s*=/, "Dot Matrix must expose its canvas renderer");
+for (const control of ["shape", "density", "motion", "reveal"]) assert.ok(dotMatrix.includes(control), `Dot Matrix must expose ${control} control`);
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
 assert.match(editor, /lyric-signature-four\.js/, "the four new Signature treatments must be loaded by the editor");
