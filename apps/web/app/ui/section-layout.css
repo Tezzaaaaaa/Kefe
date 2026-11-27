@@ -461,7 +461,7 @@
   margin: 10px 0 2px;
 }
 
-.kefe-text-swap-settings[hidden] {
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-text-swap-settings[hidden] {
   display: none;
 }
 
