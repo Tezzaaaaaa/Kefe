@@ -31,8 +31,9 @@ vm.createContext(sandbox);
 vm.runInContext(read("app/effects/manifest.js"), sandbox, { filename: "manifest.js" });
 const manifest = sandbox.window.KEFE_EFFECTS;
 assert.ok(Array.isArray(manifest), "manifest must publish KEFE_EFFECTS");
-assert.equal(manifest.length, 206, `roster must be Apple + Text Swap + Lyric Pull + 56 Signature + 97 typography + 50 LyricFX Matrix effects, found ${manifest.length}`);
+assert.equal(manifest.length, 207, `roster must include Dot Matrix alongside Apple + Text Swap + Lyric Pull + 56 Signature + 97 typography + 50 LyricFX Matrix effects, found ${manifest.length}`);
 assert.equal(manifest[0].key, "apple", "Apple must stay first in the roster");
+assert.ok(manifest.some(item => item.key === "dotmatrix"), "Dot Matrix must be in the effect roster");
 assert.equal(manifest.filter(item => item.key === "apple").length, 1, "Apple must be listed exactly once");
 const manifestKeys = Array.from(manifest, item => item.key);
 assert.equal(new Set(manifestKeys).size, manifestKeys.length, "effect keys must be unique");
@@ -69,6 +70,7 @@ assert.match(editor, /<meta name="kefe-lyric-signature" content="56">/, "the edi
 assert.match(editor, /<meta name="kefe-typography-effects" content="97">/, "the editor must declare the typography pack marker");
 assert.match(editor, /<meta name="kefe-lyricfx-effects" content="50">/, "the editor must declare the LyricFX pack marker");
 assert.match(editor, /lyric-apple\.js/, "the Apple renderer must stay loaded");
+assert.match(editor, /lyric-dot-matrix\.js/, "Dot Matrix renderer must be loaded by the editor");
 assert.match(editor, /lyric-karaoke\.js/, "the Karaoke and Bounce renderers must stay loaded");
 assert.match(editor, /lyric-signature-pack\.js/, "the Signature pack must be loaded by the editor");
 assert.match(editor, /lyric-signature-four\.js/, "the four new Signature treatments must be loaded by the editor");
