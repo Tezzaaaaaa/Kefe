@@ -238,9 +238,7 @@ html:root .kefe-editor .kefe-effect-search { display: flex !important; align-ite
 html:root .kefe-editor .kefe-effect-search input { flex: 1 1 auto !important; height: 36px !important; }
 html:root .kefe-editor .kefe-effect-search-status { flex: 0 0 auto !important; margin: 0 !important; }
 html:root .kefe-editor #kefe-settings-panel .kefe-workspace #lyricEffectOptions.kefe-lyric-effect-grid {
-  /* Column count and viewport height are owned by section-layout.css. */
-  gap: var(--lk-gap-s, 8px) !important;
-  padding: 2px !important;
+  /* Geometry is owned by section-layout.css. */
   overscroll-behavior: contain;
 }
 html:root .kefe-editor #kefe-settings-panel .kefe-lyric-effect-option {
