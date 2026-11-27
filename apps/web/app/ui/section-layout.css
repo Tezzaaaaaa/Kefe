@@ -4,10 +4,8 @@
 
 :is(#kefe-settings-panel, .kefe-ms-host) {
   --sl-gap: 8px;
-  --sl-radius: 10px;
   --sl-border: var(--shad-border, var(--line, rgba(255,255,255,.12)));
   --sl-surface: var(--shad-card, var(--surface, #202126));
-  --sl-surface-hover: var(--shad-card-elevated, var(--surface-hi, #292a31));
   --sl-text: var(--shad-foreground, var(--text, #f5f5f5));
   --sl-muted: var(--shad-muted-foreground, var(--muted, #9295a0));
   --sl-accent: var(--shad-primary, var(--accent, #d92f33));
@@ -212,7 +210,7 @@
   text-align: center;
 }
 
-:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-card:is(.active, [aria-pressed="true"]) {
+:is(#kefe-settings-panel, .kefe-ms-host) .kefe-background-effect-card:is(.is-active, .active, [aria-pressed="true"]) {
   border-color: var(--sl-accent);
   background: color-mix(in srgb, var(--sl-accent) 12%, var(--sl-surface));
 }
